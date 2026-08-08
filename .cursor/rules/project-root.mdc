@@ -1,0 +1,14 @@
+---
+description: Canonical project workspace path for all Street Cat Interview work
+alwaysApply: true
+---
+
+# Project root
+
+All future edits, scripts, assets, commits, and Unity work for this game MUST use this repository path:
+
+`D:\Street_Cat_Interview\github\Street_Cat_Interview`
+
+Do **not** modify the older sibling workspace `D:\Street_Cat_Interview` (outside `github\`) unless the user explicitly asks. Treat that tree as legacy / out of date.
+
+When opening files, running shells, or wiring Unity MCP, default cwd and absolute paths to the path above.

@@ -75,6 +75,8 @@ namespace StreetCat.Data
         public const string LinUnlocked = "LIN_UNLOCKED";
         public const string LinInterviewDone = "LIN_INTERVIEW_DONE";
         public const string WritingUnlocked = "WRITING_UNLOCKED";
+        /// <summary>SC-10 intro dialogue finished; writing desk UI may open directly.</summary>
+        public const string WritingDeskReady = "WRITING_DESK_READY";
         public const string ArticlePublished = "ARTICLE_PUBLISHED";
         public const string Chapter1Complete = "CHAPTER1_COMPLETE";
         public const string InvestigateTutorialShown = "INVESTIGATE_TUTORIAL";

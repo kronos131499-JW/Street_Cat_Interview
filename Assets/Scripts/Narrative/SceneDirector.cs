@@ -28,6 +28,10 @@ namespace StreetCat.Narrative
         public LineSpeaker speaker = LineSpeaker.Character;
         public string speakerName;
         public string text;
+        /// <summary>Optional portrait state from script, e.g. 惊讶 / 思考 / default.</summary>
+        public string portrait;
+        /// <summary>Optional stage background label from 【背景：…】.</summary>
+        public string background;
         public string setFlag;
         public string grantIntel;
         public string noteLine;
@@ -35,6 +39,7 @@ namespace StreetCat.Narrative
         public string nextSceneId;
         public bool openInvestigation;
         public bool openTalkMenu;
+        public bool openWriting;
         public List<ScriptChoice> choices = new List<ScriptChoice>();
     }
 
@@ -69,6 +74,7 @@ namespace StreetCat.Narrative
         Action onSceneEnd;
         Action onOpenInvestigation;
         Action onOpenTalkMenu;
+        Action onOpenWriting;
 
         public ScriptScene Current => current;
         public bool HasMore => current != null && index < current.lines.Count;
@@ -94,12 +100,13 @@ namespace StreetCat.Narrative
             }
         }
 
-        public void Bind(Action<ScriptLine> lineHandler, Action sceneEnd, Action openInvest, Action openTalk)
+        public void Bind(Action<ScriptLine> lineHandler, Action sceneEnd, Action openInvest, Action openTalk, Action openWriting = null)
         {
             onLine = lineHandler;
             onSceneEnd = sceneEnd;
             onOpenInvestigation = openInvest;
             onOpenTalkMenu = openTalk;
+            onOpenWriting = openWriting;
         }
 
         public void PlayScene(string sceneId)
@@ -186,7 +193,7 @@ namespace StreetCat.Narrative
         {
             if (line == null) return true;
             if (line.choices != null && line.choices.Count > 0) return true;
-            if (line.openInvestigation || line.openTalkMenu) return true;
+            if (line.openInvestigation || line.openTalkMenu || line.openWriting) return true;
             return false;
         }
 
@@ -226,6 +233,8 @@ namespace StreetCat.Narrative
                 onOpenInvestigation?.Invoke();
             if (line.openTalkMenu)
                 onOpenTalkMenu?.Invoke();
+            if (line.openWriting)
+                onOpenWriting?.Invoke();
         }
 
         void ApplyLineEffects(ScriptLine line)

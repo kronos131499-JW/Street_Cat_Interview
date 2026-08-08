@@ -82,7 +82,7 @@ namespace StreetCat.Core
                 gameUi.ShowInterview(InterviewSubject.Lin);
                 return;
             }
-            if (mode == "writing" || id == SceneIds.SC10)
+            if (mode == "writing" || (id == SceneIds.SC10 && GameState.Instance.HasFlag(FlagIds.WritingDeskReady)))
             {
                 gameUi.ShowWriting();
                 return;
@@ -121,8 +121,17 @@ namespace StreetCat.Core
                     break;
                 case SceneIds.SC10:
                     GameState.Instance.SetFlag(FlagIds.WritingUnlocked);
-                    GameState.Instance.Data.uiMode = "writing";
-                    gameUi.ShowWriting();
+                    if (GameState.Instance.HasFlag(FlagIds.WritingDeskReady))
+                    {
+                        GameState.Instance.Data.uiMode = "writing";
+                        gameUi.ShowWriting();
+                    }
+                    else
+                    {
+                        GameState.Instance.Data.uiMode = "dialogue";
+                        sceneDirector.PlayScene(SceneIds.SC10);
+                        gameUi.ShowDialogueMode();
+                    }
                     break;
                 case SceneIds.SC11:
                     GameState.Instance.Data.uiMode = "epilogue";
@@ -177,9 +186,21 @@ namespace StreetCat.Core
         public void ReturnToWritingFromReinterview()
         {
             GameState.Instance.SetFlag(FlagIds.WritingUnlocked);
+            GameState.Instance.SetFlag(FlagIds.WritingDeskReady);
             GameState.Instance.SetScene(SceneIds.SC10);
             GameState.Instance.Data.uiMode = "writing";
             GameState.Instance.SetObjective("整理素材，完成报道。");
+            SaveSystem.Autosave();
+            gameUi.ShowWriting();
+        }
+
+        /// <summary>Called when SC-10 intro dialogue opens the writing desk.</summary>
+        public void OpenWritingDeskFromScript()
+        {
+            GameState.Instance.SetFlag(FlagIds.WritingUnlocked);
+            GameState.Instance.SetFlag(FlagIds.WritingDeskReady);
+            GameState.Instance.SetScene(SceneIds.SC10);
+            GameState.Instance.Data.uiMode = "writing";
             SaveSystem.Autosave();
             gameUi.ShowWriting();
         }

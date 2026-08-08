@@ -64,6 +64,10 @@ namespace StreetCat.UI
         bool waitingForChoice;
         bool savedWaitingForChoice;
         string lastHistorySpeaker = "";
+        /// <summary>Last 小凌 portrait tag (常态/惊讶/…) for「未标注时沿用上一张」.</summary>
+        string stickyXiaolingPortrait = "常态";
+        /// <summary>Runtime 【背景】 override from script / investigate hotspots.</summary>
+        string stageBackgroundOverride;
 
         // Interview full-screen layout
         GameObject interviewRoot;
@@ -106,6 +110,9 @@ namespace StreetCat.UI
         readonly List<GameObject> investigateSpawned = new List<GameObject>();
         Text clickHintText;
         bool investigateHotspotsVisible;
+        bool backlogOpenedFromNotebook;
+        bool talkAwaitingClickReturn;
+        bool talkIsPostInterview;
 
         void Awake()
         {
@@ -118,7 +125,8 @@ namespace StreetCat.UI
 
         void Start()
         {
-            SceneDirector.Instance.Bind(OnScriptLine, OnSceneEnd, ShowInvestigationMode, ShowTalkMenu);
+            SceneDirector.Instance.Bind(OnScriptLine, OnSceneEnd, ShowInvestigationMode, ShowTalkMenu,
+                () => ChapterFlowController.Instance.OpenWritingDeskFromScript());
             ShowTitle();
         }
 
@@ -214,9 +222,11 @@ namespace StreetCat.UI
             var stageLineR = CreateImage(canvasGo.transform, "StageLineR", VnTheme.AccentDim);
             Stretch(stageLineR.rectTransform, new Vector2(0.68f, 0.62f), new Vector2(0.82f, 0.62f), new Vector2(0, -1), new Vector2(0, 0));
 
-            // Character portrait — above dialogue band to avoid clipping
+            // Character portrait — upper-right of dialogue box (rests on dialogue top edge)
             portraitImage = CreateImage(canvasGo.transform, "Portrait", Color.white);
-            Stretch(portraitImage.rectTransform, new Vector2(0.70f, VnTheme.DialogueTop + 0.02f), new Vector2(0.98f, 0.88f),
+            Stretch(portraitImage.rectTransform,
+                new Vector2(0.70f, VnTheme.DialogueTop - 0.03f),
+                new Vector2(0.94f, 0.76f),
                 Vector2.zero, Vector2.zero);
             portraitImage.type = Image.Type.Simple;
             portraitImage.preserveAspect = true;
@@ -274,7 +284,7 @@ namespace StreetCat.UI
             tah.childForceExpandWidth = false;
             tah.childControlWidth = true;
 
-            // Dialogue box — fixed bottom zone (letterbox → DialogueTop)
+            // Dialogue box — original full-width bottom band
             dialoguePanel = CreateImage(canvasGo.transform, "DialogueBox", VnTheme.DialoguePanel);
             Stretch(dialoguePanel.rectTransform, new Vector2(0.07f, VnTheme.LetterboxH + 0.01f), new Vector2(0.93f, VnTheme.DialogueTop),
                 Vector2.zero, Vector2.zero);
@@ -1364,7 +1374,9 @@ namespace StreetCat.UI
                 choiceRoot.parent?.gameObject.SetActive(showChoices);
                 choiceRoot.gameObject.SetActive(showChoices);
             }
-            if (advanceCatcher != null && (!showDialogue || showTitle || mode == Mode.Investigate || mode == Mode.Interview))
+            // Hide catcher on title / interview / hotspot investigate; inspect & talk re-enable via SetAdvanceEnabled
+            if (advanceCatcher != null && (!showDialogue || showTitle || mode == Mode.Interview
+                || (mode == Mode.Investigate && investigateHotspotsVisible)))
                 advanceCatcher.gameObject.SetActive(false);
             ApplyAtmosphere();
         }
@@ -1448,23 +1460,25 @@ namespace StreetCat.UI
             if (stageArt == null) return;
 
             string label = null;
-            if (mode == Mode.Title)
+            if (!string.IsNullOrEmpty(stageBackgroundOverride))
+                label = stageBackgroundOverride;
+            else if (mode == Mode.Title)
                 label = "Title";
             else if (mode == Mode.Interview)
             {
-                var sceneLabel = SceneDirector.Instance?.Current?.backgroundLabel;
-                label = !string.IsNullOrEmpty(sceneLabel) && sceneLabel.Contains("保安亭")
-                    ? sceneLabel
-                    : "采访";
+                var who = InterviewController.Instance != null
+                    ? InterviewController.Instance.Subject
+                    : InterviewSubject.Dafu;
+                label = who == InterviewSubject.Lin ? "咖啡馆_午后" : "保安亭_傍晚";
             }
             else if (mode == Mode.Investigate)
-                label = "槐安社区";
+                label = "槐安社区_午后";
             else if (mode == Mode.Writing)
-                label = "写稿";
+                label = "编辑部工位_上午";
             else if (mode == Mode.Notebook)
-                label = "笔记";
+                label = "编辑部_工位_傍晚";
             else if (mode == Mode.Epilogue)
-                label = "后日谈";
+                label = "槐安社区_午后";
             else
             {
                 var scene = SceneDirector.Instance?.Current;
@@ -1491,6 +1505,15 @@ namespace StreetCat.UI
             // Hide portraits on title / hotspot investigate view (inspect dialogue may show 小凌)
             if (mode == Mode.Title || (mode == Mode.Investigate && investigateHotspotsVisible))
                 SetPortrait(null);
+        }
+
+        void SetStageBackground(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return;
+            stageBackgroundOverride = label;
+            if (locationText != null && mode != Mode.Title)
+                locationText.text = label.Replace("_", "　");
+            ApplyStageArt();
         }
 
         void SetPortrait(string portraitKey)
@@ -1705,22 +1728,26 @@ namespace StreetCat.UI
             ApplyStageArt();
         }
 
-        void SetSpeaker(string name, LineSpeaker kind)
+        void SetSpeaker(string name, LineSpeaker kind, string portraitTag = null, string lineText = null)
         {
             if (string.IsNullOrEmpty(name) || kind == LineSpeaker.Narration)
             {
                 namePlate.gameObject.SetActive(false);
                 bodyText.color = VnTheme.TextMuted;
                 lastHistorySpeaker = "";
+                // Hide during narration so a leftover expression doesn't sit on unrelated prose.
                 SetPortrait(null);
                 return;
             }
             namePlate.gameObject.SetActive(true);
             if (kind == LineSpeaker.Inner)
             {
-                nameText.text = name + " · 内心";
+                // No「小凌（内心）」nameplate; show soft portrait for monologue.
+                namePlate.gameObject.SetActive(false);
                 bodyText.color = VnTheme.TextInner;
-                lastHistorySpeaker = name + "（内心）";
+                lastHistorySpeaker = "";
+                ApplyPortrait(name, kind, portraitTag, lineText);
+                return;
             }
             else if (kind == LineSpeaker.System)
             {
@@ -1737,7 +1764,40 @@ namespace StreetCat.UI
                 lastHistorySpeaker = name;
             }
 
-            SetPortrait(VnArt.ResolvePortrait(name, kind));
+            ApplyPortrait(name, kind, portraitTag, lineText);
+        }
+
+        void ApplyPortrait(string name, LineSpeaker kind, string portraitTag, string lineText = null)
+        {
+            var tag = portraitTag;
+            if (!string.IsNullOrEmpty(tag) && (tag.Contains("无立绘") || tag == "none"))
+            {
+                SetPortrait(null);
+                return;
+            }
+
+            var isXiaoling = (!string.IsNullOrEmpty(name) && name.Contains("小凌"))
+                || kind == LineSpeaker.Inner;
+            if (isXiaoling)
+            {
+                if (string.IsNullOrEmpty(tag))
+                {
+                    var inferred = VnArt.SuggestXiaolingExpression(lineText, kind);
+                    tag = !string.IsNullOrEmpty(inferred) ? inferred : stickyXiaolingPortrait;
+                }
+                stickyXiaolingPortrait = string.IsNullOrEmpty(tag) ? stickyXiaolingPortrait : tag;
+            }
+
+            var key = VnArt.ResolvePortrait(name, kind, tag);
+            SetPortrait(key);
+
+            if (portraitImage != null && portraitImage.enabled)
+            {
+                // Soften inner monologue; full opacity for spoken lines
+                portraitImage.color = kind == LineSpeaker.Inner
+                    ? new Color(0.92f, 0.94f, 0.96f, 0.9f)
+                    : Color.white;
+            }
         }
 
         void SetBody(string text, bool recordHistory = true, string historyKind = "dialogue")
@@ -1899,6 +1959,26 @@ namespace StreetCat.UI
                 return;
             }
 
+            // Investigation inspect beats: click advances / finishes
+            if (mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0)
+            {
+                SfxController.Instance?.PlayAdvance();
+                AdvanceInspectOrFinish();
+                return;
+            }
+
+            // Guard talk reply: click returns to topic menu
+            if (mode == Mode.Talk && talkAwaitingClickReturn)
+            {
+                SfxController.Instance?.PlayAdvance();
+                talkAwaitingClickReturn = false;
+                if (talkIsPostInterview)
+                    ShowPostInterviewTalk();
+                else
+                    ShowTalkMenu();
+                return;
+            }
+
             if (!canClickAdvance)
                 return;
             if (mode == Mode.Dialogue)
@@ -1937,8 +2017,8 @@ namespace StreetCat.UI
             }
             else if (line.speaker == LineSpeaker.Inner)
             {
-                speaker = (string.IsNullOrEmpty(line.speakerName) ? "小凌" : line.speakerName) + "（内心）";
-                kind = "inner";
+                speaker = "";
+                kind = "narration";
             }
             else if (line.speaker == LineSpeaker.System)
             {
@@ -1957,18 +2037,18 @@ namespace StreetCat.UI
         {
             canClickAdvance = enabled && !hasChoices;
             waitingForChoice = hasChoices;
+            bool inspectClick = mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0;
+            bool talkClick = mode == Mode.Talk && talkAwaitingClickReturn;
+            bool allowClick = (canClickAdvance || typewriterRunning || inspectClick || talkClick) && !hasChoices;
             if (dialogueClick != null)
-                dialogueClick.interactable = canClickAdvance || typewriterRunning;
+                dialogueClick.interactable = allowClick;
             if (advanceCatcher != null)
             {
-                bool showCatcher = mode == Mode.Dialogue && (canClickAdvance || typewriterRunning) && !hasChoices;
+                bool showCatcher = allowClick &&
+                    (mode == Mode.Dialogue || inspectClick || talkClick);
                 advanceCatcher.gameObject.SetActive(showCatcher);
                 var btn = advanceCatcher.GetComponent<Button>();
                 if (btn != null) btn.interactable = showCatcher;
-            }
-            if (choiceHostImage != null && !hasChoices && (spawnedButtons == null || !HasWideChoices()))
-            {
-                // keep host only when choices present — AddChoice turns it on
             }
             RefreshAdvanceHint();
         }
@@ -1986,10 +2066,20 @@ namespace StreetCat.UI
         void RefreshAdvanceHint()
         {
             if (clickHintText == null) return;
-            bool show = mode == Mode.Dialogue && !waitingForChoice && (canClickAdvance || typewriterRunning);
+            bool inspectClick = mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0;
+            bool talkClick = mode == Mode.Talk && talkAwaitingClickReturn;
+            bool show = !waitingForChoice && (canClickAdvance || typewriterRunning || inspectClick || talkClick)
+                && (mode == Mode.Dialogue || inspectClick || talkClick);
             clickHintText.gameObject.SetActive(show);
             if (!show) return;
-            clickHintText.text = typewriterRunning ? "点击显示全文" : "点击继续　长按Ctrl跳过";
+            if (typewriterRunning)
+                clickHintText.text = "点击显示全文";
+            else if (inspectClick)
+                clickHintText.text = inspectIndex >= inspectQueue.Count - 1 ? "点击返回调查" : "点击继续";
+            else if (talkClick)
+                clickHintText.text = "点击返回话题";
+            else
+                clickHintText.text = "点击继续　长按Ctrl跳过";
             if (hintPulseCo != null) StopCoroutine(hintPulseCo);
             if (show && !typewriterRunning)
                 hintPulseCo = StartCoroutine(PulseHint());
@@ -2016,6 +2106,7 @@ namespace StreetCat.UI
         public void ShowTitle()
         {
             mode = Mode.Title;
+            stageBackgroundOverride = null;
             canClickAdvance = false;
             waitingForChoice = false;
             inputField.gameObject.SetActive(false);
@@ -2066,15 +2157,36 @@ namespace StreetCat.UI
             SetInterviewChrome(false);
             SetChrome(true, false, true);
             RefreshHeader();
-            ApplyStageArt();
             inputField.gameObject.SetActive(false);
 
+            if (!string.IsNullOrEmpty(line.background))
+                SetStageBackground(line.background);
+            else
+                ApplyStageArt();
+
+            // Background-only beat: apply art and auto-advance without showing empty box.
+            bool bgOnly = !string.IsNullOrEmpty(line.background)
+                && string.IsNullOrEmpty(line.text)
+                && (line.choices == null || line.choices.Count == 0)
+                && !line.openInvestigation && !line.openTalkMenu && !line.openWriting;
+            if (bgOnly)
+            {
+                SceneDirector.Instance.Advance();
+                return;
+            }
+
             var speaker = line.speakerName;
-            if (line.speaker == LineSpeaker.Narration) speaker = "";
-            if (line.speaker == LineSpeaker.System) speaker = "系统";
-            SetSpeaker(speaker, line.speaker);
-            var kind = line.speaker == LineSpeaker.Inner ? "inner"
-                : line.speaker == LineSpeaker.System ? "system" : "dialogue";
+            var lineKind = line.speaker;
+            if (lineKind == LineSpeaker.Narration || speaker == "旁白")
+            {
+                speaker = "";
+                lineKind = LineSpeaker.Narration;
+            }
+            if (lineKind == LineSpeaker.System) speaker = "系统";
+            SetSpeaker(speaker, lineKind, line.portrait, line.text);
+            var kind = lineKind == LineSpeaker.System ? "system"
+                : (lineKind == LineSpeaker.Narration || lineKind == LineSpeaker.Inner) ? "narration"
+                : "dialogue";
             SetBody(line.text, true, kind);
 
             ClearButtons();
@@ -2106,7 +2218,7 @@ namespace StreetCat.UI
         {
             if (mode == Mode.Title) return;
             if (saveLoadRoot != null && saveLoadRoot.activeSelf) return;
-            if (mode != Mode.Menu && mode != Mode.Backlog)
+            if (mode != Mode.Menu && mode != Mode.Backlog && mode != Mode.Notebook)
             {
                 returnFromOverlay = mode;
                 savedWaitingForChoice = waitingForChoice;
@@ -2135,7 +2247,8 @@ namespace StreetCat.UI
         void OpenBacklog()
         {
             if (mode == Mode.Title) return;
-            if (mode != Mode.Menu && mode != Mode.Backlog)
+            backlogOpenedFromNotebook = mode == Mode.Notebook;
+            if (mode != Mode.Menu && mode != Mode.Backlog && mode != Mode.Notebook)
             {
                 returnFromOverlay = mode;
                 savedWaitingForChoice = waitingForChoice;
@@ -2153,16 +2266,42 @@ namespace StreetCat.UI
         void CloseBacklog()
         {
             if (backlogRoot) backlogRoot.SetActive(false);
+            if (backlogOpenedFromNotebook)
+            {
+                backlogOpenedFromNotebook = false;
+                OpenNotebook();
+                return;
+            }
             ResumeOverlayReturn();
         }
 
         void ResumeOverlayReturn()
         {
             waitingForChoice = savedWaitingForChoice;
-            switch (returnFromOverlay)
+            var dest = returnFromOverlay;
+            // Never resume into overlay modes (would appear as a no-op / loop).
+            if (dest == Mode.Notebook || dest == Mode.Menu || dest == Mode.Backlog || dest == Mode.Title)
+            {
+                var ui = GameState.Instance != null ? GameState.Instance.Data.uiMode : "";
+                if (ui == "investigate") dest = Mode.Investigate;
+                else if (!string.IsNullOrEmpty(ui) && ui.StartsWith("interview")) dest = Mode.Interview;
+                else if (ui == "writing") dest = Mode.Writing;
+                else if (ui == "epilogue") dest = Mode.Epilogue;
+                else dest = Mode.Dialogue;
+            }
+
+            switch (dest)
             {
                 case Mode.Dialogue:
                     mode = Mode.Dialogue;
+                    SetInvestigateChrome(false);
+                    SetInterviewChrome(false);
+                    SetChrome(true, false, true);
+                    ClearButtons();
+                    AddAction("跳过", TrySkipDialogue);
+                    AddAction("回看", OpenBacklog);
+                    AddAction("笔记", OpenNotebook);
+                    AddAction("菜单", OpenMenu);
                     SetAdvanceEnabled(!waitingForChoice, waitingForChoice);
                     statusText.text = waitingForChoice ? "做出选择" : "点击继续　·　Ctrl / 跳过";
                     break;
@@ -2171,9 +2310,9 @@ namespace StreetCat.UI
                 case Mode.Interview: RefreshInterviewView(); break;
                 case Mode.Writing: ShowWritingDirectionPick(); break;
                 case Mode.Epilogue: ShowEpilogue(); break;
-                case Mode.Notebook: OpenNotebook(); break;
                 default:
                     mode = Mode.Dialogue;
+                    SetChrome(true, false, true);
                     SetAdvanceEnabled(true);
                     break;
             }
@@ -2211,6 +2350,8 @@ namespace StreetCat.UI
             if (investigateHoverLabel != null)
                 investigateHoverLabel.gameObject.SetActive(false);
 
+            SetStageBackground("槐安社区_社区平面图");
+
             ClearButtons();
             var service = InvestigationService.Instance;
             foreach (var h in service.Hotspots)
@@ -2246,10 +2387,18 @@ namespace StreetCat.UI
             AddInvestigateAction("菜单", OpenMenu);
         }
 
+        readonly List<InspectBeat> inspectQueue = new List<InspectBeat>();
+        int inspectIndex;
+
         void ShowHotspotInspect(string hotspotId)
         {
             var service = InvestigationService.Instance;
             lastInspectText = service.Inspect(hotspotId);
+            inspectQueue.Clear();
+            inspectQueue.AddRange(service.GetInspectBeats(hotspotId));
+            if (inspectQueue.Count == 0)
+                inspectQueue.Add(new InspectBeat { narration = true, text = lastInspectText });
+            inspectIndex = 0;
             SfxController.Instance?.PlayInspect();
 
             mode = Mode.Investigate;
@@ -2260,17 +2409,54 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             chapterChip.gameObject.SetActive(true);
             objectiveText.gameObject.SetActive(true);
-            locationText.text = "槐安社区";
+            var hotspot = service.Hotspots.Find(h => h.id == hotspotId);
+            if (hotspot != null && !string.IsNullOrEmpty(hotspot.background))
+                SetStageBackground(hotspot.background);
+            else
+                locationText.text = "槐安社区";
             RefreshHeader();
             ApplyAtmosphere();
+            ShowInspectBeat();
+        }
 
-            SetSpeaker("小凌", LineSpeaker.Inner);
-            SetBody(lastInspectText, true, "investigate");
-            statusText.text = "调查结果";
+        void ShowInspectBeat()
+        {
+            if (inspectIndex < 0 || inspectIndex >= inspectQueue.Count)
+            {
+                ShowInvestigationMode();
+                return;
+            }
+
+            var beat = inspectQueue[inspectIndex];
+            if (beat.narration)
+                SetSpeaker("", LineSpeaker.Narration);
+            else
+                SetSpeaker("小凌", LineSpeaker.Character);
+
+            SetBody(beat.text, true, beat.narration ? "narration" : "investigate");
+            statusText.text = $"调查　{inspectIndex + 1}/{inspectQueue.Count}";
             ClearButtons();
-            AddAction("返回调查", ShowInvestigationMode, true);
             AddAction("笔记", OpenNotebook);
             AddAction("菜单", OpenMenu);
+            SetAdvanceEnabled(true);
+        }
+
+        void AdvanceInspectOrFinish()
+        {
+            if (inspectQueue.Count == 0)
+            {
+                ShowInvestigationMode();
+                return;
+            }
+            if (inspectIndex >= inspectQueue.Count - 1)
+            {
+                inspectQueue.Clear();
+                inspectIndex = 0;
+                ShowInvestigationMode();
+                return;
+            }
+            inspectIndex++;
+            ShowInspectBeat();
         }
 
         public void ShowTalkMenu()
@@ -2282,6 +2468,8 @@ namespace StreetCat.UI
                 return;
             }
             mode = Mode.Talk;
+            talkIsPostInterview = false;
+            talkAwaitingClickReturn = false;
             SetAdvanceEnabled(false);
             inputField.gameObject.SetActive(false);
             SetInvestigateChrome(false);
@@ -2302,20 +2490,27 @@ namespace StreetCat.UI
                     var reply = InvestigationService.Instance.Talk(t);
                     SetSpeaker("保安叔叔", LineSpeaker.Character);
                     SetBody(reply, true, "talk");
-                    statusText.text = "";
+                    statusText.text = "点击返回话题";
                     ClearButtons();
-                    AddAction("返回话题", ShowTalkMenu);
+                    talkAwaitingClickReturn = true;
+                    talkIsPostInterview = false;
                     AddAction("结束交谈", () =>
                     {
+                        talkAwaitingClickReturn = false;
                         if (InvestigationService.Instance.CanWaitForDafu())
                             GameState.Instance.SetObjective("等待大福出现。");
                         ShowInvestigationMode();
                     }, true);
                     AddAction("回看", OpenBacklog);
                     AddAction("菜单", OpenMenu);
+                    SetAdvanceEnabled(true);
                 });
             }
-            AddAction("结束交谈", () => ShowInvestigationMode(), true);
+            AddAction("结束交谈", () =>
+            {
+                talkAwaitingClickReturn = false;
+                ShowInvestigationMode();
+            }, true);
             AddAction("回看", OpenBacklog);
             AddAction("菜单", OpenMenu);
         }
@@ -2323,6 +2518,8 @@ namespace StreetCat.UI
         void ShowPostInterviewTalk()
         {
             mode = Mode.Talk;
+            talkIsPostInterview = true;
+            talkAwaitingClickReturn = false;
             SetAdvanceEnabled(false);
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
@@ -2340,23 +2537,36 @@ namespace StreetCat.UI
                 {
                     var reply = InvestigationService.Instance.Talk(t);
                     SetSpeaker("保安叔叔", LineSpeaker.Character);
-                    SetBody(reply);
+                    SetBody(reply, true, "talk");
                     ClearButtons();
                     if (!string.IsNullOrEmpty(t.nextSceneId))
                     {
+                        talkAwaitingClickReturn = false;
                         AddAction("等待回复", () =>
                         {
                             SetSpeaker("林女士", LineSpeaker.Character);
                             SetBody("你好，我是林敏。保安和我说了。明天下午我会去社区，你到保安亭附近等我吧。");
                             ClearButtons();
+                            talkAwaitingClickReturn = false;
                             AddAction("前往采访", () => ChapterFlowController.Instance.GoToScene(SceneIds.SC09), true);
                         }, true);
                     }
-                    else AddAction("返回", ShowPostInterviewTalk);
+                    else
+                    {
+                        statusText.text = "点击返回话题";
+                        talkAwaitingClickReturn = true;
+                        talkIsPostInterview = true;
+                        SetAdvanceEnabled(true);
+                    }
                     AddAction("笔记", OpenNotebook);
+                    AddAction("菜单", OpenMenu);
                 });
             }
-            AddAction("返回调查", ShowInvestigationMode);
+            AddAction("返回调查", () =>
+            {
+                talkAwaitingClickReturn = false;
+                ShowInvestigationMode();
+            });
         }
 
         public void ShowInterview(InterviewSubject subject, bool returnToWritingAfter = false)
@@ -2454,7 +2664,7 @@ namespace StreetCat.UI
             if (!InterviewController.Instance.CanComplete())
             {
                 var msg = "现在结束的话，似乎还有不少事情没有问清楚。\n\n" + InterviewController.Instance.MissingSummary();
-                interviewLogText.text = interviewLogText.text + "\n\n<color=#A8C0D4>小凌（内心）　" + msg.Replace("\n", "\n") + "</color>";
+                interviewLogText.text = interviewLogText.text + "\n\n<color=#A8C0D4>" + msg.Replace("\n", "\n") + "</color>";
                 Canvas.ForceUpdateCanvases();
                 if (interviewScroll != null)
                     interviewScroll.verticalNormalizedPosition = 0f;
@@ -2482,8 +2692,8 @@ namespace StreetCat.UI
             SetInterviewChrome(false);
             inputField.gameObject.SetActive(false);
             SetChrome(true, false, true);
-            locationText.text = "此间杂志社";
             stageHint.text = "写稿";
+            SetStageBackground("编辑部工位_上午");
             RefreshHeader();
             selectedMats.Clear();
             EnsureCoreMaterials();
@@ -2574,16 +2784,32 @@ namespace StreetCat.UI
 
         void ShowPhrasing()
         {
-            SetSpeaker("沈禾", LineSpeaker.Character);
-            SetBody("最后确认两处关键表述，再生成初稿。");
+            SetSpeaker("系统", LineSpeaker.System);
+            SetBody("关键表述只在对应素材被选入时生效，将直接影响沈禾对事实严谨度的审核。\n\n"
+                + "01｜麻绳来源\n"
+                + "A. 疑似人为虐待，麻绳被故意勒上（推测写成事实）\n"
+                + "B. 无人目睹，无法确认是否人为伤害\n\n"
+                + "02｜康复后的去向\n"
+                + "A. 把大福扔回了外面（误导性措辞）\n"
+                + "B. 送回槐安社区，并确认有人继续照料");
             ClearButtons();
-            AddChoice("放归：确认照料后的决定", () => phrasingA = 0);
-            AddChoice("放归：中性——未进入收养", () => phrasingA = 1);
-            AddChoice("麻绳：无法确认来源", () => phrasingB = 0);
-            AddChoice("麻绳：伤势确认、成因未知", () => phrasingB = 1);
-            AddAction("生成文章", GenerateArticle, true);
+            AddChoice("麻绳｜A 故意勒伤（风险）", () => { phrasingA = 0; ShowPhrasingRelease(); });
+            AddChoice("麻绳｜B 无法确认（稳妥）", () => { phrasingA = 1; ShowPhrasingRelease(); });
             AddAction("返回改选材", ShowMaterialPick);
             AddReInterviewActions(false);
+        }
+
+        void ShowPhrasingRelease()
+        {
+            SetSpeaker("系统", LineSpeaker.System);
+            SetBody("再选康复后去向表述：\n\n"
+                + "A. 把大福扔回了外面（误导）\n"
+                + "B. 送回槐安社区，并确认有人继续照料（稳妥）");
+            ClearButtons();
+            AddChoice("放归｜A 扔回外面（风险）", () => { phrasingB = 0; GenerateArticle(); });
+            AddChoice("放归｜B 送回社区（稳妥）", () => { phrasingB = 1; GenerateArticle(); });
+            AddAction("返回上一步", ShowPhrasing);
+            AddAction("返回改选材", ShowMaterialPick);
         }
 
         void GenerateArticle()
@@ -2606,15 +2832,19 @@ namespace StreetCat.UI
             GameState.Instance.Data.lastArticleTitle = assembler.Title;
             GameState.Instance.Data.lastArticleBody = assembler.Body;
             GameState.Instance.Data.lastReviewScore = assembler.Score;
+            SetStageBackground("沈禾办公室_上午");
             SetSpeaker("沈禾", LineSpeaker.Character);
-            SetBody(assembler.Body + "\n\n—— 主编审核 ——\n" + assembler.ReviewText);
-            statusText.text = $"评分 {assembler.Score}";
+            SetBody("稿件已提交。\n\n" + assembler.Body + "\n\n—— 沈禾审核 ——\n" + assembler.ReviewText);
+            statusText.text = assembler.CanPublish
+                ? $"审核通过　{assembler.Score}"
+                : $"审核退回　分支{assembler.ReviewBranch}";
             ClearButtons();
             if (assembler.CanPublish)
-                AddAction("发布报道", () => ChapterFlowController.Instance.OnArticlePublished(), true);
+                AddAction("确认发布", () => ChapterFlowController.Instance.OnArticlePublished(), true);
             else
             {
-                AddAction("返回改选材", ShowMaterialPick, true);
+                AddAction("返回写稿", ShowMaterialPick, true);
+                AddAction("查看记者笔记", OpenNotebook);
                 AddReInterviewActions(true);
             }
             AddAction("重选立意", ShowWritingDirectionPick);
@@ -2691,12 +2921,16 @@ namespace StreetCat.UI
             sb.AppendLine("文章已发布：" + GameState.Instance.Data.lastArticleTitle);
             sb.AppendLine();
             sb.AppendLine("文章发布以后，有不少人第一次知道，大福以前受过那么严重的伤。");
+            sb.AppendLine("也有人讨论，救下一只流浪猫以后，是不是一定要把它带回家。");
+            sb.AppendLine("林女士没有再解释更多。救治和收养是两件事。");
+            sb.AppendLine();
+            sb.AppendLine("—— 几天后 ——");
             sb.AppendLine();
             if (dir == WritingDirection.GuardCatToday)
             {
                 sb.AppendLine("偶尔会有人来问，大福今天有没有上班。");
-                sb.AppendLine("但大福并不知道自己成了报道里的主角。");
-                sb.AppendLine("下午四点多，它又来了。");
+                sb.AppendLine("但大福并不知道自己成了报道里的主角。它还是按照自己的时间出现。");
+                sb.AppendLine("下午四点多，大福又来了。和文章发布以前没什么不同。");
                 sb.AppendLine();
                 sb.AppendLine("大福今天也在上班。");
             }
@@ -2704,13 +2938,15 @@ namespace StreetCat.UI
             {
                 sb.AppendLine("还是有人问，林女士为什么没有把大福带回家。");
                 sb.AppendLine("也有人说，第一次知道一场救助并不一定要以收养结束。");
+                sb.AppendLine("林女士没有成为大福的主人。但大福还是活了下来，并且回到了熟悉的地方。");
                 sb.AppendLine();
                 sb.AppendLine("救下一只猫以后，故事并不会立刻结束。");
             }
             sb.AppendLine();
             sb.AppendLine("报道能记录的，只是它生活里很短的一段。");
+            sb.AppendLine("至于大福，它还有明天的饭要吃，还有熟悉的地方要去。");
             sb.AppendLine("它的日子还在继续。");
-            SetSpeaker("小凌", LineSpeaker.Inner);
+            SetSpeaker("", LineSpeaker.Narration);
             SetBody(sb.ToString());
             statusText.text = $"审核 {GameState.Instance.Data.lastReviewScore}　素材 {GameState.Instance.Data.selectedMaterials.Count}/{GameState.Instance.Data.unlockedMaterials.Count}";
             ClearButtons();
@@ -2744,10 +2980,21 @@ namespace StreetCat.UI
                 AddReInterviewActions(GameState.Instance.Data.unlockedMaterials.Count < 8);
             AddAction("回看", OpenBacklog);
             AddAction("菜单", OpenMenu);
-            AddAction("返回", () =>
+            AddAction("返回", CloseNotebook, true);
+        }
+
+        void CloseNotebook()
+        {
+            // Explicit exit so we never treat Notebook as the resume target.
+            if (returnFromOverlay == Mode.Notebook || returnFromOverlay == Mode.Menu || returnFromOverlay == Mode.Backlog)
             {
-                ResumeOverlayReturn();
-            }, true);
+                var ui = GameState.Instance != null ? GameState.Instance.Data.uiMode : "";
+                if (ui == "investigate") returnFromOverlay = Mode.Investigate;
+                else if (!string.IsNullOrEmpty(ui) && ui.StartsWith("interview")) returnFromOverlay = Mode.Interview;
+                else if (ui == "writing") returnFromOverlay = Mode.Writing;
+                else returnFromOverlay = Mode.Dialogue;
+            }
+            ResumeOverlayReturn();
         }
     }
 }

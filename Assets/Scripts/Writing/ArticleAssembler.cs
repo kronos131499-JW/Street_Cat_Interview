@@ -110,6 +110,8 @@ namespace StreetCat.Writing
         public string Body { get; private set; }
         public int Score { get; private set; }
         public string ReviewText { get; private set; }
+        /// <summary>A=pass, B=theme, C=missing facts, D=speculation, E=dumping wording, F=source mix.</summary>
+        public string ReviewBranch { get; private set; } = "A";
 
         public bool CanAssemble(WritingDirection dir, List<string> selected, out string error)
         {
@@ -179,15 +181,17 @@ namespace StreetCat.Writing
                 AppendStage(sb, selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
             }
 
+            // phrasingA: 0 = 推测写成事实(退回D), 1 = 无法确认(通过)
+            // phrasingB: 0 = 扔回外面(退回E), 1 = 送回社区(通过)
             if (phrasingA == 0)
-                sb.AppendLine("\n（表述）放归是林女士在确认社区照料条件后作出的决定。");
-            else if (phrasingA == 1)
-                sb.AppendLine("\n（表述）大福最终没有进入家庭收养，而是回到了原来的社区。");
+                sb.AppendLine("\n（表述）大福疑似遭到人为虐待，一根麻绳被故意勒在它的脖子上。");
+            else
+                sb.AppendLine("\n（表述）没人看到麻绳是如何套上大福脖子的，目前无法确认是否存在人为伤害。");
 
             if (phrasingB == 0)
-                sb.AppendLine("（表述）关于麻绳来源，目前没有足够证据作出判断。");
-            else if (phrasingB == 1)
-                sb.AppendLine("（表述）伤势本身已被医院确认，但其成因仍无法确认。");
+                sb.AppendLine("（表述）治疗结束后，林女士最终还是把大福扔回了外面。");
+            else
+                sb.AppendLine("（表述）大福康复后，林女士将它送回原本活动的槐安社区；当时社区已有固定投喂点，也有人继续照料。");
 
             Body = sb.ToString();
             ScoreAndReview(dir, selected, phrasingA, phrasingB);
@@ -213,56 +217,95 @@ namespace StreetCat.Writing
 
         void ScoreAndReview(WritingDirection dir, List<string> selected, int phrasingA, int phrasingB)
         {
-            int fact = 22;
-            int selection = 18;
-            int structure = 20;
-            int emotion = 18;
-
-            if (selected.Contains(MaterialIds.M05) && selected.Contains(MaterialIds.M03)) selection += 3;
-            if (selected.Contains(MaterialIds.M12) || selected.Contains(MaterialIds.M10)) emotion += 3;
-            if (selected.Contains(MaterialIds.M16) && phrasingB == 0) fact += 2;
-            if (phrasingA == 1 && selected.Contains(MaterialIds.M12)) fact -= 2; // weaker framing
-            if (!selected.Contains(MaterialIds.M08)) selection -= 2;
-            if (!selected.Contains(MaterialIds.M09)) selection -= 1;
-
-            if (dir == WritingDirection.GuardCatToday)
+            // Priority (SC-10 script): fact/misleading first, then missing info / theme drift.
+            if (phrasingA == 0)
             {
-                if (selected.Contains(MaterialIds.M01)) selection += 2;
-                if (!selected.Contains(MaterialIds.M02) && !selected.Contains(MaterialIds.M03)) selection -= 3;
-            }
-            else
-            {
-                if (selected.Contains(MaterialIds.M06) && selected.Contains(MaterialIds.M11)) selection += 3;
-                if (!selected.Contains(MaterialIds.M12) && !selected.Contains(MaterialIds.M10)) emotion -= 2;
+                ReviewBranch = "D";
+                Score = 48;
+                ReviewText = BuildRejectReview("将推测写成事实",
+                    "「有人故意用麻绳勒伤它」——没人看到麻绳怎么套上去，不能把猜测换成句号。",
+                    "将未确认信息恢复为「无法确认」或删除无依据的因果判断。");
+                return;
             }
 
-            fact = Mathf.Clamp(fact, 0, 25);
-            selection = Mathf.Clamp(selection, 0, 25);
-            structure = Mathf.Clamp(structure, 0, 25);
-            emotion = Mathf.Clamp(emotion, 0, 25);
-            Score = fact + selection + structure + emotion;
+            if (phrasingB == 0)
+            {
+                ReviewBranch = "E";
+                Score = 50;
+                ReviewText = BuildRejectReview("放归措辞误导",
+                    "「把大福扔回了外面」已经替读者下了结论。事实是送回原活动区域，且确认过有人继续投喂。",
+                    "修改对「放归」的误导性措辞，保持与已确认事实一致。");
+                return;
+            }
 
-            string grade = Score >= 90 ? "优秀" : Score >= 75 ? "良好" : Score >= 60 ? "合格" : "建议修改";
+            // 重要治疗 / 放归事实断层
+            if (!selected.Contains(MaterialIds.M07) || !selected.Contains(MaterialIds.M08))
+            {
+                ReviewBranch = "C";
+                Score = 55;
+                ReviewText = BuildRejectReview("重要事实不足",
+                    "大福从脖子受伤直接跳到回社区，中间怎么治疗几乎没交代。已经问到的补进素材；没问到的回去补访。",
+                    "补充关键事实；若对应素材尚未解锁，可返回采访阶段继续核实。");
+                return;
+            }
+
+            int present = 0, rescueFocus = 0;
+            foreach (var id in selected)
+            {
+                var m = MaterialCatalog.Get(id);
+                if (m == null) continue;
+                if (m.stage == ArticleStage.A_PresentLife || m.stage == ArticleStage.E_AfterReturn) present++;
+                if (m.stage == ArticleStage.C_RescueTreatment || m.stage == ArticleStage.D_Release) rescueFocus++;
+            }
+
+            if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus)
+            {
+                ReviewBranch = "B";
+                Score = 58;
+                ReviewText = BuildRejectReview("选材与立意不匹配",
+                    "你选的是「救下一只猫以后」，但大半篇幅都在写大福现在怎么上班、怎么晒太阳。先想清楚要写变化还是写这场救助。",
+                    "调整写作方向或重新选择更匹配的素材。");
+                return;
+            }
+
+            if (dir == WritingDirection.GuardCatToday && rescueFocus >= present + 2 && !selected.Contains(MaterialIds.M01))
+            {
+                ReviewBranch = "B";
+                Score = 58;
+                ReviewText = BuildRejectReview("选材与立意不匹配",
+                    "标题写的是大福的日常变化，但选材几乎都在讲救助与放归。想清楚你到底要写哪一条线。",
+                    "调整写作方向或重新选择更匹配的素材。");
+                return;
+            }
+
+            ReviewBranch = "A";
+            Score = 88;
+            if (selected.Contains(MaterialIds.M12)) Score += 4;
+            if (selected.Contains(MaterialIds.M16)) Score += 3;
+            Score = Mathf.Clamp(Score, 60, 100);
             var sb = new StringBuilder();
-            sb.AppendLine($"本期报道：{Score}分｜{grade}");
-            sb.AppendLine($"事实严谨度：{fact}/25");
-            sb.AppendLine($"采访与选材：{selection}/25");
-            sb.AppendLine($"文章结构：{structure}/25");
-            sb.AppendLine($"情感表达：{emotion}/25");
+            sb.AppendLine("审核结果——通过");
             sb.AppendLine();
-            if (selected.Contains(MaterialIds.M03) && selected.Contains(MaterialIds.M05))
-                sb.AppendLine("· 猫咪主观感受和人类证词形成了交叉验证，这很好。");
-            if (!selected.Contains(MaterialIds.M08))
-                sb.AppendLine("· 治疗线里猫瘟经历缺失，信息完整度还可以再补一点。");
-            if (dir == WritingDirection.RescueWithoutAdoption && selected.Contains(MaterialIds.M12))
-                sb.AppendLine("· 「救治和收养是两件事」这一点写得很清楚。");
-            if (Score < 60)
-                sb.AppendLine("· 关键事实不足，请调整素材后再提交。");
-            else
-                sb.AppendLine("· 可以发布。若要再改，优先检查事实边界和选材是否服务立意。");
+            sb.AppendLine("沈禾：看完了。可以发。");
+            sb.AppendLine("大福记得的部分，你按它的感受写；治疗和放归，你也找到了能确认的人。");
+            sb.AppendLine("该说不知道的地方，没有替它编答案。");
+            sb.AppendLine("记者不是负责把故事写得更传奇，是负责别把故事写错。");
+            sb.AppendLine("就这样，发吧。");
             ReviewText = sb.ToString();
         }
 
-        public bool CanPublish => Score >= 60;
+        static string BuildRejectReview(string title, string detail, string advice)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("审核结果——退回");
+            sb.AppendLine("问题｜" + title);
+            sb.AppendLine();
+            sb.AppendLine(detail);
+            sb.AppendLine();
+            sb.AppendLine("编辑意见——" + advice);
+            return sb.ToString();
+        }
+
+        public bool CanPublish => ReviewBranch == "A" && Score >= 60;
     }
 }
