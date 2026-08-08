@@ -133,9 +133,9 @@ namespace StreetCat.Investigation
                     {
                         new InspectBeat { narration = true, text = "一只狸花猫趴在灌木丛边的草地上晒太阳，前爪交叠，眯着眼睛。" },
                         new InspectBeat { narration = false, text = "那边有只猫哎。" },
-                        new InspectBeat { narration = true, text = "小凌刚往前靠近两步，狸花猫立刻抬起头，警惕地看向她。" },
+                        new InspectBeat { narration = true, text = "小凌刚往前靠近两步，狸花猫立刻抬起头，警惕地看向她。", background = "晒太阳的猫_警惕" },
                         new InspectBeat { narration = false, text = "嘬嘬嘬——咪咪——" },
-                        new InspectBeat { narration = true, text = "狸花猫迅速起身，一头钻进旁边的灌木丛，只剩树叶轻轻晃动。" },
+                        new InspectBeat { narration = true, text = "狸花猫迅速起身，一头钻进旁边的灌木丛，只剩树叶轻轻晃动。", background = "晒太阳的猫_躲闪" },
                         new InspectBeat { narration = false, text = "……跑得还挺快。" },
                         new InspectBeat { narration = true, text = "小凌往灌木丛里看了一眼，但是什么都没看见。" },
                         new InspectBeat { narration = false, text = "看来这里虽然有人固定照顾它们，但不代表它们会随便亲近陌生人。" },

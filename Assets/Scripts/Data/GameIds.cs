@@ -74,6 +74,8 @@ namespace StreetCat.Data
         public const string DafuInterviewDone = "DAFU_INTERVIEW_DONE";
         public const string LinUnlocked = "LIN_UNLOCKED";
         public const string LinInterviewDone = "LIN_INTERVIEW_DONE";
+        /// <summary>SC-09 cafe meeting dialogue finished; free interview may open.</summary>
+        public const string LinCafeIntroDone = "LIN_CAFE_INTRO_DONE";
         public const string WritingUnlocked = "WRITING_UNLOCKED";
         /// <summary>SC-10 intro dialogue finished; writing desk UI may open directly.</summary>
         public const string WritingDeskReady = "WRITING_DESK_READY";

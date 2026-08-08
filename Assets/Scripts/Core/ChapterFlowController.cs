@@ -77,9 +77,15 @@ namespace StreetCat.Core
                 gameUi.ShowInterview(InterviewSubject.Dafu);
                 return;
             }
-            if (mode == "interview_lin" || id == SceneIds.SC09)
+            if (mode == "interview_lin" || (id == SceneIds.SC09 && GameState.Instance.HasFlag(FlagIds.LinCafeIntroDone)))
             {
                 gameUi.ShowInterview(InterviewSubject.Lin);
+                return;
+            }
+            if (id == SceneIds.SC09)
+            {
+                sceneDirector.PlayScene(SceneIds.SC09);
+                gameUi.ShowDialogueMode();
                 return;
             }
             if (mode == "writing" || (id == SceneIds.SC10 && GameState.Instance.HasFlag(FlagIds.WritingDeskReady)))
@@ -116,8 +122,17 @@ namespace StreetCat.Core
                     gameUi.ShowInterview(InterviewSubject.Dafu);
                     break;
                 case SceneIds.SC09:
-                    GameState.Instance.Data.uiMode = "interview_lin";
-                    gameUi.ShowInterview(InterviewSubject.Lin);
+                    if (GameState.Instance.HasFlag(FlagIds.LinCafeIntroDone))
+                    {
+                        GameState.Instance.Data.uiMode = "interview_lin";
+                        gameUi.ShowInterview(InterviewSubject.Lin);
+                    }
+                    else
+                    {
+                        GameState.Instance.Data.uiMode = "dialogue";
+                        sceneDirector.PlayScene(SceneIds.SC09);
+                        gameUi.ShowDialogueMode();
+                    }
                     break;
                 case SceneIds.SC10:
                     GameState.Instance.SetFlag(FlagIds.WritingUnlocked);
@@ -138,11 +153,16 @@ namespace StreetCat.Core
                     gameUi.ShowEpilogue();
                     break;
                 case SceneIds.SC04:
-                case SceneIds.SC05:
-                case SceneIds.SC08:
                     GameState.Instance.Data.uiMode = "investigate";
                     sceneDirector.PlayScene(sceneId);
                     gameUi.ShowInvestigationMode();
+                    break;
+                case SceneIds.SC05:
+                case SceneIds.SC08:
+                    // Guard-booth dialogue / talk — do not force community map investigate UI.
+                    GameState.Instance.Data.uiMode = "dialogue";
+                    sceneDirector.PlayScene(sceneId);
+                    gameUi.ShowDialogueMode();
                     break;
                 default:
                     GameState.Instance.Data.uiMode = "dialogue";

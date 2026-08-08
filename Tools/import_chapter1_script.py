@@ -539,6 +539,48 @@ def build_sc08(lines: list[str]) -> str:
     return "\n".join(out)
 
 
+def build_sc09(lines: list[str]) -> str:
+    """Cafe meeting intro; free interview opens via openInterview."""
+    bg = find_background(lines, "咖啡馆_午后")
+    out = [
+        "        static ScriptScene Sc09()",
+        "        {",
+        f'            var s = new ScriptScene {{ id = SceneIds.SC09, title = "咖啡馆采访", backgroundLabel = "{esc(bg)}" }};',
+    ]
+    for kind, name, text, portrait in parse_dialogue_block(lines):
+        if kind == "jump":
+            break
+        if kind == "background":
+            if text != bg:
+                out.append(emit_line_cs(kind, name, text, portrait))
+            continue
+        if kind == "system" and (
+            "第二次自由采访开始" in text
+            or "自由向林女士提问" in text
+            or "采访模式" in text
+        ):
+            break
+        if "想问林女士什么" in text or "动态回答" in text or "宽泛询问" in text:
+            break
+        if kind == "system" and "可根据记者笔记" in text:
+            break
+        out.append(emit_line_cs(kind, name, text, portrait))
+    out.append("            s.lines.Add(new ScriptLine")
+    out.append("            {")
+    out.append("                speaker = LineSpeaker.System,")
+    out.append('                speakerName = "系统",')
+    out.append(
+        '                text = "第二次自由采访开始。可根据记者笔记，自由向林女士提问。",'
+    )
+    out.append("                setFlag = FlagIds.LinCafeIntroDone,")
+    out.append('                setObjective = "采访林女士，核实大福的救助经过。",')
+    out.append("                openInterview = true")
+    out.append("            });")
+    out.append("            return s;")
+    out.append("        }")
+    return "\n".join(out)
+
+
 def build_sc10(lines: list[str]) -> str:
     """Intro into writing desk; gameplay + Shenhe review handled by writing UI."""
     bg = find_background(lines, "编辑部工位_上午")
@@ -604,6 +646,7 @@ namespace StreetCat.Narrative
             db.scenes.Add(Sc05());
             db.scenes.Add(Sc06());
             db.scenes.Add(Sc08());
+            db.scenes.Add(Sc09());
             db.scenes.Add(Sc10());
             return db;
         }
@@ -702,6 +745,8 @@ def main():
     parts.append(build_sc06(scenes.get("SC-06", [])))
     parts.append("")
     parts.append(build_sc08(scenes.get("SC-08", [])))
+    parts.append("")
+    parts.append(build_sc09(scenes.get("SC-09", [])))
     parts.append("")
     parts.append(build_sc10(scenes.get("SC-10", [])))
     parts.append("    }")

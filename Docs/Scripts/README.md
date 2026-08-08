@@ -20,7 +20,7 @@
 python Tools/import_chapter1_script.py
 ```
 
-会覆盖 `Assets/Scripts/Narrative/BuiltInScripts.cs` 中的固定剧情（SC-01～06、SC-08、SC-10 写稿开场）。
+会覆盖 `Assets/Scripts/Narrative/BuiltInScripts.cs` 中的固定剧情（SC-01～06、SC-08、SC-09 咖啡馆开场、SC-10 写稿开场）。
 
 调查点与保安交谈文案在 `InvestigationService.cs` 中维护，与剧本调查段对齐；导入后可对照 `hotspot_descriptions_generated.txt` 手工同步。
 

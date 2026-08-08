@@ -126,7 +126,8 @@ namespace StreetCat.UI
         void Start()
         {
             SceneDirector.Instance.Bind(OnScriptLine, OnSceneEnd, ShowInvestigationMode, ShowTalkMenu,
-                () => ChapterFlowController.Instance.OpenWritingDeskFromScript());
+                () => ChapterFlowController.Instance.OpenWritingDeskFromScript(),
+                OpenLinInterviewFromScript);
             ShowTitle();
         }
 
@@ -1148,7 +1149,9 @@ namespace StreetCat.UI
         void AddInvestigateHotspot(string id, string title, bool inspected, UnityEngine.Events.UnityAction action)
         {
             if (investigateHotspotLayer == null) return;
-            if (!InvestigateHotspotLayout.TryGet(id, "bg_huaian_community", out var rect))
+            var layoutKey = VnArt.ResolveBackground(
+                !string.IsNullOrEmpty(stageBackgroundOverride) ? stageBackgroundOverride : "槐安社区_社区平面图");
+            if (!InvestigateHotspotLayout.TryGet(id, layoutKey, out var rect))
             {
                 // Fallback strip so missing layout still remains clickable
                 rect = new Vector4(0.1f, 0.4f, 0.25f, 0.55f);
@@ -2140,6 +2143,11 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
+            var scene = SceneDirector.Instance?.Current;
+            if (scene != null && !string.IsNullOrEmpty(scene.backgroundLabel))
+                SetStageBackground(scene.backgroundLabel);
+            else
+                ApplyStageArt();
             RefreshHeader();
             ClearButtons();
             AddAction("跳过", TrySkipDialogue);
@@ -2148,6 +2156,16 @@ namespace StreetCat.UI
             AddAction("菜单", OpenMenu);
             SetAdvanceEnabled(true);
             statusText.text = "点击继续　·　Ctrl / 跳过";
+        }
+
+        void OpenLinInterviewFromScript()
+        {
+            GameState.Instance.SetFlag(FlagIds.LinCafeIntroDone);
+            GameState.Instance.SetFlag(FlagIds.LinUnlocked);
+            GameState.Instance.SetScene(SceneIds.SC09);
+            GameState.Instance.Data.uiMode = "interview_lin";
+            SaveSystem.Autosave();
+            ShowInterview(InterviewSubject.Lin);
         }
 
         void OnScriptLine(ScriptLine line)
@@ -2168,7 +2186,7 @@ namespace StreetCat.UI
             bool bgOnly = !string.IsNullOrEmpty(line.background)
                 && string.IsNullOrEmpty(line.text)
                 && (line.choices == null || line.choices.Count == 0)
-                && !line.openInvestigation && !line.openTalkMenu && !line.openWriting;
+                && !line.openInvestigation && !line.openTalkMenu && !line.openWriting && !line.openInterview;
             if (bgOnly)
             {
                 SceneDirector.Instance.Advance();
@@ -2362,11 +2380,22 @@ namespace StreetCat.UI
                 AddInvestigateHotspot(id, title, inspected, () => ShowHotspotInspect(id));
             }
 
+            // Clickable 保安亭 on the community map
+            AddInvestigateHotspot("guard_booth", "保安亭", false, () =>
+            {
+                SetInvestigateChrome(false);
+                GameState.Instance.SetFlag(FlagIds.GuardUnlocked);
+                GameState.Instance.SetScene(SceneIds.SC05);
+                SceneDirector.Instance.PlayScene(SceneIds.SC05);
+                ShowDialogueMode();
+            });
+
             if (GameState.Instance.HasFlag(FlagIds.GuardUnlocked) || GameState.Instance.Data.currentSceneId == SceneIds.SC05)
                 AddInvestigateAction("与保安交谈", () =>
                 {
                     SetInvestigateChrome(false);
                     GameState.Instance.SetScene(SceneIds.SC05);
+                    SetStageBackground("保安亭_午后");
                     SceneDirector.Instance.PlayScene(SceneIds.SC05);
                     ShowDialogueMode();
                 }, true);
@@ -2428,6 +2457,8 @@ namespace StreetCat.UI
             }
 
             var beat = inspectQueue[inspectIndex];
+            if (!string.IsNullOrEmpty(beat.background))
+                SetStageBackground(beat.background);
             if (beat.narration)
                 SetSpeaker("", LineSpeaker.Narration);
             else
@@ -2475,7 +2506,7 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
-            locationText.text = "保安亭";
+            SetStageBackground("保安亭_午后");
             stageHint.text = "交谈";
             RefreshHeader();
             SetSpeaker("系统", LineSpeaker.System);
@@ -2524,7 +2555,7 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
-            locationText.text = "保安亭";
+            SetStageBackground("保安亭_傍晚");
             stageHint.text = "核实线索";
             RefreshHeader();
             SetSpeaker("系统", LineSpeaker.System);
@@ -2545,10 +2576,10 @@ namespace StreetCat.UI
                         AddAction("等待回复", () =>
                         {
                             SetSpeaker("林女士", LineSpeaker.Character);
-                            SetBody("你好，我是林敏。保安和我说了。明天下午我会去社区，你到保安亭附近等我吧。");
+                            SetBody("你好，我是林敏。保安跟我说，你想了解大福以前的事。\n\n可以。明天下午三点左右我有空。小区南门外有家咖啡馆，就约在那里吧。");
                             ClearButtons();
                             talkAwaitingClickReturn = false;
-                            AddAction("前往采访", () => ChapterFlowController.Instance.GoToScene(SceneIds.SC09), true);
+                            AddAction("前往咖啡馆", () => ChapterFlowController.Instance.GoToScene(SceneIds.SC09), true);
                         }, true);
                     }
                     else
@@ -2582,6 +2613,7 @@ namespace StreetCat.UI
             SetInterviewChrome(true);
             chapterChip.gameObject.SetActive(true);
             objectiveText.gameObject.SetActive(true);
+            SetStageBackground(subject == InterviewSubject.Lin ? "咖啡馆_午后" : "保安亭_傍晚");
             RefreshHeader();
 
             interviewSubjectText.text = subject == InterviewSubject.Dafu

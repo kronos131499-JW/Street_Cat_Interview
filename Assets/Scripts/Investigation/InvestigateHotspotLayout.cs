@@ -5,27 +5,32 @@ namespace StreetCat.Investigation
 {
     /// <summary>
     /// Normalized hotspot rects (xMin, yMin, xMax, yMax) over stage backgrounds.
-    /// Tunable constants — approximate placements on community / booth art.
+    /// Tuned for 槐安社区_社区平面图 numbered markers (y=0 bottom).
     /// </summary>
     public static class InvestigateHotspotLayout
     {
-        /// <summary>Rects for bg_huaian_community (Unity anchors, y=0 bottom).</summary>
-        public static readonly Dictionary<string, Vector4> HuaianCommunity = new Dictionary<string, Vector4>
+        /// <summary>
+        /// Community guide map (bg_huaian_map):
+        /// 01 投喂点 upper-left · 02 狸花猫 upper-mid · 03 贩卖机 upper-right ·
+        /// 04 长椅 center · 05 快递柜 / 保安亭 bottom-right.
+        /// </summary>
+        public static readonly Dictionary<string, Vector4> HuaianMap = new Dictionary<string, Vector4>
         {
-            // Near entrance / right of guard booth hedge
-            { "locker", new Vector4(0.20f, 0.28f, 0.34f, 0.52f) },
-            // Feeding cluster along center-left hedges
-            { "cat_house", new Vector4(0.34f, 0.34f, 0.46f, 0.50f) },
-            { "food_bowl", new Vector4(0.44f, 0.26f, 0.54f, 0.38f) },
-            { "water_bowl", new Vector4(0.52f, 0.26f, 0.62f, 0.38f) },
-            // Notice board (right foreground)
-            { "sign", new Vector4(0.80f, 0.32f, 0.97f, 0.58f) },
-            // Bushes / mid vegetation
-            { "tabby", new Vector4(0.42f, 0.42f, 0.56f, 0.58f) },
-            // Mid-right wall / path edge (stand-in for vending)
-            { "vending", new Vector4(0.64f, 0.30f, 0.76f, 0.52f) },
-            // Path-side seating
-            { "bench", new Vector4(0.28f, 0.18f, 0.42f, 0.32f) },
+            // 01 流浪猫投喂点 — upper-left shelter + bowls
+            { "cat_house", new Vector4(0.10f, 0.58f, 0.26f, 0.78f) },
+            { "food_bowl", new Vector4(0.22f, 0.52f, 0.32f, 0.64f) },
+            { "water_bowl", new Vector4(0.28f, 0.50f, 0.38f, 0.62f) },
+            { "sign", new Vector4(0.14f, 0.48f, 0.24f, 0.58f) },
+            // 02 灌木丛边晒太阳的猫
+            { "tabby", new Vector4(0.40f, 0.56f, 0.56f, 0.74f) },
+            // 03 自动贩卖机
+            { "vending", new Vector4(0.70f, 0.56f, 0.90f, 0.78f) },
+            // 04 木质长椅 — map center plaza
+            { "bench", new Vector4(0.40f, 0.34f, 0.58f, 0.50f) },
+            // 05 快递柜 — bottom-right near gate
+            { "locker", new Vector4(0.64f, 0.12f, 0.84f, 0.32f) },
+            // 保安亭 — bottom-right, left of lockers / inside gate
+            { "guard_booth", new Vector4(0.48f, 0.10f, 0.64f, 0.30f) },
         };
 
         public static bool TryGet(string hotspotId, string backgroundKey, out Vector4 rect)
@@ -33,16 +38,17 @@ namespace StreetCat.Investigation
             rect = default;
             if (string.IsNullOrEmpty(hotspotId)) return false;
 
-            // Default / community stage
+            // Prefer map layout for the community guide / any huaian art
             if (string.IsNullOrEmpty(backgroundKey) ||
                 backgroundKey.Contains("huaian") ||
+                backgroundKey.Contains("map") ||
                 backgroundKey.Contains("community") ||
-                backgroundKey == "bg_huaian_community")
+                backgroundKey.Contains("平面"))
             {
-                return HuaianCommunity.TryGetValue(hotspotId, out rect);
+                return HuaianMap.TryGetValue(hotspotId, out rect);
             }
 
-            return HuaianCommunity.TryGetValue(hotspotId, out rect);
+            return HuaianMap.TryGetValue(hotspotId, out rect);
         }
     }
 }

@@ -40,6 +40,7 @@ namespace StreetCat.Narrative
         public bool openInvestigation;
         public bool openTalkMenu;
         public bool openWriting;
+        public bool openInterview;
         public List<ScriptChoice> choices = new List<ScriptChoice>();
     }
 
@@ -75,6 +76,7 @@ namespace StreetCat.Narrative
         Action onOpenInvestigation;
         Action onOpenTalkMenu;
         Action onOpenWriting;
+        Action onOpenInterview;
 
         public ScriptScene Current => current;
         public bool HasMore => current != null && index < current.lines.Count;
@@ -100,13 +102,14 @@ namespace StreetCat.Narrative
             }
         }
 
-        public void Bind(Action<ScriptLine> lineHandler, Action sceneEnd, Action openInvest, Action openTalk, Action openWriting = null)
+        public void Bind(Action<ScriptLine> lineHandler, Action sceneEnd, Action openInvest, Action openTalk, Action openWriting = null, Action openInterview = null)
         {
             onLine = lineHandler;
             onSceneEnd = sceneEnd;
             onOpenInvestigation = openInvest;
             onOpenTalkMenu = openTalk;
             onOpenWriting = openWriting;
+            onOpenInterview = openInterview;
         }
 
         public void PlayScene(string sceneId)
@@ -193,7 +196,7 @@ namespace StreetCat.Narrative
         {
             if (line == null) return true;
             if (line.choices != null && line.choices.Count > 0) return true;
-            if (line.openInvestigation || line.openTalkMenu || line.openWriting) return true;
+            if (line.openInvestigation || line.openTalkMenu || line.openWriting || line.openInterview) return true;
             return false;
         }
 
@@ -235,6 +238,8 @@ namespace StreetCat.Narrative
                 onOpenTalkMenu?.Invoke();
             if (line.openWriting)
                 onOpenWriting?.Invoke();
+            if (line.openInterview)
+                onOpenInterview?.Invoke();
         }
 
         void ApplyLineEffects(ScriptLine line)

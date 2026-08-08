@@ -20,6 +20,7 @@ namespace StreetCat.Narrative
             db.scenes.Add(Sc05());
             db.scenes.Add(Sc06());
             db.scenes.Add(Sc08());
+            db.scenes.Add(Sc09());
             db.scenes.Add(Sc10());
             return db;
         }
@@ -289,6 +290,35 @@ namespace StreetCat.Narrative
                 text = "根据采访线索向保安打听当年的救助者。",
                 openTalkMenu = true,
                 setObjective = "向保安询问大福记忆中的女人。"
+            });
+            return s;
+        }
+
+        static ScriptScene Sc09()
+        {
+            var s = new ScriptScene { id = SceneIds.SC09, title = "咖啡馆采访", backgroundLabel = "咖啡馆_午后" };
+            s.lines.Add(N("第二天下午，小凌提前十分钟到了约好的咖啡馆。她选了一个靠里的位置，把记者笔记和手机放在桌边。"));
+            s.lines.Add(N("三点刚过，林女士推门进来。小凌起身朝她招了招手。"));
+            s.lines.Add(L("小凌", "林女士？您好，我是小凌。", "常态"));
+            s.lines.Add(L("林女士", "你好。没等很久吧？", "常态"));
+            s.lines.Add(L("小凌", "没有，我也刚到。谢谢您愿意抽时间过来。", "常态"));
+            s.lines.Add(N("两人坐下。等服务员放下饮品离开后，小凌打开记者笔记。"));
+            s.lines.Add(L("小凌", "我昨天先问了保安一些情况，也在社区见到了大福。今天主要想把它当时受伤、送医治疗，还有后来送回社区的经过核实清楚。", "认真"));
+            s.lines.Add(L("林女士", "嗯，可以。你问吧。", "常态"));
+            s.lines.Add(L("小凌", "我这边方便录音吗？只用来整理采访内容。", "认真"));
+            s.lines.Add(L("林女士", "可以。", "常态"));
+            s.lines.Add(N("小凌打开手机录音，将它放到桌边。"));
+            s.lines.Add(L("小凌", "如果有不方便回答的，您可以直接告诉我，我们随时换一个问题。", "认真"));
+            s.lines.Add(L("林女士", "好。", "常态"));
+            s.lines.Add(N("小凌把记者笔记翻到“大福”那一页。"));
+            s.lines.Add(new ScriptLine
+            {
+                speaker = LineSpeaker.System,
+                speakerName = "系统",
+                text = "第二次自由采访开始。可根据记者笔记，自由向林女士提问。",
+                setFlag = FlagIds.LinCafeIntroDone,
+                setObjective = "采访林女士，核实大福的救助经过。",
+                openInterview = true
             });
             return s;
         }
