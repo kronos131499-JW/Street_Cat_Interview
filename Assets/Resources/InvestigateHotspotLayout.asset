@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73dcde141e3ca15408a0f5dba82d8b1b, type: 3}
+  m_Name: InvestigateHotspotLayout
+  m_EditorClassIdentifier: 
+  entries:
+  - id: cat_house
+    rect: {x: 0.29047623, y: 0.6729989, z: 0.37470904, w: 0.8231177}
+  - id: food_bowl
+    rect: {x: 0.30677244, y: 0.60285366, z: 0.3686772, w: 0.6611362}
+  - id: water_bowl
+    rect: {x: 0.37312168, y: 0.606526, z: 0.4316402, w: 0.6715721}
+  - id: sign
+    rect: {x: 0.38634923, y: 0.691361, z: 0.43005294, w: 0.77529764}
+  - id: tabby
+    rect: {x: 0.50624335, y: 0.7916517, z: 0.6827513, w: 0.9175433}
+  - id: vending
+    rect: {x: 0.7448677, y: 0.5912815, z: 0.8487831, w: 0.83072674}
+  - id: bench
+    rect: {x: 0.4634921, y: 0.4794983, z: 0.6151323, w: 0.6056805}
+  - id: locker
+    rect: {x: 0.7703705, y: 0.20708078, z: 0.90349203, w: 0.40792626}
+  - id: guard_booth
+    rect: {x: 0.62984127, y: 0.18200813, z: 0.7407407, w: 0.3946898}

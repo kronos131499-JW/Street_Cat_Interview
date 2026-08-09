@@ -32,6 +32,10 @@ namespace StreetCat.Narrative
         public string portrait;
         /// <summary>Optional stage background label from 【背景：…】.</summary>
         public string background;
+        /// <summary>Optional BGM cue from 【BGM：…】.</summary>
+        public string bgm;
+        /// <summary>Optional SFX cue from 【SE：…】.</summary>
+        public string sfx;
         public string setFlag;
         public string grantIntel;
         public string noteLine;

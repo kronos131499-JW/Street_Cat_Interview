@@ -37,6 +37,8 @@ namespace StreetCat.Investigation
         public string id;
         public string label;
         public string reply;
+        /// <summary>Guard portrait state while delivering this reply (疑惑/苦笑/回忆/常态).</summary>
+        public string portrait;
         public string grantIntel;
         public string grantIntel2;
         public string noteLine;
@@ -193,6 +195,7 @@ namespace StreetCat.Investigation
                     label = "大福一般几点出现？",
                     reply =
                         "四点多吧。有时候早一点，有时候晚一点。天气好就在快递柜上睡，下雨就不知道钻哪去了，反正吃饭的时候会出来。",
+                    portrait = "常态",
                     grantIntel = IntelIds.DafuAppearTime,
                     noteLine = "大福通常在下午四五点出现。",
                     setObjective = "等待大福出现。"
@@ -203,6 +206,7 @@ namespace StreetCat.Investigation
                     label = "大福和保安的关系",
                     reply =
                         "可能那天它刚好趴这儿。它那个也叫上班啊……反正有时候会过来看看我。看有没有吃的。同事可不会天天找我要罐头。",
+                    portrait = "苦笑",
                     grantIntel = IntelIds.DafuNearGuard,
                     noteLine = "大福经常在保安亭附近活动。"
                 },
@@ -212,6 +216,7 @@ namespace StreetCat.Investigation
                     label = "大福一直都住在这里吗？",
                     reply =
                         "它从医院回来以后吧。之前有人把它送去治过病，后来又送回小区了。以前它怕人，看见人就躲。刚开始哪有这么胖。听说是脖子受伤，具体你得问当时救它的人。",
+                    portrait = "回忆",
                     grantIntel = IntelIds.DafuBecameGuardCat,
                     grantIntel2 = IntelIds.DafuWasRescued,
                     noteLine = "大福曾因颈部受伤被送医，放归后才逐渐成为「保安猫」。"
@@ -222,6 +227,7 @@ namespace StreetCat.Investigation
                     label = "大福的居所",
                     reply =
                         "猫粮和猫窝不是我弄的，小区里有人弄的。有人过来就加点，水没了我有时候也倒一点。它没有主人，不过现在过得还挺好，比以前胖多了。",
+                    portrait = "常态",
                     grantIntel = IntelIds.DafuNoOwner,
                     grantIntel2 = IntelIds.CommunityCare,
                     noteLine = "大福没有固定主人，社区中有多人照顾。"
@@ -230,7 +236,8 @@ namespace StreetCat.Investigation
                 {
                     id = "name",
                     label = "为什么叫大福？（可选）",
-                    reply = "不知道。我认识它的时候已经叫大福了。你喊它试试——手上又没吃的，它当然不理你。"
+                    reply = "不知道。我认识它的时候已经叫大福了。你喊它试试——手上又没吃的，它当然不理你。",
+                    portrait = "苦笑"
                 }
             };
 
@@ -242,6 +249,7 @@ namespace StreetCat.Investigation
                     label = "当初是谁救助的大福？",
                     reply =
                         "林姐。我们小区的住户。大福脖子受伤的时候，是她找人抓住它，送去医院的。后来也是她把大福送回来的。具体怎么回事，你得问她。我也只知道个大概。",
+                    portrait = "回忆",
                     grantIntel = IntelIds.LinIdentity,
                     noteLine = "救助者是小区住户「林姐」。",
                     unlocksLinFlow = true
@@ -252,6 +260,7 @@ namespace StreetCat.Investigation
                     label = "林姐的信息",
                     reply =
                         "她还住这儿，有时候还会过来看大福。你想采访她的话，我先帮你问一声。她愿意的话，再把联系方式给你。",
+                    portrait = "常态",
                     requiresIntel = true,
                     requiredIntel = IntelIds.LinIdentity,
                     setObjective = "等待林女士回复。",

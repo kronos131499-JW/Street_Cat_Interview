@@ -21,8 +21,6 @@ def esc(s: str) -> str:
 
 
 SKIP_PREFIXES = (
-    "【BGM",
-    "【SE",
     "【停顿",
     "【CG",
     "【画面",
@@ -104,6 +102,8 @@ SPEAKER_RE = re.compile(
 )
 PIPE_RE = re.compile(r"^(旁白|系统|UI|画面文本)｜(.*)$")
 BG_RE = re.compile(r"^【背景[:：](.+?)】")
+BGM_RE = re.compile(r"^【BGM[:：](.+?)】")
+SE_RE = re.compile(r"^【(?:SE|音效)[:：](.+?)】")
 
 
 def clean_portrait(annotation: str | None) -> str:
@@ -184,6 +184,14 @@ def parse_dialogue_block(raw_lines: list[str], stop_at_investigate: bool = False
         if bm:
             yield ("background", "", bm.group(1).strip(), "")
             continue
+        bgm = BGM_RE.match(line)
+        if bgm:
+            yield ("bgm", "", bgm.group(1).strip(), "")
+            continue
+        se = SE_RE.match(line)
+        if se:
+            yield ("sfx", "", se.group(1).strip(), "")
+            continue
         if line.startswith("UI｜选项") or line.startswith("UI｜选择"):
             label = "前往沈禾办公室"
             m = re.search(r"[AB]\.\s*(.+)", line)
@@ -241,6 +249,10 @@ def emit_line_cs(kind: str, name: str, text: str, portrait: str = "") -> str:
     p = esc(portrait) if portrait else ""
     if kind == "background":
         return f'            s.lines.Add(Bg("{esc(text)}"));'
+    if kind == "bgm":
+        return f'            s.lines.Add(Bgm("{esc(text)}"));'
+    if kind == "sfx":
+        return f'            s.lines.Add(Sfx("{esc(text)}"));'
     if kind == "narration":
         return f'            s.lines.Add(N("{t}"));'
     if kind == "inner":
@@ -296,6 +308,7 @@ def build_sc02(lines: list[str]) -> str:
         "        static ScriptScene Sc02()",
         "        {",
         f'            var s = new ScriptScene {{ id = SceneIds.SC02, title = "喵语翻译器", backgroundLabel = "{esc(bg)}" }};',
+        '            s.lines.Add(Sfx("椅子移动声"));',
     ]
     buffered_sys = []
     for kind, name, text, portrait in parse_dialogue_block(lines):
@@ -665,6 +678,12 @@ namespace StreetCat.Narrative
 
         static ScriptLine Bg(string background) =>
             new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, background = background };
+
+        static ScriptLine Bgm(string bgm) =>
+            new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, bgm = bgm };
+
+        static ScriptLine Sfx(string sfx) =>
+            new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, sfx = sfx };
 '''
 
 

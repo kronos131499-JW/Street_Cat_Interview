@@ -5,15 +5,14 @@ using UnityEngine;
 namespace StreetCat.UI
 {
     /// <summary>
-    /// Crossfading ambient BGM driven by scene / UI mode.
-    /// Clips live under Resources/Audio/Bgm/ (procedural loops).
+    /// Crossfading BGM. Clips under Resources/Audio/Bgm/.
+    /// Script 【BGM：…】 lines take priority via <see cref="PlayScriptLabel"/>.
     /// </summary>
     public class BgmController : MonoBehaviour
     {
         public static BgmController Instance { get; private set; }
 
-        /// <summary>Procedural loops are muted until replaced with better tracks.</summary>
-        public static bool MusicEnabled = false;
+        public static bool MusicEnabled = true;
 
         const float FadeSeconds = 1.4f;
         const float TargetVolume = 0.38f;
@@ -22,6 +21,7 @@ namespace StreetCat.UI
         AudioSource b;
         bool usingA = true;
         string currentKey;
+        string stickyScriptKey;
         Coroutine fadeCo;
         readonly Dictionary<string, AudioClip> cache = new Dictionary<string, AudioClip>();
 
@@ -51,9 +51,39 @@ namespace StreetCat.UI
                 StopAll();
                 return;
             }
-            var key = ResolveKey(modeHint, backgroundLabel);
+            if (!string.IsNullOrEmpty(stickyScriptKey))
+            {
+                Play(stickyScriptKey);
+                return;
+            }
+            Play(ResolveKey(modeHint, backgroundLabel));
+        }
+
+        /// <summary>Script cue e.g. 编辑部日常_01（循环） / 淡出.</summary>
+        public void PlayScriptLabel(string label)
+        {
+            if (!MusicEnabled)
+            {
+                StopAll();
+                return;
+            }
+            if (string.IsNullOrEmpty(label)) return;
+
+            var raw = label.Replace("　", "").Replace(" ", "").Trim();
+            if (raw.Contains("淡出") || raw.Contains("停止") || raw.Contains("fade"))
+            {
+                stickyScriptKey = null;
+                FadeOut();
+                return;
+            }
+
+            var key = ResolveScriptLabel(raw);
+            if (string.IsNullOrEmpty(key)) return;
+            stickyScriptKey = key;
             Play(key);
         }
+
+        public void ClearScriptSticky() => stickyScriptKey = null;
 
         public void StopAll()
         {
@@ -65,6 +95,32 @@ namespace StreetCat.UI
             if (a != null) { a.Stop(); a.volume = 0f; a.clip = null; }
             if (b != null) { b.Stop(); b.volume = 0f; b.clip = null; }
             currentKey = null;
+        }
+
+        public void FadeOut()
+        {
+            if (fadeCo != null)
+                StopCoroutine(fadeCo);
+            fadeCo = StartCoroutine(FadeOutCo());
+            currentKey = null;
+        }
+
+        IEnumerator FadeOutCo()
+        {
+            float t = 0f;
+            float a0 = a != null ? a.volume : 0f;
+            float b0 = b != null ? b.volume : 0f;
+            while (t < FadeSeconds)
+            {
+                t += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t / FadeSeconds);
+                u = u * u * (3f - 2f * u);
+                if (a != null) a.volume = Mathf.Lerp(a0, 0f, u);
+                if (b != null) b.volume = Mathf.Lerp(b0, 0f, u);
+                yield return null;
+            }
+            StopAll();
+            fadeCo = null;
         }
 
         public void Play(string key)
@@ -107,7 +163,6 @@ namespace StreetCat.UI
             {
                 t += Time.unscaledDeltaTime;
                 float u = Mathf.Clamp01(t / FadeSeconds);
-                // smoothstep
                 u = u * u * (3f - 2f * u);
                 if (to != null) to.volume = Mathf.Lerp(0f, TargetVolume, u);
                 if (from != null) from.volume = Mathf.Lerp(fromStart, 0f, u);
@@ -133,6 +188,32 @@ namespace StreetCat.UI
             return c;
         }
 
+        public static string ResolveScriptLabel(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return null;
+            var s = label.Replace("（循环）", "").Replace("(循环)", "").Replace("循环", "")
+                .Replace("　", "").Replace(" ", "").Trim();
+            if (s.StartsWith("bgm_")) return s;
+
+            if (s.Contains("主菜单") || s.Contains("Title")) return "bgm_title";
+            if (s.Contains("专题结束") || s.Contains("epilogue")) return "bgm_epilogue";
+            if (s.Contains("咖啡馆")) return "bgm_cafe";
+            if (s.Contains("大福")) return "bgm_dafu";
+            if (s.Contains("社区傍晚") || (s.Contains("傍晚") && s.Contains("社区"))) return "bgm_community_dusk";
+            if (s.Contains("社区午后") || (s.Contains("午后") && s.Contains("社区"))) return "bgm_community_afternoon";
+            if (s.Contains("沈禾")) return "bgm_shenhe_office";
+            if (s.Contains("编辑部日常_02") || s.Contains("编辑部日常02") || s.Contains("日常_02"))
+                return "bgm_editorial_02";
+            if (s.Contains("编辑部")) return "bgm_editorial_01";
+
+            // Legacy keys
+            if (s.Contains("interview") || s.Contains("采访")) return "bgm_interview";
+            if (s.Contains("writing") || s.Contains("写稿")) return "bgm_writing";
+            if (s.Contains("community") || s.Contains("社区")) return "bgm_community_afternoon";
+            if (s.Contains("magazine") || s.Contains("杂志")) return "bgm_editorial_01";
+            return null;
+        }
+
         /// <summary>
         /// modeHint: Title / Dialogue / Investigate / Interview / Writing / Notebook / Epilogue / Talk
         /// </summary>
@@ -141,23 +222,38 @@ namespace StreetCat.UI
             var mode = modeHint ?? "";
             var label = (backgroundLabel ?? "").Replace("　", "").Replace(" ", "").Replace("_", "");
 
-            if (mode == "Interview" || label.Contains("采访"))
-                return "bgm_interview";
+            if (mode == "Title")
+                return "bgm_title";
+
+            if (mode == "Interview" || label.Contains("采访") || label.Contains("咖啡"))
+            {
+                if (label.Contains("林") || label.Contains("咖啡"))
+                    return "bgm_cafe";
+                return "bgm_dafu";
+            }
 
             if (mode == "Writing" || mode == "Notebook" ||
-                label.Contains("写稿") || label.Contains("笔记"))
-                return "bgm_writing";
+                label.Contains("写稿") || label.Contains("笔记") || label.Contains("工位"))
+                return "bgm_editorial_02";
 
-            if (mode == "Epilogue" || label.Contains("后日谈") || label.Contains("几天后"))
-                return "bgm_community";
+            if (mode == "Epilogue" || label.Contains("后日谈") || label.Contains("几天后") || label.Contains("文章发布"))
+                return "bgm_epilogue";
+
+            if (label.Contains("沈禾") && label.Contains("办公"))
+                return "bgm_shenhe_office";
+
+            if (label.Contains("保安亭") && (label.Contains("傍晚") || label.Contains("黄昏")))
+                return "bgm_community_dusk";
 
             if (mode == "Investigate" || mode == "Talk" ||
                 label.Contains("槐安") || label.Contains("社区") || label.Contains("保安亭") ||
                 label.Contains("午后") || label.Contains("傍晚"))
-                return "bgm_community";
+                return "bgm_community_afternoon";
 
-            // Title, magazine, office, workstation
-            return "bgm_magazine";
+            if (label.Contains("编辑") || label.Contains("杂志"))
+                return "bgm_editorial_01";
+
+            return "bgm_editorial_01";
         }
     }
 }

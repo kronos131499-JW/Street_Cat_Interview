@@ -4,51 +4,92 @@ using UnityEngine;
 namespace StreetCat.Investigation
 {
     /// <summary>
-    /// Normalized hotspot rects (xMin, yMin, xMax, yMax) over stage backgrounds.
-    /// Tuned for 槐安社区_社区平面图 numbered markers (y=0 bottom).
+    /// Investigate hotspot rects. Runtime reads ScriptableObject asset when present;
+    /// falls back to built-in defaults for 槐安社区_社区平面图.
     /// </summary>
     public static class InvestigateHotspotLayout
     {
+        const string ResourcePath = "InvestigateHotspotLayout";
+
         /// <summary>
-        /// Community guide map (bg_huaian_map):
-        /// 01 投喂点 upper-left · 02 狸花猫 upper-mid · 03 贩卖机 upper-right ·
-        /// 04 长椅 center · 05 快递柜 / 保安亭 bottom-right.
+        /// Defaults for community guide map (bg_huaian_map):
+        /// 01 投喂点 · 02 狸花猫 · 03 贩卖机 · 04 长椅 · 05 快递柜 / 保安亭.
         /// </summary>
-        public static readonly Dictionary<string, Vector4> HuaianMap = new Dictionary<string, Vector4>
+        public static readonly Dictionary<string, Vector4> DefaultHuaianMap = new Dictionary<string, Vector4>
         {
-            // 01 流浪猫投喂点 — upper-left shelter + bowls
             { "cat_house", new Vector4(0.10f, 0.58f, 0.26f, 0.78f) },
             { "food_bowl", new Vector4(0.22f, 0.52f, 0.32f, 0.64f) },
             { "water_bowl", new Vector4(0.28f, 0.50f, 0.38f, 0.62f) },
             { "sign", new Vector4(0.14f, 0.48f, 0.24f, 0.58f) },
-            // 02 灌木丛边晒太阳的猫
             { "tabby", new Vector4(0.40f, 0.56f, 0.56f, 0.74f) },
-            // 03 自动贩卖机
             { "vending", new Vector4(0.70f, 0.56f, 0.90f, 0.78f) },
-            // 04 木质长椅 — map center plaza
             { "bench", new Vector4(0.40f, 0.34f, 0.58f, 0.50f) },
-            // 05 快递柜 — bottom-right near gate
             { "locker", new Vector4(0.64f, 0.12f, 0.84f, 0.32f) },
-            // 保安亭 — bottom-right, left of lockers / inside gate
             { "guard_booth", new Vector4(0.48f, 0.10f, 0.64f, 0.30f) },
         };
+
+        static InvestigateHotspotLayoutData _cached;
+
+        public static InvestigateHotspotLayoutData Asset
+        {
+            get
+            {
+                if (_cached == null)
+                    _cached = Resources.Load<InvestigateHotspotLayoutData>(ResourcePath);
+                return _cached;
+            }
+        }
+
+        public static void InvalidateCache() => _cached = null;
 
         public static bool TryGet(string hotspotId, string backgroundKey, out Vector4 rect)
         {
             rect = default;
             if (string.IsNullOrEmpty(hotspotId)) return false;
 
-            // Prefer map layout for the community guide / any huaian art
-            if (string.IsNullOrEmpty(backgroundKey) ||
-                backgroundKey.Contains("huaian") ||
-                backgroundKey.Contains("map") ||
-                backgroundKey.Contains("community") ||
-                backgroundKey.Contains("平面"))
-            {
-                return HuaianMap.TryGetValue(hotspotId, out rect);
-            }
+            var asset = Asset;
+            if (asset != null && asset.TryGet(hotspotId, out rect))
+                return true;
 
-            return HuaianMap.TryGetValue(hotspotId, out rect);
+            return DefaultHuaianMap.TryGetValue(hotspotId, out rect);
         }
+
+#if UNITY_EDITOR
+        public static void SaveRectFromTransform(string hotspotId, RectTransform rt)
+        {
+            if (string.IsNullOrEmpty(hotspotId) || rt == null) return;
+            var asset = EnsureAsset();
+            if (asset == null) return;
+
+            var rect = new Vector4(rt.anchorMin.x, rt.anchorMin.y, rt.anchorMax.x, rt.anchorMax.y);
+            asset.SetRect(hotspotId, rect);
+            UnityEditor.EditorUtility.SetDirty(asset);
+            UnityEditor.AssetDatabase.SaveAssets();
+            _cached = asset;
+            Debug.Log($"[InvestigateHotspot] saved {hotspotId} = ({rect.x:F3}, {rect.y:F3}, {rect.z:F3}, {rect.w:F3})");
+        }
+
+        public static InvestigateHotspotLayoutData EnsureAsset()
+        {
+            var existing = Asset;
+            if (existing != null) return existing;
+
+            const string folder = "Assets/Resources";
+            const string path = folder + "/InvestigateHotspotLayout.asset";
+            if (!UnityEditor.AssetDatabase.IsValidFolder(folder))
+                UnityEditor.AssetDatabase.CreateFolder("Assets", "Resources");
+
+            var asset = ScriptableObject.CreateInstance<InvestigateHotspotLayoutData>();
+            foreach (var kv in DefaultHuaianMap)
+                asset.entries.Add(new HotspotRectEntry { id = kv.Key, rect = kv.Value });
+
+            UnityEditor.AssetDatabase.CreateAsset(asset, path);
+            UnityEditor.AssetDatabase.SaveAssets();
+            UnityEditor.AssetDatabase.Refresh();
+            _cached = asset;
+            Debug.Log("[InvestigateHotspot] created " + path);
+            return asset;
+        }
+#endif
     }
 }

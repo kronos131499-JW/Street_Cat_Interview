@@ -190,27 +190,88 @@ namespace StreetCat.UI
             if (name.Contains("小凌"))
                 return ResolveXiaolingExpression(name, expression);
             if (name.Contains("沈禾"))
-            {
-                var e = (expression ?? "").Trim();
-                if (e.Contains("笑") || e.Contains("认可") || e.Contains("amused") || name.Contains("笑"))
-                    return "ch_shenhe_amused";
-                return "ch_shenhe_default";
-            }
+                return ResolveShenheExpression(name, expression);
             if (name.Contains("大福"))
-            {
-                var e = (expression ?? "").Trim();
-                if (e.Contains("警") || e.Contains("wary") || name.Contains("警"))
-                    return "ch_dafu_wary";
-                return "ch_dafu_default";
-            }
+                return ResolveDafuExpression(name, expression);
             if (name.Contains("林"))
-                return "ch_lin_default";
+                return ResolveLinExpression(name, expression);
             if (name.Contains("保安"))
-                return "ch_guard_default";
-            if (name.Contains("梨花") || name.Contains("李华"))
+                return ResolveGuardExpression(name, expression);
+            if (name.Contains("梨花") || name.Contains("李华") || name.Contains("狸花"))
                 return "ch_lihua_default";
 
             return null;
+        }
+
+        static string ExpressionTag(string speakerOrTag, string expression)
+        {
+            var tag = expression ?? "";
+            if (!string.IsNullOrEmpty(tag)) return tag.Trim();
+            if (string.IsNullOrEmpty(speakerOrTag)) return "";
+            var s = speakerOrTag;
+            int l = s.IndexOf('（');
+            int r = s.IndexOf('）');
+            if (l >= 0 && r > l) return s.Substring(l + 1, r - l - 1).Trim();
+            l = s.IndexOf('(');
+            r = s.IndexOf(')');
+            if (l >= 0 && r > l) return s.Substring(l + 1, r - l - 1).Trim();
+            return "";
+        }
+
+        public static string ResolveShenheExpression(string speakerOrTag, string expression = null)
+        {
+            var tag = ExpressionTag(speakerOrTag, expression);
+            if (tag.Contains("认可") || tag.Contains("笑") || tag.Contains("amused"))
+                return "ch_shenhe_amused";
+            if (tag.Contains("无奈") || tag.Contains("helpless"))
+                return "ch_shenhe_helpless";
+            if (tag.Contains("认真") || tag.Contains("serious"))
+                return "ch_shenhe_serious";
+            return "ch_shenhe_default"; // 平静
+        }
+
+        public static string ResolveGuardExpression(string speakerOrTag, string expression = null)
+        {
+            var tag = ExpressionTag(speakerOrTag, expression);
+            if (tag.Contains("疑惑") || tag.Contains("puzzled"))
+                return "ch_guard_puzzled";
+            if (tag.Contains("苦笑") || tag.Contains("wry"))
+                return "ch_guard_wry";
+            if (tag.Contains("回忆") || tag.Contains("recall"))
+                return "ch_guard_recall";
+            return "ch_guard_default";
+        }
+
+        public static string ResolveDafuExpression(string speakerOrTag, string expression = null)
+        {
+            var tag = ExpressionTag(speakerOrTag, expression);
+            if (tag.Contains("警") || tag.Contains("wary"))
+                return "ch_dafu_wary";
+            if (tag.Contains("不满") || tag.Contains("annoyed"))
+                return "ch_dafu_annoyed";
+            if (tag.Contains("回忆") || tag.Contains("recall"))
+                return "ch_dafu_recall";
+            if (tag.Contains("好奇") || tag.Contains("curious"))
+                return "ch_dafu_curious";
+            if (tag.Contains("放松") || tag.Contains("relax"))
+                return "ch_dafu_relaxed";
+            return "ch_dafu_default";
+        }
+
+        public static string ResolveLinExpression(string speakerOrTag, string expression = null)
+        {
+            var tag = ExpressionTag(speakerOrTag, expression);
+            if (tag.Contains("压力") || tag.Contains("pressure"))
+                return "ch_lin_pressure";
+            if (tag.Contains("坚定") || tag.Contains("firm"))
+                return "ch_lin_firm";
+            if (tag.Contains("疲惫") || tag.Contains("tired"))
+                return "ch_lin_tired";
+            if (tag.Contains("防备") || tag.Contains("guarded"))
+                return "ch_lin_guarded";
+            if (tag.Contains("回忆") || tag.Contains("recall"))
+                return "ch_lin_recall";
+            return "ch_lin_default";
         }
 
         /// <summary>

@@ -17,5 +17,11 @@ namespace StreetCat.Editor
         {
             Debug.Log(Application.persistentDataPath);
         }
+
+        [MenuItem("StreetCat/Investigate Hotspot Editor")]
+        static void OpenHotspotEditor()
+        {
+            InvestigateHotspotEditorWindow.Open();
+        }
     }
 }

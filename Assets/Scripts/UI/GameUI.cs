@@ -641,7 +641,11 @@ namespace StreetCat.UI
             var le = go.GetComponent<LayoutElement>();
             le.minWidth = 88;
             le.preferredHeight = 34;
-            go.GetComponent<Button>().onClick.AddListener(action);
+            go.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                SfxController.Instance?.PlayUi();
+                action();
+            });
             var tgo = new GameObject("T", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             StretchFull(tgo.GetComponent<RectTransform>());
@@ -1190,7 +1194,21 @@ namespace StreetCat.UI
 
             var btn = go.GetComponent<Button>();
             btn.transition = Selectable.Transition.None;
-            btn.onClick.AddListener(action);
+            btn.onClick.AddListener(() =>
+            {
+#if UNITY_EDITOR
+                if (InvestigateHotspotEditMode.Enabled) return;
+#endif
+                action();
+            });
+
+#if UNITY_EDITOR
+            var drag = go.AddComponent<DraggableInvestigateHotspot>();
+            drag.HotspotId = id;
+            drag.Title = title;
+            if (InvestigateHotspotEditMode.Enabled)
+                img.color = new Color(1f, 0.55f, 0.15f, 0.35f);
+#endif
 
             var trigger = go.AddComponent<EventTrigger>();
             void AddTrig(EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> cb)
@@ -1202,6 +1220,9 @@ namespace StreetCat.UI
 
             void SetHover(bool on)
             {
+#if UNITY_EDITOR
+                if (InvestigateHotspotEditMode.Enabled) return;
+#endif
                 img.color = on ? hover : idle;
                 var edgeCol = on
                     ? new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.85f)
@@ -1293,10 +1314,13 @@ namespace StreetCat.UI
             colors.highlightedColor = VnTheme.ButtonHover;
             colors.pressedColor = VnTheme.AccentSoft;
             btn.colors = colors;
-            if (!wide)
-                btn.onClick.AddListener(() => { SfxController.Instance?.PlayUi(); action(); });
-            else
-                btn.onClick.AddListener(action);
+            btn.onClick.AddListener(() =>
+            {
+                // wide choices already play PlayChoice upstream; avoid double-click
+                if (!wide)
+                    SfxController.Instance?.PlayUi();
+                action();
+            });
 
             var le = go.GetComponent<LayoutElement>();
             le.minHeight = wide ? 52 : (mode == Mode.Title ? 48 : 36);
@@ -1597,7 +1621,11 @@ namespace StreetCat.UI
             var colors = btn.colors;
             colors.highlightedColor = VnTheme.ButtonHover;
             btn.colors = colors;
-            btn.onClick.AddListener(action);
+            btn.onClick.AddListener(() =>
+            {
+                SfxController.Instance?.PlayUi();
+                action();
+            });
             var tick = CreateImage(go.transform, "Tick", VnTheme.Accent);
             var tr = tick.rectTransform;
             tr.anchorMin = new Vector2(0, 0.25f);
@@ -1626,7 +1654,11 @@ namespace StreetCat.UI
             le.minHeight = 36;
             le.preferredHeight = 36;
             le.minWidth = 110;
-            go.GetComponent<Button>().onClick.AddListener(action);
+            go.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                SfxController.Instance?.PlayUi();
+                action();
+            });
             var tgo = new GameObject("L", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             StretchFull(tgo.GetComponent<RectTransform>());
@@ -2182,12 +2214,19 @@ namespace StreetCat.UI
             else
                 ApplyStageArt();
 
-            // Background-only beat: apply art and auto-advance without showing empty box.
-            bool bgOnly = !string.IsNullOrEmpty(line.background)
-                && string.IsNullOrEmpty(line.text)
+            if (!string.IsNullOrEmpty(line.bgm))
+                BgmController.Instance?.PlayScriptLabel(line.bgm);
+            if (!string.IsNullOrEmpty(line.sfx))
+                SfxController.Instance?.PlayScriptLabel(line.sfx);
+
+            // Cue-only beat (bg / bgm / sfx): apply and auto-advance without empty dialogue.
+            bool cueOnly = string.IsNullOrEmpty(line.text)
                 && (line.choices == null || line.choices.Count == 0)
-                && !line.openInvestigation && !line.openTalkMenu && !line.openWriting && !line.openInterview;
-            if (bgOnly)
+                && !line.openInvestigation && !line.openTalkMenu && !line.openWriting && !line.openInterview
+                && (!string.IsNullOrEmpty(line.background)
+                    || !string.IsNullOrEmpty(line.bgm)
+                    || !string.IsNullOrEmpty(line.sfx));
+            if (cueOnly)
             {
                 SceneDirector.Instance.Advance();
                 return;
@@ -2428,7 +2467,10 @@ namespace StreetCat.UI
             if (inspectQueue.Count == 0)
                 inspectQueue.Add(new InspectBeat { narration = true, text = lastInspectText });
             inspectIndex = 0;
-            SfxController.Instance?.PlayInspect();
+            if (hotspotId == "tabby")
+                SfxController.Instance?.PlayScriptLabel("灌木丛窸窣声");
+            else
+                SfxController.Instance?.PlayInspect();
 
             mode = Mode.Investigate;
             if (GameState.Instance != null)
@@ -2519,7 +2561,7 @@ namespace StreetCat.UI
                 AddChoice(t.label, () =>
                 {
                     var reply = InvestigationService.Instance.Talk(t);
-                    SetSpeaker("保安叔叔", LineSpeaker.Character);
+                    SetSpeaker("保安叔叔", LineSpeaker.Character, t.portrait);
                     SetBody(reply, true, "talk");
                     statusText.text = "点击返回话题";
                     ClearButtons();
@@ -2567,7 +2609,7 @@ namespace StreetCat.UI
                 AddChoice(t.label, () =>
                 {
                     var reply = InvestigationService.Instance.Talk(t);
-                    SetSpeaker("保安叔叔", LineSpeaker.Character);
+                    SetSpeaker("保安叔叔", LineSpeaker.Character, t.portrait);
                     SetBody(reply, true, "talk");
                     ClearButtons();
                     if (!string.IsNullOrEmpty(t.nextSceneId))
@@ -2575,7 +2617,9 @@ namespace StreetCat.UI
                         talkAwaitingClickReturn = false;
                         AddAction("等待回复", () =>
                         {
-                            SetSpeaker("林女士", LineSpeaker.Character);
+                            SfxController.Instance?.PlayScriptLabel("信息发送");
+                            SfxController.Instance?.PlayScriptLabel("消息提示音");
+                            SetSpeaker("林女士", LineSpeaker.Character, "常态");
                             SetBody("你好，我是林敏。保安跟我说，你想了解大福以前的事。\n\n可以。明天下午三点左右我有空。小区南门外有家咖啡馆，就约在那里吧。");
                             ClearButtons();
                             talkAwaitingClickReturn = false;
@@ -2746,7 +2790,7 @@ namespace StreetCat.UI
         void ShowWritingDirectionPick()
         {
             RefreshHeader();
-            SetSpeaker("沈禾", LineSpeaker.Character);
+            SetSpeaker("沈禾", LineSpeaker.Character, "认真");
             var unlocked = GameState.Instance.Data.unlockedMaterials.Count;
             var body = "选一个报道立意。素材决定你能写什么，立意决定你想讲什么。\n\n已解锁素材 " +
                        unlocked + " 张。";
@@ -2848,7 +2892,7 @@ namespace StreetCat.UI
         {
             if (!assembler.CanAssemble(pendingDir, selectedMats, out var err))
             {
-                SetSpeaker("沈禾", LineSpeaker.Character);
+                SetSpeaker("沈禾", LineSpeaker.Character, "认真");
                 SetBody("现在还不能成稿。\n\n" + err + "\n\n可以改选材，或返回采访补齐素材。");
                 statusText.text = err;
                 ClearButtons();
@@ -2865,7 +2909,8 @@ namespace StreetCat.UI
             GameState.Instance.Data.lastArticleBody = assembler.Body;
             GameState.Instance.Data.lastReviewScore = assembler.Score;
             SetStageBackground("沈禾办公室_上午");
-            SetSpeaker("沈禾", LineSpeaker.Character);
+            BgmController.Instance?.PlayScriptLabel("编辑部日常_01（循环）");
+            SetSpeaker("沈禾", LineSpeaker.Character, assembler.CanPublish ? "淡淡认可" : "认真");
             SetBody("稿件已提交。\n\n" + assembler.Body + "\n\n—— 沈禾审核 ——\n" + assembler.ReviewText);
             statusText.text = assembler.CanPublish
                 ? $"审核通过　{assembler.Score}"
@@ -2945,6 +2990,9 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
+            SetStageBackground("文章发布页面");
+            BgmController.Instance?.ClearScriptSticky();
+            BgmController.Instance?.PlayScriptLabel("专题结束_01");
             locationText.text = "几天后";
             stageHint.text = "后日谈";
             RefreshHeader();
