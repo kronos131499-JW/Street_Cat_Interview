@@ -7,9 +7,12 @@ namespace StreetCat.Interview
     {
         public override InterviewSubject Subject => InterviewSubject.Dafu;
 
-        static readonly string[] ForbiddenLeak =
+        /// <summary>Human concepts 大福 must never utter (design: cognitive boundary / 喵语翻译器).</summary>
+        public static readonly string[] ForbiddenLeak =
         {
-            "麻绳", "猫瘟", "手术", "一万", "林女士", "林敏", "坏死", "感染"
+            "麻绳", "猫瘟", "手术", "一万", "万元", "林女士", "林敏", "坏死", "感染",
+            "医院", "医生", "救助", "收养", "放归", "主人", "医疗", "费用",
+            "治疗", "住院", "麻醉", "缝合", "消毒"
         };
 
         protected override string Classify(string input)
@@ -18,17 +21,37 @@ namespace StreetCat.Interview
                 return "cognitive_boundary";
             if (ContainsAny(input, "脖子", "疼", "伤", "勒", "绳子", "疤"))
                 return "neck";
-            if (ContainsAny(input, "女人", "姐姐", "喂", "罐头", "食物", "投喂", "人给你"))
+            // Food offer / hunger before woman「喂」and before bare daily「吃」.
+            if (ContainsAny(input, "给你吃", "猫粮", "猫条", "饿", "想吃", "好吃", "零食", "要不要吃", "吃的吗"))
+                return "hungry";
+            if (ContainsAny(input, "女人", "姐姐", "喂", "罐头", "食物", "投喂", "人给你", "谁喂",
+                    "送吃", "送你吃", "那个女", "谁给你吃"))
                 return "woman";
             if (ContainsAny(input, "抓", "笼子", "带走", "抓走", "箱子"))
                 return "capture";
             if (ContainsAny(input, "亮", "味道", "医院那种", "很多猫", "睡着", "醒来"))
                 return "strange_place";
-            if (ContainsAny(input, "回来", "送回", "社区", "放回来"))
+            // Return before vague past / daily: 带回 was previously missed.
+            if (ContainsAny(input, "回来", "带回", "送回", "谁把你", "谁送你", "送你回", "社区", "放回来", "放回"))
                 return "return";
-            if (ContainsAny(input, "怕人", "以前", "害怕", "躲"))
+            // Location + 以前/来 → daily life, not past_fear alone.
+            if (ContainsAny(input, "保安亭", "快递柜", "门口", "保安", "快递")
+                && ContainsAny(input, "以前", "来", "待", "住", "睡", "在"))
+                return "daily";
+            if (ContainsAny(input, "怕人", "害怕", "躲", "以前怕", "从前怕"))
                 return "past_fear";
-            if (ContainsAny(input, "保安", "快递", "睡觉", "吃", "狸花", "伙伴", "哪里", "生活", "上班"))
+            // Bare 「以前」 only when asking about fear / past temperament — not location chats.
+            if (ContainsAny(input, "以前") && ContainsAny(input, "人", "怕", "跑", "躲", "靠近"))
+                return "past_fear";
+            if (ContainsAny(input, "名字", "叫什么", "你叫", "怎么称呼"))
+                return "name";
+            if (ContainsAny(input, "开心", "喜欢", "高兴", "舒服", "讨厌", "害怕吗"))
+                return "feeling";
+            if (ContainsAny(input, "你好", "在吗", "打招呼", "认识我"))
+                return "greeting";
+            if (ContainsAny(input, "保安亭", "保安", "快递柜", "快递", "门口", "睡觉", "狸花", "伙伴",
+                    "哪里", "生活", "上班", "几点", "下午", "白天", "晚上", "冷", "热", "雨",
+                    "以前", "常来", "待在", "住哪"))
                 return "daily";
             if (ContainsAny(input, "故事", "讲讲", "所有"))
                 return "too_broad";
@@ -47,6 +70,34 @@ namespace StreetCat.Interview
                         "大福甩了甩尾巴，看向快递柜方向。",
                         new[] { IntelIds.DafuNearGuard, IntelIds.TabbyPartner },
                         trust: 2, stress: -2);
+
+                case "name":
+                    return Reply("name", "询问名字",
+                        new[] { "大福？", "他们这么喊我。", "有吃的就会过来。" },
+                        "大福耳朵动了动。",
+                        null,
+                        trust: 1, stress: -1);
+
+                case "hungry":
+                    return Reply("hungry", "询问食物",
+                        new[] { "还想吃。", "门口有时候有。", "你还有吗？" },
+                        "大福盯着你的手看了一眼。",
+                        null,
+                        trust: 2, stress: -2);
+
+                case "feeling":
+                    return Reply("feeling", "询问心情",
+                        new[] { "现在还行。", "有吃的，太阳晒着就好。", "人太近会想走。" },
+                        "大福眯了眯眼。",
+                        null,
+                        trust: 1, stress: -1);
+
+                case "greeting":
+                    return Reply("greeting", "打招呼",
+                        new[] { "嗯？", "你是刚才那个。", "有吃的吗？" },
+                        "大福歪头看你。",
+                        null,
+                        trust: 1, stress: -1);
 
                 case "past_fear":
                     return Reply("past_fear", "询问以前是否怕人",
@@ -129,9 +180,9 @@ namespace StreetCat.Interview
                     return new InterviewReply
                     {
                         intent = "generic",
-                        replyLines = { "嗯？", "有吃的吗？" },
-                        behavior = "大福歪头看着你。",
-                        attentionChange = -2,
+                        replyLines = { "嗯？", "你说什么？", "有吃的吗？" },
+                        behavior = "大福歪头看着你，尾巴轻轻甩了一下。",
+                        attentionChange = -1,
                         systemHint = "可以问问它的生活、旧伤，或认识的人。"
                     };
             }
@@ -169,7 +220,7 @@ namespace StreetCat.Interview
 
         protected override List<string> GetRepeatLines(string intent)
         {
-            return new List<string> { "刚才说过了。", "没更多了。" };
+            return new List<string> { "换个问法？", "这个我不太会说。" };
         }
 
         protected override InterviewReply HandleHostile()

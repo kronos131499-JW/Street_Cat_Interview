@@ -7,9 +7,12 @@ import hashlib
 import shutil
 from pathlib import Path
 
+from PIL import Image
+
 ROOT = Path(__file__).resolve().parents[1]
 ART_CHAR = ROOT / "Assets" / "Art" / "Characters"
 DST_CHAR = ROOT / "Assets" / "Resources" / "VnArt" / "Characters"
+PORTRAIT_CANVAS = (1024, 1536)
 SRC_BGM = ROOT / "Assets" / "Audio" / "bgm_new"
 DST_BGM = ROOT / "Assets" / "Resources" / "Audio" / "Bgm"
 SRC_SFX = ROOT / "Assets" / "Audio" / "音效"
@@ -59,8 +62,12 @@ PORTRAITS = [
 BGM = {
     "编辑部日常_01.mp3": "bgm_editorial_01",
     "编辑部日常_02.mp3": "bgm_editorial_02",
+    # Later keys overwrite earlier ones when multiple sources exist.
     "沈禾办公室.mp3": "bgm_shenhe_office",
+    "沈禾办公室 (2).mp3": "bgm_shenhe_office",
+    "沈禾办公室_01.mp3": "bgm_shenhe_office",
     "社区午后_01.mp3": "bgm_community_afternoon",
+    "保安亭_01.mp3": "bgm_guard_booth",
     "社区傍晚_01.mp3": "bgm_community_dusk",
     "大福的出现.mp3": "bgm_dafu",
     "咖啡馆日常_01.mp3": "bgm_cafe",
@@ -75,6 +82,10 @@ SFX = {
     "椅子移动声.mp3": "sfx_chair",
     "灌木丛窸窣声.mp3": "sfx_bush",
     "猫叫声.mp3": "sfx_meow",
+    "喵叫声_02.mp3": "sfx_meow_02",
+    "喵叫声_03.mp3": "sfx_meow_03",
+    "喵叫声_04.mp3": "sfx_meow_04",
+    "喵叫声_05.mp3": "sfx_meow_05",
     "设备启动提示音.mp3": "sfx_device",
     "远处保安亭开门声.mp3": "sfx_door",
 }
@@ -227,15 +238,45 @@ def write_audio_meta(path: Path, key: str):
     meta.write_text(AUDIO_META.format(guid=guid_for("audio", key)), encoding="utf-8")
 
 
+def normalize_portrait_canvas(src: Path, dst: Path) -> None:
+    """Ensure VN portraits share a portrait canvas so preserveAspect stays stable.
+
+    Landscape plates (e.g. old 保安 1536x1024) are letterboxed onto 1024x1536.
+    For full content-height matching, re-run Tools/process_guard_portraits.py.
+    """
+    im = Image.open(src).convert("RGBA")
+    if im.size == PORTRAIT_CANVAS:
+        im.save(dst, "PNG")
+        return
+    w, h = im.size
+    canvas = Image.new("RGBA", PORTRAIT_CANVAS, (0, 0, 0, 0))
+    # Fit inside canvas preserving aspect, bottom-weighted like other VN busts.
+    scale = min(PORTRAIT_CANVAS[0] / float(w), PORTRAIT_CANVAS[1] / float(h))
+    nw = max(1, int(round(w * scale)))
+    nh = max(1, int(round(h * scale)))
+    resized = im.resize((nw, nh), Image.Resampling.LANCZOS)
+    x = (PORTRAIT_CANVAS[0] - nw) // 2
+    y = PORTRAIT_CANVAS[1] - nh - 40
+    if y < 0:
+        y = 0
+    canvas.paste(resized, (x, y), resized)
+    canvas.save(dst, "PNG")
+    print("  normalized canvas", im.size, "→", PORTRAIT_CANVAS)
+
+
 def copy_file(src: Path, dst: Path, key: str, kind: str):
     if not src.exists():
         print("MISSING", src)
         return False
     dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dst)
     if kind == "sprite":
+        try:
+            normalize_portrait_canvas(src, dst)
+        except OSError:
+            shutil.copy2(src, dst)
         write_sprite_meta(dst, key)
     else:
+        shutil.copy2(src, dst)
         write_audio_meta(dst, key)
     print("OK", key, "←", src.name)
     return True

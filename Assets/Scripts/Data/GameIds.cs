@@ -70,6 +70,8 @@ namespace StreetCat.Data
         public const string UnlockedHuaiAn = "UNLOCKED_HUAIAN";
         public const string FoundDafu = "FOUND_DAFU";
         public const string GuardUnlocked = "GUARD_UNLOCKED";
+        /// <summary>SC-05 booth intro finished; map can open talk menu directly.</summary>
+        public const string GuardIntroDone = "GUARD_INTRO_DONE";
         public const string WaitingForDafu = "WAITING_FOR_DAFU";
         public const string DafuInterviewDone = "DAFU_INTERVIEW_DONE";
         public const string LinUnlocked = "LIN_UNLOCKED";
@@ -99,11 +101,19 @@ namespace StreetCat.Data
         public const string SC11 = "SC-11";
     }
 
+    /// <summary>
+    /// Notebook topic progress. Untouched topics stay hidden.
+    /// New=○ 新线索, Open=◐ 还有疑问, Complete=● 已充分了解.
+    /// </summary>
     public enum TopicStatus
     {
         Untouched = 0,
+        New = 1,
+        Open = 2,
+        Complete = 3,
+        // Legacy aliases (pre-format-2 saves migrated on load)
         Partial = 1,
-        Deep = 2
+        Deep = 3
     }
 
     public enum MaterialType

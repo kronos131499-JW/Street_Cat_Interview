@@ -46,6 +46,14 @@ namespace StreetCat.Narrative
         static ScriptLine Sfx(string sfx) =>
             new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, sfx = sfx };
 
+        /// <summary>【演出】center prop; click to continue. Key under Resources/VnArt/Props/.</summary>
+        static ScriptLine Prop(string propKey) =>
+            new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, prop = propKey };
+
+        /// <summary>【演出】hide sticky center prop (auto-advances like other cue-only beats).</summary>
+        static ScriptLine PropHide() =>
+            new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, hideProp = true };
+
         static ScriptScene Sc01()
         {
             var s = new ScriptScene { id = SceneIds.SC01, title = "周五下班前", backgroundLabel = "编辑部_傍晚" };
@@ -87,6 +95,8 @@ namespace StreetCat.Narrative
             s.lines.Add(Sfx("椅子移动声"));
             s.lines.Add(Bgm("沈禾办公室"));
             s.lines.Add(N("小凌进入办公室。沈禾将一个猫咪形状的设备盒推到桌边。"));
+            // 【演出：喵语翻译器-关机状态的图片出现在画面中央】（sticky until PropHide）
+            s.lines.Add(Prop("prop_translator_off"));
             s.lines.Add(L("小凌", "这什么？", "思考"));
             s.lines.Add(L("沈禾", "喵语翻译器。", "平静"));
             s.lines.Add(L("小凌", "……啥？", "惊讶"));
@@ -100,6 +110,7 @@ namespace StreetCat.Narrative
             s.lines.Add(L("沈禾", "没有，你自己找。", "无奈"));
             s.lines.Add(L("小凌", "那范围呢？救助站、社区猫，还是随便什么猫都行？", "思考"));
             s.lines.Add(L("沈禾", "都行。重点不是找只猫来试机器，是找一个值得写的故事。", "认真"));
+            // 【停顿】via player click between lines (no timed pause support)
             s.lines.Add(L("沈禾", "找一只有故事的。最好周围还有认识它的人，猫说不清楚的东西，可以找人核实。", "认真"));
             s.lines.Add(L("小凌", "所以翻译结果也不能直接当事实。", "思考"));
             s.lines.Add(L("沈禾", "人说的话都不能，何况猫。", "无奈"));
@@ -108,9 +119,23 @@ namespace StreetCat.Narrative
             {
                 speaker = LineSpeaker.System,
                 speakerName = "系统",
-                text = "获得道具“喵语翻译器”\n任务更新——“寻找合适的流浪猫采访对象”",
-                setFlag = FlagIds.HasTranslator,
-                setObjective = "寻找合适的流浪猫采访对象。",
+                text = "获得道具“喵语翻译器”",
+                setFlag = FlagIds.HasTranslator
+            });
+            s.lines.Add(new ScriptLine
+            {
+                speaker = LineSpeaker.System,
+                speakerName = "系统",
+                text = "任务更新——“寻找合适的流浪猫采访对象”",
+                setObjective = "寻找合适的流浪猫采访对象。"
+            });
+            // 【演出：喵语翻译器-关机状态的图片从画面中央消失】→ SC-03
+            s.lines.Add(new ScriptLine
+            {
+                speaker = LineSpeaker.Narration,
+                speakerName = "",
+                text = "",
+                hideProp = true,
                 nextSceneId = SceneIds.SC03
             });
             return s;
@@ -119,52 +144,77 @@ namespace StreetCat.Narrative
         static ScriptScene Sc03()
         {
             var s = new ScriptScene { id = SceneIds.SC03, title = "保安猫大福", backgroundLabel = "编辑部_工位_傍晚" };
-            s.lines.Add(Bgm("编辑部日常_01（循环）"));
+            // Keep SC-02 沈禾办公室 BGM (sticky); do not switch to 编辑部日常_01.
             s.lines.Add(N("小凌回到工位，打开本地社交媒体，开始寻找适合采访的流浪猫。"));
             s.lines.Add(Sys("进入“选题搜索”"));
             s.lines.Add(N("她快速划过几条流浪猫相关帖子。"));
             s.lines.Add(Sys("帖子一："));
+            s.lines.Add(Sys("“如何科学投喂流浪猫”"));
             s.lines.Add(Sys("帖子二："));
+            s.lines.Add(Sys("“超可爱狸花猫找领养”"));
             s.lines.Add(Sys("帖子三："));
+            s.lines.Add(Sys("“我们小区保安最近多了个同事”"));
             s.lines.Add(N("第三条帖子停在屏幕中央，被小凌点开。"));
             s.lines.Add(Sys("配图：一只胖橘猫端坐在社区门口的快递柜上。"));
-            s.lines.Add(Sys("给大家介绍一下我们小区的编外保安——大福。每天下午出现，保安叔叔上班它也上班，偶尔还会跟着巡逻。工资是猫粮和罐头，工作内容主要包括睡觉、晒太阳以及监督快递柜。别看它现在这么胖，大福刚来这里的时候其实特别惨，当时受了很严重的伤，后来被小区里的好心人送去医院救了回来。治好以后，大福又回到了我们小区。现在有人给它换水，有人喂饭，有人给它搭窝，门口保安叔叔更是默认多了个同事。天气好的时候它就趴在快递柜上，到了晚上还会和一只狸花猫一起出去玩，可幸福了。"));
+            s.lines.Add(Sys("给大家介绍一下我们小区的编外保安——大福。每天下午出现，保安叔叔上班它也上班，偶尔还会跟着巡逻。"));
+            s.lines.Add(Sys("工资是猫粮和罐头，工作内容主要包括睡觉、晒太阳以及监督快递柜。"));
+            s.lines.Add(Sys("别看它现在这么胖，大福刚来这里的时候其实特别惨，当时受了很严重的伤，后来被小区里的好心人送去医院救了回来。"));
+            s.lines.Add(Sys("治好以后，大福又回到了我们小区。现在有人给它换水，有人喂饭，有人给它搭窝，门口保安叔叔更是默认多了个同事。"));
+            s.lines.Add(Sys("天气好的时候它就趴在快递柜上，到了晚上还会和一只狸花猫一起出去玩，可幸福了。"));
             s.lines.Add(L("小凌", "这个好像还不错。", "思考"));
-            s.lines.Add(L("小凌", "受过重伤，被人救回来，最后又回到原来的小区。而且现在还有一群长期认识它的人。", "思考"));
+            s.lines.Add(L("小凌", "受过重伤，被人救回来，最后又回到原来的小区。", "思考"));
+            s.lines.Add(L("小凌", "而且现在还有一群长期认识它的人。", "思考"));
             s.lines.Add(L("小凌", "我感觉，猫自己记得的，和这些人知道的，应该会很不一样。", "思考"));
-            s.lines.Add(L("小凌", "大福通常在下午出现在社区"));
-            s.lines.Add(L("小凌", "曾经受过严重的伤"));
-            s.lines.Add(L("小凌", "康复后被放归原社区"));
-            s.lines.Add(L("小凌", "目前由多名社区居民共同照顾"));
-            s.lines.Add(N("小凌收藏了帖子，顺手查看发帖定位。"));
-            s.lines.Add(N("她拿起桌边的喵语翻译器，放进包里。"));
-            s.lines.Add(Bgm("淡出"));
             s.lines.Add(new ScriptLine
             {
                 speaker = LineSpeaker.System,
                 speakerName = "系统",
-                text = "发现采访对象“大福”\n获得初始情报\n记者笔记新增——“大福”\n解锁地点“槐安社区”\n任务更新——“前往槐安社区寻找大福”",
-                setFlag = FlagIds.FoundDafu,
+                text = "发现采访对象“大福”",
+                setFlag = FlagIds.FoundDafu
+            });
+            s.lines.Add(Sys("获得初始情报"));
+            s.lines.Add(Sys("大福通常在下午出现在社区"));
+            s.lines.Add(Sys("曾经受过严重的伤"));
+            s.lines.Add(Sys("康复后被放归原社区"));
+            s.lines.Add(Sys("目前由多名社区居民共同照顾"));
+            s.lines.Add(new ScriptLine
+            {
+                speaker = LineSpeaker.System,
+                speakerName = "系统",
+                text = "记者笔记新增——“大福”",
                 grantIntel = IntelIds.DafuWasRescued,
-                noteLine = "大福曾受过严重的伤，康复后被放归原社区。",
+                noteLine = "大福曾受过严重的伤，康复后被放归原社区。"
+            });
+            s.lines.Add(N("小凌收藏了帖子，顺手查看发帖定位。"));
+            s.lines.Add(L("小凌", "槐安社区……", "思考"));
+            // 【演出：喵语翻译器-关机状态的图片出现在画面中央】
+            s.lines.Add(Prop("prop_translator_off"));
+            s.lines.Add(N("她拿起桌边的喵语翻译器，放进包里。"));
+            s.lines.Add(L("小凌", "行。", "常态"));
+            s.lines.Add(L("小凌", "去看看再说！", "常态"));
+            // 【演出：喵语翻译器-关机状态的图片从画面消失】
+            s.lines.Add(PropHide());
+            s.lines.Add(new ScriptLine
+            {
+                speaker = LineSpeaker.System,
+                speakerName = "系统",
+                text = "解锁地点“槐安社区”",
+                setFlag = FlagIds.UnlockedHuaiAn
+            });
+            s.lines.Add(new ScriptLine
+            {
+                speaker = LineSpeaker.System,
+                speakerName = "系统",
+                text = "任务更新——“前往槐安社区寻找大福”",
                 setObjective = "前往槐安社区寻找大福。"
             });
+            // Keep sticky 沈禾办公室 until fade; do not force 编辑部日常_01.
             s.lines.Add(new ScriptLine
             {
-                speaker = LineSpeaker.Character,
-                speakerName = "小凌",
-                text = "槐安社区……",
-                portrait = "思考",
-                setFlag = FlagIds.UnlockedHuaiAn,
-                nextSceneId = SceneIds.SC04
-            });
-            s.lines.Add(new ScriptLine
-            {
-                speaker = LineSpeaker.Character,
-                speakerName = "小凌",
-                text = "行。去看看再说！",
-                portrait = "常态",
-                setFlag = FlagIds.UnlockedHuaiAn,
+                speaker = LineSpeaker.Narration,
+                speakerName = "",
+                text = "",
+                bgm = "淡出",
                 nextSceneId = SceneIds.SC04
             });
             return s;
@@ -178,11 +228,13 @@ namespace StreetCat.Narrative
             s.lines.Add(N("第二天下午，小凌按照帖子里的定位来到槐安社区。入口旁是保安亭、快递柜，以及沿步道分布的绿化带。"));
             s.lines.Add(L("小凌", "哎，这里有个社区的平面图，让我瞅瞅。", "常态"));
             s.lines.Add(Bg("槐安社区_社区平面图"));
+            s.lines.Add(Sys("首次进入调查场景，触发调查教学"));
+            s.lines.Add(Sys("场景中的部分物件可以进行【调查】。调查环境或与人物交谈，可能获得新的情报与采访方向。"));
             s.lines.Add(new ScriptLine
             {
                 speaker = LineSpeaker.System,
                 speakerName = "系统",
-                text = "首次进入调查场景。场景中的物件可以【调查】，也可与人物交谈以获取情报。",
+                text = "当前目标更新——“在社区内寻找大福的线索”",
                 setFlag = FlagIds.InvestigateTutorialShown,
                 setObjective = "在社区内寻找大福的线索。",
                 openInvestigation = true
@@ -193,7 +245,7 @@ namespace StreetCat.Narrative
         static ScriptScene Sc05()
         {
             var s = new ScriptScene { id = SceneIds.SC05, title = "保安亭", backgroundLabel = "保安亭_午后" };
-            s.lines.Add(Bgm("社区午后_01（循环）"));
+            s.lines.Add(Bgm("保安亭_01（循环）"));
             s.lines.Add(N("保安叔叔从岗亭里走出来，拎起窗台上的水杯。小凌走过去。"));
             s.lines.Add(L("小凌", "叔叔，打扰一下。", "常态"));
             s.lines.Add(L("保安叔叔", "嗯？", "疑惑"));
@@ -216,6 +268,7 @@ namespace StreetCat.Narrative
                 speaker = LineSpeaker.System,
                 speakerName = "系统",
                 text = "解锁交谈环节。",
+                setFlag = FlagIds.GuardIntroDone,
                 openTalkMenu = true
             });
             return s;
@@ -240,21 +293,24 @@ namespace StreetCat.Narrative
             s.lines.Add(N("小凌停在原地，从包里拿出喵语翻译器并启动。"));
             s.lines.Add(Sfx("设备启动提示音"));
             s.lines.Add(Sys("目标识别完成"));
-            s.lines.Add(L("小凌", "目标：大福当前状态：警惕"));
+            s.lines.Add(Sys("目标：大福"));
+            s.lines.Add(Sys("当前状态：警惕"));
             s.lines.Add(Sys("双向交流模式开启"));
-            s.lines.Add(L("小凌", "可将人类语言转译为猫能够理解的表达，同时解析猫的叫声与行为。"));
+            s.lines.Add(Sys("可将人类语言转译为猫能够理解的表达，同时解析猫的叫声与行为。"));
             s.lines.Add(L("小凌", "那先试试。", "思考"));
             s.lines.Add(N("小凌按住翻译键，尝试呼唤大福。"));
             s.lines.Add(L("小凌", "大福？", "思考"));
             s.lines.Add(Sfx("转译音"));
             s.lines.Add(N("设备发出经过转译的猫叫声。大福耳朵动了一下，抬头看向小凌。"));
             s.lines.Add(L("大福", "喵？", "警惕"));
+            s.lines.Add(Sfx("喵叫声_04"));
             s.lines.Add(Sys("译文——“你在叫我？”"));
             s.lines.Add(L("小凌", "……真听懂了？", "惊讶"));
             s.lines.Add(N("大福仍然没有靠近。小凌想了想，从包里拿出一根猫条。"));
             s.lines.Add(L("小凌", "还好我有准备。", "常态"));
             s.lines.Add(Sfx("猫条包装撕开声"));
-            s.lines.Add(N("大福的视线立刻落在猫条上。小凌蹲下，与大福保持距离，按下翻译键。"));
+            s.lines.Add(N("大福的视线立刻落在猫条上。"));
+            s.lines.Add(N("小凌蹲下，与大福保持距离，按下翻译键。"));
             s.lines.Add(L("小凌", "给你吃的。", "常态"));
             s.lines.Add(Sfx("转译音"));
             s.lines.Add(Sys("人类 → 猫语"));
@@ -269,6 +325,7 @@ namespace StreetCat.Narrative
             s.lines.Add(N("吃到一半，大福已经主动站到小凌身边。小凌伸出手，大福凑过来闻了闻，没有躲开。于是小凌轻轻摸了一下大福的脑袋。"));
             s.lines.Add(Inner("好像可以了。", "惊讶"));
             s.lines.Add(N("猫条吃完。大福舔舔嘴，在小凌旁边坐下，没有离开。"));
+            s.lines.Add(Sfx("喵叫声_02"));
             s.lines.Add(L("大福", "喵喵。", "放松"));
             s.lines.Add(Sfx("翻译提示音"));
             s.lines.Add(Sys("猫语 → 人类"));
@@ -277,12 +334,14 @@ namespace StreetCat.Narrative
             s.lines.Add(Sfx("转译音"));
             s.lines.Add(N("大福盯着她手里空掉的包装看了一会儿。"));
             s.lines.Add(L("大福", "喵呜。", "不满"));
+            s.lines.Add(Sfx("喵叫声_03"));
             s.lines.Add(Sys("译文——“没有了啊。”"));
             s.lines.Add(L("小凌", "下次多带点。", "常态"));
             s.lines.Add(Sfx("转译音"));
             s.lines.Add(N("大福虽有些不满，但没有离开，反而在原地趴下。"));
             s.lines.Add(N("小凌看了看大福，又看向手里的喵语翻译器。"));
-            s.lines.Add(Inner("居然能听懂我说的。我也能听懂它说的。好神奇。", "惊讶"));
+            s.lines.Add(Inner("居然能听懂我说的。", "惊讶"));
+            s.lines.Add(Inner("我也能听懂它说的。好神奇。", "惊讶"));
             s.lines.Add(Sys("进入“采访模式”"));
             s.lines.Add(Sys("采访过程中，可直接输入想向大福询问的问题。"));
             s.lines.Add(Sys("当问题超出大福的认知范围时，需要尝试更换提问方式。"));
@@ -291,12 +350,14 @@ namespace StreetCat.Narrative
             s.lines.Add(L("小凌", "我能问你一些事情吗？", "认真"));
             s.lines.Add(Sfx("转译音"));
             s.lines.Add(L("大福", "喵。", "放松"));
+            s.lines.Add(Sfx("喵叫声_05"));
             s.lines.Add(Sys("译文——“可以。”"));
+            s.lines.Add(Sys("采访对象“大福”已建立基础信任"));
             s.lines.Add(new ScriptLine
             {
                 speaker = LineSpeaker.System,
                 speakerName = "系统",
-                text = "解锁第一次自由采访。",
+                text = "解锁第一次自由采访",
                 nextSceneId = SceneIds.SC07
             });
             return s;
@@ -328,13 +389,15 @@ namespace StreetCat.Narrative
             var s = new ScriptScene { id = SceneIds.SC09, title = "咖啡馆采访", backgroundLabel = "咖啡馆_午后" };
             s.lines.Add(Bgm("咖啡馆日常_01（循环）"));
             s.lines.Add(Sfx("低声交谈、咖啡机蒸汽声、偶尔的杯碟轻响"));
-            s.lines.Add(N("第二天下午，小凌提前十分钟到了约好的咖啡馆。她选了一个靠里的位置，把记者笔记和手机放在桌边。"));
+            s.lines.Add(N("第二天下午，小凌提前十分钟到了约好的咖啡馆。"));
+            s.lines.Add(N("她选了一个靠里的位置，把记者笔记和手机放在桌边。"));
             s.lines.Add(N("三点刚过，林女士推门进来。小凌起身朝她招了招手。"));
             s.lines.Add(L("小凌", "林女士？您好，我是小凌。", "常态"));
             s.lines.Add(L("林女士", "你好。没等很久吧？", "常态"));
             s.lines.Add(L("小凌", "没有，我也刚到。谢谢您愿意抽时间过来。", "常态"));
             s.lines.Add(N("两人坐下。等服务员放下饮品离开后，小凌打开记者笔记。"));
-            s.lines.Add(L("小凌", "我昨天先问了保安一些情况，也在社区见到了大福。今天主要想把它当时受伤、送医治疗，还有后来送回社区的经过核实清楚。", "认真"));
+            s.lines.Add(L("小凌", "我昨天先问了保安一些情况，也在社区见到了大福。", "认真"));
+            s.lines.Add(L("小凌", "今天主要想把它当时受伤、送医治疗，还有后来送回社区的经过核实清楚。", "认真"));
             s.lines.Add(L("林女士", "嗯，可以。你问吧。", "常态"));
             s.lines.Add(L("小凌", "我这边方便录音吗？只用来整理采访内容。", "认真"));
             s.lines.Add(L("林女士", "可以。", "常态"));
@@ -361,11 +424,12 @@ namespace StreetCat.Narrative
             s.lines.Add(Sfx("键盘声、鼠标点击声、零散办公环境音"));
             s.lines.Add(N("周一上午，小凌回到编辑部，把社区调查、保安的证词、大福的采访和林女士的录音一起摊在电脑前。"));
             s.lines.Add(L("小凌", "好了。该把这些东西变成一篇能发的稿子了。", "认真"));
+            s.lines.Add(Sys("进入【素材整理与写稿】流程。"));
             s.lines.Add(new ScriptLine
             {
                 speaker = LineSpeaker.System,
                 speakerName = "系统",
-                text = "进入【素材整理与写稿】流程。玩家前期获得的情报将转化为固定素材卡。",
+                text = "玩家前期获得的情报将转化为固定素材卡；未在调查或采访中获得的内容不会出现在写稿列表中。",
                 setFlag = FlagIds.WritingUnlocked,
                 setObjective = "整理素材，完成报道。",
                 openWriting = true

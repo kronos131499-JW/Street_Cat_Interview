@@ -5,7 +5,8 @@ using UnityEngine;
 namespace StreetCat.UI
 {
     /// <summary>
-    /// Crossfading BGM. Clips under Resources/Audio/Bgm/.
+    /// Soft-switching BGM with per-clip loudness normalization.
+    /// Clips under Resources/Audio/Bgm/.
     /// Script 【BGM：…】 lines take priority via <see cref="PlayScriptLabel"/>.
     /// </summary>
     public class BgmController : MonoBehaviour
@@ -14,16 +15,39 @@ namespace StreetCat.UI
 
         public static bool MusicEnabled = true;
 
-        const float FadeSeconds = 1.4f;
+        /// <summary>Master playback level; per-clip gain is applied on top.</summary>
         const float TargetVolume = 0.38f;
+
+        /// <summary>Fade outgoing track to silence when switching.</summary>
+        const float FadeOutSeconds = 1.5f;
+
+        /// <summary>Quiet gap between tracks (空挡).</summary>
+        const float GapSeconds = 2.0f;
+
+        /// <summary>Fade incoming track in after the gap.</summary>
+        const float FadeInSeconds = 1.75f;
+
+        /// <summary>Fade-out cue / StopAll soft fade duration.</summary>
+        const float CueFadeOutSeconds = 1.5f;
+
+        /// <summary>Peak amplitude we aim for when scaling clip gain (relative).</summary>
+        const float RefPeak = 0.28f;
+
+        const float MinGain = 0.4f;
+        const float MaxGain = 2.2f;
+
+        /// <summary>Max seconds of audio to scan for peak (keeps GetData cheap).</summary>
+        const float PeakScanSeconds = 45f;
 
         AudioSource a;
         AudioSource b;
         bool usingA = true;
         string currentKey;
         string stickyScriptKey;
+        float currentGain = 1f;
         Coroutine fadeCo;
         readonly Dictionary<string, AudioClip> cache = new Dictionary<string, AudioClip>();
+        readonly Dictionary<string, float> gainCache = new Dictionary<string, float>();
 
         void Awake()
         {
@@ -43,6 +67,8 @@ namespace StreetCat.UI
             src.spatialBlend = 0f;
             src.volume = 0f;
         }
+
+        float EffectiveVolume => TargetVolume * currentGain;
 
         public void PlayForContext(string modeHint, string backgroundLabel)
         {
@@ -95,6 +121,7 @@ namespace StreetCat.UI
             if (a != null) { a.Stop(); a.volume = 0f; a.clip = null; }
             if (b != null) { b.Stop(); b.volume = 0f; b.clip = null; }
             currentKey = null;
+            currentGain = 1f;
         }
 
         public void FadeOut()
@@ -105,15 +132,42 @@ namespace StreetCat.UI
             currentKey = null;
         }
 
+        /// <summary>Gently lower volume during scene blackout; next Play() will soft-switch in.</summary>
+        public void BeginTransitionDip(float seconds = 0.85f)
+        {
+            if (!MusicEnabled || a == null) return;
+            if (fadeCo != null)
+                StopCoroutine(fadeCo);
+            fadeCo = StartCoroutine(TransitionDipCo(Mathf.Max(0.2f, seconds)));
+        }
+
+        IEnumerator TransitionDipCo(float seconds)
+        {
+            float t = 0f;
+            float a0 = a != null ? a.volume : 0f;
+            float b0 = b != null ? b.volume : 0f;
+            float target = EffectiveVolume * 0.25f;
+            while (t < seconds)
+            {
+                t += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t / seconds);
+                u = u * u * (3f - 2f * u);
+                if (a != null) a.volume = Mathf.Lerp(a0, target, u);
+                if (b != null) b.volume = Mathf.Lerp(b0, target, u);
+                yield return null;
+            }
+            fadeCo = null;
+        }
+
         IEnumerator FadeOutCo()
         {
             float t = 0f;
             float a0 = a != null ? a.volume : 0f;
             float b0 = b != null ? b.volume : 0f;
-            while (t < FadeSeconds)
+            while (t < CueFadeOutSeconds)
             {
                 t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / FadeSeconds);
+                float u = Mathf.Clamp01(t / CueFadeOutSeconds);
                 u = u * u * (3f - 2f * u);
                 if (a != null) a.volume = Mathf.Lerp(a0, 0f, u);
                 if (b != null) b.volume = Mathf.Lerp(b0, 0f, u);
@@ -140,41 +194,83 @@ namespace StreetCat.UI
                 return;
             }
 
+            float gain = GetGain(key, clip);
+            bool hadOutgoing = HasAudibleMusic() || !string.IsNullOrEmpty(currentKey);
             currentKey = key;
+            currentGain = gain;
+
+            if (fadeCo != null)
+                StopCoroutine(fadeCo);
+            fadeCo = StartCoroutine(SoftSwitch(clip, gain, hadOutgoing));
+        }
+
+        bool HasAudibleMusic()
+        {
+            return (a != null && a.isPlaying && a.volume > 0.01f)
+                || (b != null && b.isPlaying && b.volume > 0.01f);
+        }
+
+        IEnumerator SoftSwitch(AudioClip clip, float gain, bool hadOutgoing)
+        {
             var incoming = usingA ? b : a;
-            var outgoing = usingA ? a : b;
+            var previous = usingA ? a : b;
             usingA = !usingA;
+
+            float targetVol = TargetVolume * gain;
+
+            if (hadOutgoing)
+            {
+                float a0 = a != null ? a.volume : 0f;
+                float b0 = b != null ? b.volume : 0f;
+                float t = 0f;
+                while (t < FadeOutSeconds)
+                {
+                    t += Time.unscaledDeltaTime;
+                    float u = Mathf.Clamp01(t / FadeOutSeconds);
+                    u = u * u * (3f - 2f * u);
+                    if (a != null) a.volume = Mathf.Lerp(a0, 0f, u);
+                    if (b != null) b.volume = Mathf.Lerp(b0, 0f, u);
+                    yield return null;
+                }
+
+                if (a != null) { a.Stop(); a.volume = 0f; a.clip = null; }
+                if (b != null) { b.Stop(); b.volume = 0f; b.clip = null; }
+
+                float gap = 0f;
+                while (gap < GapSeconds)
+                {
+                    gap += Time.unscaledDeltaTime;
+                    yield return null;
+                }
+            }
+            else if (previous != null && previous.isPlaying)
+            {
+                previous.Stop();
+                previous.volume = 0f;
+                previous.clip = null;
+            }
+
+            if (incoming == null)
+            {
+                fadeCo = null;
+                yield break;
+            }
 
             incoming.clip = clip;
             incoming.volume = 0f;
             if (!incoming.isPlaying)
                 incoming.Play();
 
-            if (fadeCo != null)
-                StopCoroutine(fadeCo);
-            fadeCo = StartCoroutine(Crossfade(outgoing, incoming));
-        }
-
-        IEnumerator Crossfade(AudioSource from, AudioSource to)
-        {
-            float t = 0f;
-            float fromStart = from != null && from.isPlaying ? from.volume : 0f;
-            while (t < FadeSeconds)
+            float fade = 0f;
+            while (fade < FadeInSeconds)
             {
-                t += Time.unscaledDeltaTime;
-                float u = Mathf.Clamp01(t / FadeSeconds);
+                fade += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(fade / FadeInSeconds);
                 u = u * u * (3f - 2f * u);
-                if (to != null) to.volume = Mathf.Lerp(0f, TargetVolume, u);
-                if (from != null) from.volume = Mathf.Lerp(fromStart, 0f, u);
+                incoming.volume = Mathf.Lerp(0f, targetVol, u);
                 yield return null;
             }
-            if (to != null) to.volume = TargetVolume;
-            if (from != null)
-            {
-                from.Stop();
-                from.volume = 0f;
-                from.clip = null;
-            }
+            incoming.volume = targetVol;
             fadeCo = null;
         }
 
@@ -188,6 +284,44 @@ namespace StreetCat.UI
             return c;
         }
 
+        float GetGain(string key, AudioClip clip)
+        {
+            if (gainCache.TryGetValue(key, out var g))
+                return g;
+
+            float peak = MeasurePeak(clip);
+            g = Mathf.Clamp(RefPeak / peak, MinGain, MaxGain);
+            gainCache[key] = g;
+            return g;
+        }
+
+        static float MeasurePeak(AudioClip clip)
+        {
+            if (clip == null || clip.samples <= 0 || clip.channels <= 0)
+                return RefPeak;
+
+            if (clip.loadState != AudioDataLoadState.Loaded)
+                clip.LoadAudioData();
+
+            if (clip.loadState != AudioDataLoadState.Loaded)
+                return RefPeak;
+
+            int channels = clip.channels;
+            int maxFrames = Mathf.Min(clip.samples, Mathf.Max(1, Mathf.RoundToInt(clip.frequency * PeakScanSeconds)));
+            var data = new float[maxFrames * channels];
+            if (!clip.GetData(data, 0))
+                return RefPeak;
+
+            float peak = 0f;
+            for (int i = 0; i < data.Length; i++)
+            {
+                float abs = Mathf.Abs(data[i]);
+                if (abs > peak) peak = abs;
+            }
+
+            return Mathf.Max(peak, 1e-4f);
+        }
+
         public static string ResolveScriptLabel(string label)
         {
             if (string.IsNullOrEmpty(label)) return null;
@@ -199,6 +333,7 @@ namespace StreetCat.UI
             if (s.Contains("专题结束") || s.Contains("epilogue")) return "bgm_epilogue";
             if (s.Contains("咖啡馆")) return "bgm_cafe";
             if (s.Contains("大福")) return "bgm_dafu";
+            if (s.Contains("保安亭")) return "bgm_guard_booth";
             if (s.Contains("社区傍晚") || (s.Contains("傍晚") && s.Contains("社区"))) return "bgm_community_dusk";
             if (s.Contains("社区午后") || (s.Contains("午后") && s.Contains("社区"))) return "bgm_community_afternoon";
             if (s.Contains("沈禾")) return "bgm_shenhe_office";
@@ -245,8 +380,11 @@ namespace StreetCat.UI
             if (label.Contains("保安亭") && (label.Contains("傍晚") || label.Contains("黄昏")))
                 return "bgm_community_dusk";
 
+            if (label.Contains("保安亭"))
+                return "bgm_guard_booth";
+
             if (mode == "Investigate" || mode == "Talk" ||
-                label.Contains("槐安") || label.Contains("社区") || label.Contains("保安亭") ||
+                label.Contains("槐安") || label.Contains("社区") ||
                 label.Contains("午后") || label.Contains("傍晚"))
                 return "bgm_community_afternoon";
 

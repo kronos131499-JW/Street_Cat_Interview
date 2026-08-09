@@ -36,13 +36,11 @@ namespace StreetCat.UI
         {
             if (!Enabled || string.IsNullOrEmpty(label)) return;
             var parts = label.Replace("、", ",").Replace("，", ",").Split(',');
-            bool any = false;
             foreach (var part in parts)
             {
                 var key = ResolveScriptLabel(part.Trim());
                 if (string.IsNullOrEmpty(key)) continue;
                 Play(key, 1f);
-                any = true;
             }
             // Ambient-only cues (键盘/鸟叫等) with no mapped clip: skip silently.
         }
@@ -60,15 +58,18 @@ namespace StreetCat.UI
             if (cache.TryGetValue(key, out var c) && c != null)
                 return c;
 
-            // Logical keys → resource file stems
+            // Logical keys → resource file stems (advance is silent / soft; only UI buttons use click)
             var resourceKey = key switch
             {
                 "ui" => "sfx_click",
                 "choice" => "sfx_click",
-                "advance" => "sfx_click",
-                "inspect" => "sfx_click",
+                "advance" => null,
+                "inspect" => null,
                 _ => key
             };
+
+            if (string.IsNullOrEmpty(resourceKey))
+                return null; // dialogue advance / inspect: no click SFX
 
             c = Resources.Load<AudioClip>("Audio/Sfx/" + resourceKey);
             if (c != null)
@@ -105,10 +106,21 @@ namespace StreetCat.UI
                 return "sfx_chair";
             if (s.Contains("灌木") || s.Contains("窸窣"))
                 return "sfx_bush";
-            if (s.Contains("猫叫"))
+            // Numbered meows before generic 猫叫声 (喵叫声_0X ≠ 猫叫).
+            if (s.Contains("喵叫声_02") || s.Contains("喵叫声02"))
+                return "sfx_meow_02";
+            if (s.Contains("喵叫声_03") || s.Contains("喵叫声03"))
+                return "sfx_meow_03";
+            if (s.Contains("喵叫声_04") || s.Contains("喵叫声04"))
+                return "sfx_meow_04";
+            if (s.Contains("喵叫声_05") || s.Contains("喵叫声05"))
+                return "sfx_meow_05";
+            if (s.Contains("猫叫") || s.Contains("喵叫"))
                 return "sfx_meow";
             if (s.Contains("设备启动") || s.Contains("翻译提示") || s.Contains("转译"))
                 return "sfx_device";
+            if (s.Contains("猫条") || s.Contains("包装撕开"))
+                return "sfx_treat_open";
             if (s.Contains("开门") || s.Contains("保安亭开门"))
                 return "sfx_door";
             if (s.Contains("点击") || s.Contains("button") || s.Contains("按钮"))

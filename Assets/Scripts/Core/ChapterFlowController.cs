@@ -26,13 +26,23 @@ namespace StreetCat.Core
 
         public void StartNewGame()
         {
-            GameState.Instance.ResetNewGame();
-            if (DialogueHistory.Instance != null)
-                DialogueHistory.Instance.Clear();
-            GameState.Instance.SetScene(SceneIds.SC01);
-            GameState.Instance.SetObjective("完成周五的工作。");
-            sceneDirector.PlayScene(SceneIds.SC01);
-            gameUi.ShowDialogueMode();
+            void Begin()
+            {
+                GameState.Instance.ResetNewGame();
+                if (DialogueHistory.Instance != null)
+                    DialogueHistory.Instance.Clear();
+                if (StreetCat.Notebook.ReporterNotebook.Instance != null)
+                    StreetCat.Notebook.ReporterNotebook.Instance.ResetNotebook();
+                GameState.Instance.SetScene(SceneIds.SC01);
+                GameState.Instance.SetObjective("完成周五的工作。");
+                sceneDirector.PlayScene(SceneIds.SC01);
+                gameUi.ShowDialogueMode();
+            }
+
+            if (gameUi != null)
+                gameUi.RunSceneTransition(Begin);
+            else
+                Begin();
         }
 
         public void GoToTitle()
@@ -110,6 +120,14 @@ namespace StreetCat.Core
         }
 
         public void GoToScene(string sceneId)
+        {
+            if (gameUi != null)
+                gameUi.RunSceneTransition(() => EnterSceneImmediate(sceneId));
+            else
+                EnterSceneImmediate(sceneId);
+        }
+
+        void EnterSceneImmediate(string sceneId)
         {
             GameState.Instance.SetScene(sceneId);
             // Autosave before entering major beats (incl. interviews)

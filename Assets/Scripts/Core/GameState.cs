@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using StreetCat.Data;
+using StreetCat.Notebook;
 using UnityEngine;
 
 namespace StreetCat.Core
@@ -20,6 +21,9 @@ namespace StreetCat.Core
         public List<string> confirmedNotes = new List<string>();
         public List<string> pendingQuestions = new List<string>();
         public List<NotebookTopicSave> topics = new List<NotebookTopicSave>();
+        public List<NotebookQaEntry> notebookQa = new List<NotebookQaEntry>();
+        /// <summary>0 = legacy topic status ints; 2 = New/Open/Complete.</summary>
+        public int notebookFormat;
         public List<HistoryLineSave> historyLines = new List<HistoryLineSave>();
         public int writingDirection = -1;
         public int phrasingChoiceA = -1;
@@ -38,6 +42,8 @@ namespace StreetCat.Core
         public string title;
         public int status;
         public List<string> bullets = new List<string>();
+        public List<string> noteIds = new List<string>();
+        public List<string> sources = new List<string>();
     }
 
     public class GameState

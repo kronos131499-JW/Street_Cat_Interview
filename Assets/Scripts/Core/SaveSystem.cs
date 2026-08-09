@@ -47,6 +47,8 @@ namespace StreetCat.Core
             if (data == null) return;
             if (DialogueHistory.Instance != null)
                 DialogueHistory.Instance.ImportSaves(data.historyLines);
+            if (StreetCat.Notebook.ReporterNotebook.Instance != null)
+                StreetCat.Notebook.ReporterNotebook.Instance.LoadFromSave();
         }
 
         static string BuildTitle(GameSaveData data)

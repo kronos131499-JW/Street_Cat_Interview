@@ -66,6 +66,26 @@ namespace StreetCat.Interview
 
         public abstract InterviewSubject Subject { get; }
 
+        /// <summary>Intents that must not trigger「刚才说过了」/ repeat swap on reuse.</summary>
+        static bool IsNonStickyIntent(string intent)
+        {
+            return intent == "generic"
+                   || intent == "greeting"
+                   || intent == "followup"
+                   || intent == "too_broad"
+                   || intent == "oob"
+                   || intent == "hostile";
+        }
+
+        static bool IsShortConfirmation(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return false;
+            var t = input.Trim().TrimEnd('。', '！', '?', '？', '~', '～');
+            return t == "对" || t == "是的" || t == "是" || t == "好" || t == "好吧"
+                   || t == "嗯" || t == "嗯嗯" || t == "行" || t == "可以" || t == "明白"
+                   || t == "知道了" || t == "哦" || t == "噢";
+        }
+
         public InterviewReply Process(string rawInput)
         {
             var input = (rawInput ?? "").Trim();
@@ -96,19 +116,24 @@ namespace StreetCat.Interview
                 return hostile;
             }
 
-            var intent = Classify(input);
+            var intent = IsShortConfirmation(input) ? "followup" : Classify(input);
             var reply = BuildReply(input, intent);
-            if (askedIntents.Contains(intent) && !reply.cognitiveBoundary)
+            // BuildReply may remap followup → concrete topic (Lin); use final intent for stickiness.
+            var finalIntent = reply.intent ?? intent;
+
+            if (!IsNonStickyIntent(finalIntent)
+                && askedIntents.Contains(finalIntent)
+                && !reply.cognitiveBoundary)
             {
                 reply.isRepeat = true;
-                reply.replyLines = GetRepeatLines(intent);
-                reply.stressChange += 4;
-                reply.attentionChange -= 5;
+                reply.replyLines = GetRepeatLines(finalIntent);
+                reply.stressChange += 2;
+                reply.attentionChange -= 3;
                 reply.unlockedIntel.Clear();
             }
-            else
+            else if (!IsNonStickyIntent(finalIntent))
             {
-                askedIntents.Add(intent);
+                askedIntents.Add(finalIntent);
             }
 
             reply.attentionChange += reply.attentionChange == 0 ? -3 : 0;

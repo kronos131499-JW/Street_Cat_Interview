@@ -8,6 +8,11 @@ namespace StreetCat.Interview
         public override InterviewSubject Subject => InterviewSubject.Lin;
         string lastTopic = "intro";
 
+        /// <summary>Canon numbers for LLM hard gates (must stay aligned with BuildReply).</summary>
+        public const int HomeCatCount = 4;
+        public const string SurgeryCostApprox = "五千";
+        public const string TotalCostApprox = "一万";
+
         public LinRuleEngine()
         {
             stats.trust = 70;
@@ -21,27 +26,30 @@ namespace StreetCat.Interview
                 return "oob";
             if (ContainsAny(input, "扔", "遗弃", "不负责任", "骗子"))
                 return "release_accuse";
-            if (ContainsAny(input, "为什么不养", "不收养", "带回家", "放归", "送回"))
+            if (ContainsAny(input, "为什么不养", "不收养", "带回家", "放归", "送回",
+                    "家里几只", "几只猫", "家里有猫", "四只", "第五只", "养猫", "家里猫", "为什么放"))
                 return "release";
-            if (ContainsAny(input, "多少钱", "费用", "一万", "花了"))
+            if (ContainsAny(input, "多少钱", "费用", "一万", "花了", "花销", "贵不贵", "五千", "花多少"))
                 return "cost";
             if (ContainsAny(input, "犹豫", "放弃", "救不活"))
                 return "hesitate";
-            if (ContainsAny(input, "猫瘟", "住院", "手术", "治疗", "医院"))
+            if (ContainsAny(input, "猫瘟", "住院", "手术", "治疗", "医院", "救治"))
                 return "hospital";
-            if (ContainsAny(input, "抓", "送医", "航空箱", "笼子"))
+            if (ContainsAny(input, "抓", "送医", "航空箱", "笼子", "怎么抓", "抓住"))
                 return "capture";
-            if (ContainsAny(input, "四天", "投喂", "罐头", "喂"))
+            if (ContainsAny(input, "四天", "四个晚", "投喂", "罐头", "喂", "送吃的", "连续几天",
+                    "喂养", "为什么喂", "喂了几天", "怎么喂", "连续喂"))
                 return "feeding";
             if (ContainsAny(input, "麻绳", "绳子", "伤", "脖子", "坏死"))
                 return "injury";
-            if (ContainsAny(input, "发现", "第一次", "怎么遇到", "垃圾桶", "开始"))
+            if (ContainsAny(input, "发现", "第一次", "怎么遇到", "垃圾桶", "开始", "怎么认识"))
                 return "discovery";
-            if (ContainsAny(input, "后来呢", "然后呢", "继续"))
+            // 「然后/后来/接着」 alone count as follow-up (not only 「然后呢」).
+            if (ContainsAny(input, "后来呢", "然后呢", "继续", "然后", "后来", "接着", "再然后", "之后呢"))
                 return "followup";
             if (ContainsAny(input, "故意", "谁勒的", "谁干的"))
                 return "cause_unknown";
-            if (ContainsAny(input, "社区", "保安", "投喂点", "狸花", "现在"))
+            if (ContainsAny(input, "社区", "保安", "投喂点", "狸花", "现在", "门口"))
                 return "community";
             if (ContainsAny(input, "讲一遍", "全部", "完整"))
                 return "too_broad";
@@ -265,7 +273,7 @@ namespace StreetCat.Interview
 
         protected override List<string> GetRepeatLines(string intent)
         {
-            return new List<string> { "这段我刚才说过了。", "大概就是这样。" };
+            return new List<string> { "换个问法？", "这段大概就是那样。" };
         }
 
         public bool MeetsCompletion(HashSet<string> intel, int crossChecks)

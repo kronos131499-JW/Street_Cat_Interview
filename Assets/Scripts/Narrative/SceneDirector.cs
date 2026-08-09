@@ -36,6 +36,10 @@ namespace StreetCat.Narrative
         public string bgm;
         /// <summary>Optional SFX cue from 【SE：…】.</summary>
         public string sfx;
+        /// <summary>Optional center-stage prop key under Resources/VnArt/Props/ (e.g. prop_translator_off).</summary>
+        public string prop;
+        /// <summary>When true, clear the sticky center prop. Props stay visible until this or a mode change.</summary>
+        public bool hideProp;
         public string setFlag;
         public string grantIntel;
         public string noteLine;

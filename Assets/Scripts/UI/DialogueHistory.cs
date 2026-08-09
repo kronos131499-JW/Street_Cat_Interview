@@ -58,6 +58,31 @@ namespace StreetCat.UI
                 entries.RemoveAt(0);
         }
 
+        /// <summary>Replace the last N interview lines from a speaker (used after LLM rephrase).</summary>
+        public void ReplaceLastInterviewLines(string speaker, int removeCount, IList<string> newLines)
+        {
+            if (removeCount <= 0 || newLines == null)
+                return;
+
+            var who = speaker ?? "";
+            int removed = 0;
+            for (int i = entries.Count - 1; i >= 0 && removed < removeCount; i--)
+            {
+                var e = entries[i];
+                if (e.kind == "interview" && e.speaker == who)
+                {
+                    entries.RemoveAt(i);
+                    removed++;
+                }
+            }
+
+            foreach (var line in newLines)
+            {
+                if (!string.IsNullOrWhiteSpace(line))
+                    Add(who, line.Trim(), "interview");
+            }
+        }
+
         public List<HistoryLineSave> ExportSaves()
         {
             var list = new List<HistoryLineSave>(entries.Count);
