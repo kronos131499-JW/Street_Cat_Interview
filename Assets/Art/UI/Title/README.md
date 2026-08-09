@@ -1,28 +1,39 @@
-# Title menu art (split from concept)
+# Title menu art (magazine-on-desk)
 
-Concept reference: `title_concept_ref.png`
+Source pack: `title_menu_assets.zip` — English snake_case filenames (no Chinese rename needed).
 
-Generated AI splits (also copied to `Assets/Resources/VnArt/Title/` for runtime load):
+Runtime load path: `Resources.Load` via `VnArt.GetTitle(nameWithoutExtension)`.
+Authoring mirror: `Assets/Art/UI/Title/` (same files).
+
+## Layers
 
 | File | Role |
 |---|---|
-| `title_desk_bg.png` | Empty wooden desk background |
-| `title_magazine_open.png` | Blank open magazine (may still have faint page marks — prefer `title_hero_composite` for quick plug-in) |
-| `title_feature_art.png` | Left-page noir cat interview illustration |
-| `title_hero_composite.png` | Desk + magazine + props composite; right page kept relatively clear for UI buttons |
-| `btn_tape_primary_idle.png` | Orange primary menu strip (AI may bake English label — crop/mask or replace later) |
-| `btn_tape_idle.png` | Beige secondary menu strip |
-| `prop_translator.png` | Cat-language translator prop |
-| `prop_field_notes.png` | Field notes notebook + pen |
-| `prop_polaroids.png` | Polaroid stack |
-| `title_menu_icons_sheet.png` | Icon sheet (play / cassette / map / doc / gear / exit) — slice in editor |
+| `title_desk_bg.png` | Full-screen wooden desk (1920×1080) |
+| `title_magazine_shadow.png` | Magazine drop shadow (offset slightly; ~40% alpha) |
+| `title_magazine_open.png` | Blank open magazine |
+| `title_feature_art.png` | Left-page noir cat interview art |
+| `title_logo_cn.png` | Chinese title「街角专访」 |
+| `title_logo_en.png` | English strip + mic |
+| `title_quote_box_l.png` | Left-page quote frame |
+| `title_blurb_deco.png` | Cat mark + decorative rules |
+| `title_contents_header.png` | Right-page header rule; overlay “CONTENTS” in UI |
+| `btn_tape_primary_idle.png` / `_hover.png` | Orange primary tape button |
+| `btn_tape_idle.png` / `_hover.png` / `_pressed.png` | Beige secondary tape button |
+| `deco_paperclip.png` | Clip on primary button |
+| `icon_play.png` | 新游戏 |
+| `icon_cassette.png` | 继续 |
+| `icon_map.png` | 读档 (Archive → load; no chapter system) |
+| `icon_doc.png` | 清除存档 |
+| `icon_gear.png` | Settings (unused — no settings screen yet) |
+| `icon_exit.png` | 退出 |
+| `prop_translator.png` | Desk prop |
+| `prop_field_notes.png` | Desk prop (click → 笔记) |
+| `prop_polaroid_a.png` / `prop_polaroid_b.png` | Desk props |
+| `prop_scraps.png` | Desk prop |
+| `title_menu_assets_contact_sheet.png` | Reference only (kept under `Art/UI/Title`) |
 
-## Still better as type / handoff
-- Chinese logo「街角专访」— use font in Unity, AI hanzi is unreliable
-- Clean empty tape strips without English — regenerate or paint out text if needed
-- Hover / pressed button states
+## Unity import
 
-## Suggested Unity wiring
-1. Full-screen `title_hero_composite` (or desk + magazine layers)
-2. Overlay 6 buttons using tape sprites + sliced icons + Text labels
-3. Optional clickable props on translator / notes
+- Texture Type: Sprite (2D and UI), Alpha Is Transparency
+- Buttons use independent Button rects + Chinese Text labels (do not bake copy into art)

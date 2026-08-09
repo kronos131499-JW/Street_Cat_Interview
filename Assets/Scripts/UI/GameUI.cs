@@ -114,6 +114,8 @@ namespace StreetCat.UI
         ArticleAssembler assembler = new ArticleAssembler();
         string lastInspectText;
         Font font;
+        /// <summary>Title / menu typography (OS CJK when available).</summary>
+        Font titleFont;
         Coroutine fadeCo;
         Coroutine typewriterCo;
         Coroutine portraitFadeCo;
@@ -150,10 +152,49 @@ namespace StreetCat.UI
         void Awake()
         {
             Instance = this;
-            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (font == null)
-                font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            font = ResolveUiFont();
+            titleFont = ResolveTitleFont() ?? font;
             BuildCanvas();
+        }
+
+        static Font ResolveUiFont()
+        {
+            var os = TryOsFont(new[]
+            {
+                "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
+                "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", "微软雅黑"
+            }, 28);
+            if (os != null) return os;
+            var builtin = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            return builtin != null ? builtin : Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+
+        static Font ResolveTitleFont()
+        {
+            return TryOsFont(new[]
+            {
+                "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
+                "STSong", "SimSun", "微软雅黑", "华文楷体", "KaiTi"
+            }, 40);
+        }
+
+        static Font TryOsFont(string[] names, int size)
+        {
+            if (names == null) return null;
+            foreach (var name in names)
+            {
+                if (string.IsNullOrEmpty(name)) continue;
+                try
+                {
+                    var f = Font.CreateDynamicFontFromOSFont(name, size);
+                    if (f != null) return f;
+                }
+                catch
+                {
+                    // ignore missing OS fonts
+                }
+            }
+            return null;
         }
 
         void Start()
@@ -300,44 +341,8 @@ namespace StreetCat.UI
             advBtn.onClick.AddListener(TryAdvanceByClick);
             advanceCatcher.gameObject.SetActive(false);
 
-            // Title hero layer
-            titleRoot = new GameObject("TitleRoot", typeof(RectTransform));
-            titleRoot.transform.SetParent(canvasGo.transform, false);
-            StretchFull(titleRoot.GetComponent<RectTransform>());
-            titleBrand = CreateUiText(titleRoot.transform, "Brand", 78, TextAnchor.MiddleCenter,
-                VnTheme.TextPrimary, new Vector2(0, 60), new Vector2(1200, 110));
-            titleBrand.text = "街角专访";
-            titleBrand.fontStyle = FontStyle.Bold;
-            var brt = titleBrand.GetComponent<RectTransform>();
-            brt.anchorMin = brt.anchorMax = new Vector2(0.5f, 0.60f);
-
-            var titleRule = CreateImage(titleRoot.transform, "TitleRule", VnTheme.Accent);
-            Stretch(titleRule.rectTransform, new Vector2(0.38f, 0.545f), new Vector2(0.62f, 0.545f), new Vector2(0, -1.5f), new Vector2(0, 0));
-
-            titleSubtitle = CreateUiText(titleRoot.transform, "Sub", 26, TextAnchor.MiddleCenter,
-                VnTheme.Accent, new Vector2(0, 0), new Vector2(1000, 50));
-            titleSubtitle.text = "此间　·　社会观察专栏";
-            var sbrt = titleSubtitle.GetComponent<RectTransform>();
-            sbrt.anchorMin = sbrt.anchorMax = new Vector2(0.5f, 0.50f);
-
-            titleTagline = CreateUiText(titleRoot.transform, "Tag", 18, TextAnchor.MiddleCenter,
-                VnTheme.TextMuted, new Vector2(0, -40), new Vector2(900, 40));
-            titleTagline.text = "第一章　　编外保安大福";
-            var trt = titleTagline.GetComponent<RectTransform>();
-            trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 0.44f);
-
-            titleActionRoot = new GameObject("TitleActions", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
-            titleActionRoot.SetParent(titleRoot.transform, false);
-            var tart = titleActionRoot.GetComponent<RectTransform>();
-            tart.anchorMin = new Vector2(0.2f, 0.18f);
-            tart.anchorMax = new Vector2(0.8f, 0.18f);
-            tart.pivot = new Vector2(0.5f, 0.5f);
-            tart.sizeDelta = new Vector2(0, 52);
-            var tah = titleActionRoot.GetComponent<HorizontalLayoutGroup>();
-            tah.spacing = 14;
-            tah.childAlignment = TextAnchor.MiddleCenter;
-            tah.childForceExpandWidth = false;
-            tah.childControlWidth = true;
+            // Title: magazine-on-desk (Resources/VnArt/Title)
+            BuildTitleScreen(canvasGo.transform);
 
             // Dialogue box — original full-width bottom band
             dialoguePanel = CreateImage(canvasGo.transform, "DialogueBox", VnTheme.DialoguePanel);
@@ -1446,6 +1451,232 @@ namespace StreetCat.UI
             notebookRoot.SetActive(false);
         }
 
+        void BuildTitleScreen(Transform canvas)
+        {
+            titleRoot = new GameObject("TitleRoot", typeof(RectTransform));
+            titleRoot.transform.SetParent(canvas, false);
+            StretchFull(titleRoot.GetComponent<RectTransform>());
+
+            var desk = CreateTitleSprite(titleRoot.transform, "DeskBg", "title_desk_bg", Color.white, true);
+            if (desk.sprite == null)
+                desk.color = new Color(0.12f, 0.08f, 0.06f, 1f);
+
+            var magHost = new GameObject("MagazineHost", typeof(RectTransform));
+            magHost.transform.SetParent(titleRoot.transform, false);
+            TitleMenuLayout.Apply(magHost.GetComponent<RectTransform>(), "magazine_host",
+                new Vector2(0.07f, 0.08f), new Vector2(0.93f, 0.96f));
+            MakeTitleEditable(magHost, "magazine_host");
+
+            var shadow = CreateTitleSprite(magHost.transform, "MagazineShadow", "title_magazine_shadow",
+                new Color(1f, 1f, 1f, 0.45f), true);
+            var shadowRt = shadow.rectTransform;
+            shadowRt.anchoredPosition = new Vector2(18f, -22f);
+            shadow.raycastTarget = false;
+
+            var mag = CreateTitleSprite(magHost.transform, "Magazine", "title_magazine_open", Color.white, true);
+            mag.raycastTarget = false;
+
+            // Left page art + branding
+            var left = new GameObject("LeftPage", typeof(RectTransform));
+            left.transform.SetParent(magHost.transform, false);
+            TitleMenuLayout.Apply(left.GetComponent<RectTransform>(), "left_page",
+                new Vector2(0.04f, 0.08f), new Vector2(0.48f, 0.92f));
+            MakeTitleEditable(left, "left_page");
+
+            var feature = CreateTitleSprite(left.transform, "FeatureArt", "title_feature_art", Color.white, false);
+            TitleMenuLayout.Apply(feature.rectTransform, "feature_art",
+                new Vector2(0.06f, 0.38f), new Vector2(0.94f, 0.96f));
+            feature.preserveAspect = true;
+            MakeTitleEditable(feature.gameObject, "feature_art");
+
+            var logoCn = CreateTitleSprite(left.transform, "LogoCn", "title_logo_cn", Color.white, false);
+            TitleMenuLayout.Apply(logoCn.rectTransform, "logo_cn",
+                new Vector2(0.08f, 0.78f), new Vector2(0.92f, 0.96f));
+            logoCn.preserveAspect = true;
+            MakeTitleEditable(logoCn.gameObject, "logo_cn");
+
+            var logoEn = CreateTitleSprite(left.transform, "LogoEn", "title_logo_en", Color.white, false);
+            TitleMenuLayout.Apply(logoEn.rectTransform, "logo_en",
+                new Vector2(0.10f, 0.68f), new Vector2(0.90f, 0.80f));
+            logoEn.preserveAspect = true;
+            MakeTitleEditable(logoEn.gameObject, "logo_en");
+
+            titleBrand = CreateUiText(left.transform, "Brand", 48, TextAnchor.MiddleCenter,
+                new Color(0.12f, 0.10f, 0.09f, 0.96f), Vector2.zero, new Vector2(420, 64));
+            titleBrand.font = titleFont != null ? titleFont : font;
+            titleBrand.text = "街角专访";
+            titleBrand.fontStyle = FontStyle.Bold;
+            TitleMenuLayout.Apply(titleBrand.GetComponent<RectTransform>(), "logo_cn",
+                new Vector2(0.08f, 0.82f), new Vector2(0.92f, 0.94f));
+            titleBrand.gameObject.SetActive(logoCn.sprite == null);
+
+            var quoteBox = CreateTitleSprite(left.transform, "QuoteBox", "title_quote_box_l", Color.white, false);
+            TitleMenuLayout.Apply(quoteBox.rectTransform, "quote_box",
+                new Vector2(0.08f, 0.10f), new Vector2(0.92f, 0.36f));
+            quoteBox.preserveAspect = true;
+            MakeTitleEditable(quoteBox.gameObject, "quote_box");
+
+            titleSubtitle = CreateUiText(left.transform, "Sub", 17, TextAnchor.UpperLeft,
+                new Color(0.28f, 0.22f, 0.16f, 0.88f), Vector2.zero, new Vector2(360, 80));
+            titleSubtitle.font = titleFont != null ? titleFont : font;
+            titleSubtitle.lineSpacing = 1.15f;
+            titleSubtitle.text = "此间　·　社会观察专栏\n街角的声音，值得被听见。";
+            TitleMenuLayout.Apply(titleSubtitle.GetComponent<RectTransform>(), "subtitle",
+                new Vector2(0.16f, 0.14f), new Vector2(0.88f, 0.32f));
+            MakeTitleEditable(titleSubtitle.gameObject, "subtitle");
+
+            var blurb = CreateTitleSprite(left.transform, "BlurbDeco", "title_blurb_deco", Color.white, false);
+            TitleMenuLayout.Apply(blurb.rectTransform, "blurb_deco",
+                new Vector2(0.55f, 0.02f), new Vector2(0.98f, 0.22f));
+            blurb.preserveAspect = true;
+            MakeTitleEditable(blurb.gameObject, "blurb_deco");
+
+            // Right page menu
+            var right = new GameObject("RightPage", typeof(RectTransform));
+            right.transform.SetParent(magHost.transform, false);
+            TitleMenuLayout.Apply(right.GetComponent<RectTransform>(), "right_page",
+                new Vector2(0.52f, 0.10f), new Vector2(0.96f, 0.92f));
+            MakeTitleEditable(right, "right_page");
+
+            var contentsHeader = CreateTitleSprite(right.transform, "ContentsHeader", "title_contents_header",
+                Color.white, false);
+            TitleMenuLayout.Apply(contentsHeader.rectTransform, "contents_header",
+                new Vector2(0.06f, 0.86f), new Vector2(0.94f, 0.96f));
+            contentsHeader.preserveAspect = true;
+            MakeTitleEditable(contentsHeader.gameObject, "contents_header");
+
+            var contentsLabel = CreateUiText(right.transform, "ContentsLabel", 20, TextAnchor.MiddleCenter,
+                new Color(0.30f, 0.24f, 0.18f, 0.78f), Vector2.zero, new Vector2(280, 36));
+            contentsLabel.font = titleFont != null ? titleFont : font;
+            contentsLabel.text = "CONTENTS";
+            contentsLabel.fontStyle = FontStyle.Bold;
+            TitleMenuLayout.Apply(contentsLabel.GetComponent<RectTransform>(), "contents_header",
+                new Vector2(0.1f, 0.86f), new Vector2(0.9f, 0.96f));
+
+            titleActionRoot = new GameObject("TitleActions", typeof(RectTransform), typeof(VerticalLayoutGroup)).transform;
+            titleActionRoot.SetParent(right.transform, false);
+            // Narrower column so tape buttons aren't stretched full page-width.
+            TitleMenuLayout.Apply(titleActionRoot.GetComponent<RectTransform>(), "title_actions",
+                new Vector2(0.16f, 0.20f), new Vector2(0.84f, 0.82f));
+            MakeTitleEditable(titleActionRoot.gameObject, "title_actions");
+            var tah = titleActionRoot.GetComponent<VerticalLayoutGroup>();
+            tah.spacing = 14;
+            tah.childAlignment = TextAnchor.UpperCenter;
+            tah.childForceExpandWidth = false;
+            tah.childForceExpandHeight = false;
+            tah.childControlWidth = true;
+            tah.childControlHeight = true;
+            tah.padding = new RectOffset(12, 12, 6, 6);
+
+            titleTagline = CreateUiText(right.transform, "Tag", 15, TextAnchor.MiddleCenter,
+                new Color(0.32f, 0.26f, 0.20f, 0.72f), Vector2.zero, new Vector2(360, 40));
+            titleTagline.font = titleFont != null ? titleFont : font;
+            titleTagline.text = "第一章　　编外保安大福";
+            TitleMenuLayout.Apply(titleTagline.GetComponent<RectTransform>(), "tagline",
+                new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f));
+            MakeTitleEditable(titleTagline.gameObject, "tagline");
+
+            BuildTitleDeskProps(titleRoot.transform);
+        }
+
+        void MakeTitleEditable(GameObject go, string id)
+        {
+#if UNITY_EDITOR
+            if (go == null || string.IsNullOrEmpty(id)) return;
+            var target = go.GetComponent<RectTransform>();
+            var title = TitleMenuLayout.DisplayNames.TryGetValue(id, out var n) ? n : id;
+
+            // Unity: only one Graphic per GameObject. Text hosts need a child hit Image.
+            Image hitImg = go.GetComponent<Image>();
+            GameObject host = go;
+            bool ownsHit = false;
+            if (hitImg == null)
+            {
+                if (go.GetComponent<Graphic>() != null)
+                {
+                    var hitTf = go.transform.Find("TitleEditHit");
+                    if (hitTf == null)
+                    {
+                        var hitGo = new GameObject("TitleEditHit", typeof(RectTransform), typeof(Image));
+                        hitGo.transform.SetParent(go.transform, false);
+                        StretchFull(hitGo.GetComponent<RectTransform>());
+                        hitTf = hitGo.transform;
+                    }
+                    host = hitTf.gameObject;
+                    hitImg = host.GetComponent<Image>();
+                    if (hitImg == null)
+                        hitImg = host.AddComponent<Image>();
+                    hitImg.color = new Color(1f, 1f, 1f, 0.001f);
+                    ownsHit = true;
+                }
+                else
+                {
+                    hitImg = go.AddComponent<Image>();
+                    hitImg.color = new Color(1f, 1f, 1f, 0.001f);
+                    ownsHit = true;
+                }
+            }
+
+            var drag = host.GetComponent<DraggableTitleElement>();
+            if (drag == null)
+                drag = host.AddComponent<DraggableTitleElement>();
+            drag.Configure(id, title, target, hitImg, ownsHit);
+#endif
+        }
+
+        void BuildTitleDeskProps(Transform titleParent)
+        {
+            void Prop(string name, string layoutId, string key, Vector2 aMin, Vector2 aMax, bool clickNotes = false)
+            {
+                var img = CreateTitleSprite(titleParent, name, key, Color.white, false);
+                TitleMenuLayout.Apply(img.rectTransform, layoutId, aMin, aMax);
+                img.preserveAspect = true;
+                img.raycastTarget = true;
+                MakeTitleEditable(img.gameObject, layoutId);
+                if (!clickNotes || img.sprite == null) return;
+
+                var btn = img.gameObject.AddComponent<Button>();
+                btn.transition = Selectable.Transition.ColorTint;
+                var colors = btn.colors;
+                colors.highlightedColor = new Color(1f, 0.96f, 0.9f, 1f);
+                colors.pressedColor = new Color(0.9f, 0.88f, 0.82f, 1f);
+                btn.colors = colors;
+                btn.onClick.AddListener(() =>
+                {
+#if UNITY_EDITOR
+                    if (TitleMenuEditMode.Enabled) return;
+#endif
+                    SfxController.Instance?.PlayUi();
+                    OpenNotebook();
+                });
+            }
+
+            Prop("PropTranslator", "prop_translator", "prop_translator", new Vector2(0.01f, 0.02f), new Vector2(0.14f, 0.42f));
+            Prop("PropNotes", "prop_notes", "prop_field_notes", new Vector2(0.86f, 0.02f), new Vector2(0.99f, 0.38f), true);
+            Prop("PropPolaroidA", "prop_polaroid_a", "prop_polaroid_a", new Vector2(0.00f, 0.55f), new Vector2(0.12f, 0.88f));
+            Prop("PropPolaroidB", "prop_polaroid_b", "prop_polaroid_b", new Vector2(0.88f, 0.52f), new Vector2(0.995f, 0.86f));
+            Prop("PropScraps", "prop_scraps", "prop_scraps", new Vector2(0.78f, 0.00f), new Vector2(0.92f, 0.22f));
+        }
+
+        Image CreateTitleSprite(Transform parent, string name, string key, Color color, bool stretchFull)
+        {
+            var img = CreateImage(parent, name, color);
+            if (stretchFull)
+                StretchFull(img.rectTransform);
+            var spr = VnArt.GetTitle(key);
+            if (spr != null)
+            {
+                img.sprite = spr;
+                img.type = Image.Type.Simple;
+                img.preserveAspect = !stretchFull;
+            }
+            else
+            {
+                img.color = new Color(color.r, color.g, color.b, color.a * 0.35f);
+            }
+            return img;
+        }
+
         Image CreateFillImage(Transform parent, string name, Color color)
         {
             var img = CreateImage(parent, name, color);
@@ -1551,8 +1782,140 @@ namespace StreetCat.UI
 
         void AddAction(string label, UnityEngine.Events.UnityAction action, bool primary = false)
         {
-            var parent = mode == Mode.Title && titleActionRoot != null ? titleActionRoot : buttonRoot;
-            SpawnButton(parent, label, action, primary, mode == Mode.Title ? 150 : 118);
+            if (mode == Mode.Title && titleActionRoot != null)
+            {
+                SpawnTitleMenuButton(label, action, primary);
+                return;
+            }
+            SpawnButton(buttonRoot, label, action, primary, 118);
+        }
+
+        void SpawnTitleMenuButton(string label, UnityEngine.Events.UnityAction action, bool primary)
+        {
+            int index = spawnedButtons.Count + 1;
+            var go = new GameObject("TitleBtn_" + label, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            go.transform.SetParent(titleActionRoot, false);
+
+            var img = go.GetComponent<Image>();
+            string idleKey = primary ? "btn_tape_primary_idle" : "btn_tape_idle";
+            string hoverKey = primary ? "btn_tape_primary_hover" : "btn_tape_hover";
+            string pressedKey = primary ? "btn_tape_primary_hover" : "btn_tape_pressed";
+            var idle = VnArt.GetTitle(idleKey);
+            var hover = VnArt.GetTitle(hoverKey);
+            var pressed = VnArt.GetTitle(pressedKey);
+            if (idle != null)
+            {
+                img.sprite = idle;
+                img.type = Image.Type.Simple;
+                img.preserveAspect = false;
+                img.color = Color.white;
+            }
+            else
+            {
+                img.color = primary ? VnTheme.ButtonPrimary : VnTheme.Button;
+            }
+
+            var btn = go.GetComponent<Button>();
+            if (idle != null && hover != null)
+            {
+                btn.transition = Selectable.Transition.SpriteSwap;
+                btn.spriteState = new SpriteState
+                {
+                    highlightedSprite = hover,
+                    pressedSprite = pressed != null ? pressed : hover,
+                    selectedSprite = hover,
+                    disabledSprite = idle
+                };
+            }
+            else
+            {
+                var colors = btn.colors;
+                colors.highlightedColor = VnTheme.ButtonHover;
+                colors.pressedColor = VnTheme.AccentSoft;
+                btn.colors = colors;
+            }
+
+            btn.onClick.AddListener(() =>
+            {
+#if UNITY_EDITOR
+                if (TitleMenuEditMode.Enabled) return;
+#endif
+                SfxController.Instance?.PlayUi();
+                action();
+            });
+
+            // Shorter + taller tape strips (avoid full-page-width ribbons).
+            float btnH = primary ? 70f : 62f;
+            float btnW = primary ? 300f : 280f;
+            var le = go.GetComponent<LayoutElement>();
+            le.minHeight = btnH;
+            le.preferredHeight = btnH;
+            le.minWidth = btnW;
+            le.preferredWidth = btnW;
+            le.flexibleWidth = 0f;
+
+            string iconKey = TitleIconForLabel(label);
+            var iconSpr = VnArt.GetTitle(iconKey);
+            if (iconSpr != null)
+            {
+                var icon = CreateImage(go.transform, "Icon", Color.white);
+                icon.sprite = iconSpr;
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
+                var irt = icon.rectTransform;
+                irt.anchorMin = new Vector2(0f, 0.5f);
+                irt.anchorMax = new Vector2(0f, 0.5f);
+                irt.pivot = new Vector2(0f, 0.5f);
+                irt.anchoredPosition = new Vector2(18f, 0f);
+                irt.sizeDelta = new Vector2(30f, 30f);
+            }
+
+            if (primary)
+            {
+                var clipSpr = VnArt.GetTitle("deco_paperclip");
+                if (clipSpr != null)
+                {
+                    var clip = CreateImage(go.transform, "Paperclip", Color.white);
+                    clip.sprite = clipSpr;
+                    clip.preserveAspect = true;
+                    clip.raycastTarget = false;
+                    var crt = clip.rectTransform;
+                    crt.anchorMin = new Vector2(1f, 0.55f);
+                    crt.anchorMax = new Vector2(1f, 0.55f);
+                    crt.pivot = new Vector2(0.5f, 0.5f);
+                    crt.sizeDelta = new Vector2(34f, 34f);
+                    crt.anchoredPosition = new Vector2(-10f, 4f);
+                }
+            }
+
+            var labelColor = primary
+                ? new Color(0.14f, 0.08f, 0.05f, 0.96f)
+                : new Color(0.18f, 0.14f, 0.10f, 0.94f);
+            var tgo = new GameObject("Label", typeof(RectTransform));
+            tgo.transform.SetParent(go.transform, false);
+            Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
+                new Vector2(iconSpr != null ? 52f : 20f, 2f), new Vector2(primary ? -28f : -16f, -2f));
+            var tx = tgo.AddComponent<Text>();
+            tx.font = titleFont != null ? titleFont : font;
+            tx.fontSize = primary ? 23 : 20;
+            tx.fontStyle = primary ? FontStyle.Bold : FontStyle.Normal;
+            tx.alignment = TextAnchor.MiddleLeft;
+            tx.color = labelColor;
+            tx.text = string.Format("{0:00}  {1}", index, label);
+            tx.raycastTarget = false;
+
+            spawnedButtons.Add(go);
+        }
+
+        static string TitleIconForLabel(string label)
+        {
+            if (label.Contains("新游戏")) return "icon_play";
+            if (label.Contains("继续") || label.Contains("自动档")) return "icon_cassette";
+            if (label.Contains("读档")) return "icon_map";
+            if (label.Contains("笔记") || label.Contains("清除")) return "icon_doc";
+            if (label.Contains("设置")) return "icon_gear";
+            if (label.Contains("退出")) return "icon_exit";
+            return "icon_doc";
         }
 
         void AddInvestigateHotspot(string id, string title, bool inspected, UnityEngine.Events.UnityAction action)
@@ -2951,6 +3314,7 @@ namespace StreetCat.UI
             if (menuRoot) menuRoot.SetActive(false);
             if (backlogRoot) backlogRoot.SetActive(false);
             if (saveLoadRoot) saveLoadRoot.SetActive(false);
+            if (notebookRoot) notebookRoot.SetActive(false);
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(false, true, false);
@@ -2960,13 +3324,25 @@ namespace StreetCat.UI
             ApplyStageArt();
             SetPortrait(null);
             SetProp(null);
+            if (titleTagline != null && (titleTagline.text == "存档已清除" || string.IsNullOrEmpty(titleTagline.text)))
+                titleTagline.text = "第一章　　编外保安大福";
+
             AddAction("新游戏", () => ChapterFlowController.Instance.StartNewGame(), true);
-            AddAction("读取自动档", () => ChapterFlowController.Instance.ContinueOrNew());
+            AddAction("继续", () => ChapterFlowController.Instance.ContinueOrNew());
             AddAction("读档", () => OpenSaveLoad(false));
             AddAction("清除存档", () =>
             {
                 SaveSystem.Delete();
-                titleTagline.text = "存档已清除";
+                if (titleTagline != null)
+                    titleTagline.text = "存档已清除";
+            });
+            AddAction("退出", () =>
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
             });
         }
 
@@ -3156,8 +3532,13 @@ namespace StreetCat.UI
         {
             waitingForChoice = savedWaitingForChoice;
             var dest = returnFromOverlay;
+            if (dest == Mode.Title)
+            {
+                ShowTitle();
+                return;
+            }
             // Never resume into overlay modes (would appear as a no-op / loop).
-            if (dest == Mode.Notebook || dest == Mode.Menu || dest == Mode.Backlog || dest == Mode.Title)
+            if (dest == Mode.Notebook || dest == Mode.Menu || dest == Mode.Backlog)
             {
                 var ui = GameState.Instance != null ? GameState.Instance.Data.uiMode : "";
                 if (ui == "investigate") dest = Mode.Investigate;

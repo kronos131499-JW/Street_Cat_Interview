@@ -31,6 +31,12 @@ namespace StreetCat.UI
             return Load("VnArt/UI/" + key);
         }
 
+        public static Sprite GetTitle(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            return Load("VnArt/Title/" + key);
+        }
+
         public static Sprite GetProp(string key)
         {
             if (string.IsNullOrEmpty(key)) return null;
