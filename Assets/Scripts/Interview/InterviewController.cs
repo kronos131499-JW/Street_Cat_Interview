@@ -472,12 +472,14 @@ namespace StreetCat.Interview
             return list;
         }
 
+        /// <summary>
+        /// Close the interview and advance story the same way whether materials/completion
+        /// checks pass or not. Sufficiency is gated later at writing; confirm-end and meter
+        /// force-out both leave the interview UI (no forced re-open).
+        /// </summary>
         public void End(bool confirmed)
         {
-            if (!confirmed && !CanComplete())
-            {
-                // caller should confirm; still allow force end
-            }
+            _ = confirmed; // UI may warn when !CanComplete(); End always advances.
 
             var who = subject;
             var backToWriting = returnToWritingAfterEnd;
@@ -499,6 +501,8 @@ namespace StreetCat.Interview
 
             if (backToWriting)
             {
+                // Supplemental re-interview: restore writing desk; keep done flags in sync
+                // with the first-time successful path so writing re-entry stays available.
                 if (who == InterviewSubject.Dafu)
                     GameState.Instance.SetFlag(FlagIds.DafuInterviewDone);
                 else if (who == InterviewSubject.Lin)

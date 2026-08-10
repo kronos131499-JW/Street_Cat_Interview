@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using StreetCat.Core;
 using StreetCat.Data;
+using StreetCat.Loc;
 using UnityEngine;
 
 namespace StreetCat.Writing
@@ -167,10 +168,21 @@ namespace StreetCat.Writing
             }
         }
 
+        /// <summary>Plain headline shared by desk / direction / epilogue (no book-title marks).</summary>
+        public static string HeadlineFor(WritingDirection dir)
+        {
+            return dir == WritingDirection.GuardCatToday
+                ? UiLoc.T("ui.writing.desk.dir_guard", "大福今天也在上班")
+                : UiLoc.T("ui.writing.desk.dir_rescue", "救下一只猫以后");
+        }
+
+        /// <summary>Article title with 《》 — same loc keys as <see cref="HeadlineFor"/>.</summary>
+        public static string TitleFor(WritingDirection dir) => "《" + HeadlineFor(dir) + "》";
+
         /// <summary>Build article from direction + selected materials, then apply offline rule review.</summary>
         public void Assemble(WritingDirection dir, List<string> selected)
         {
-            Title = dir == WritingDirection.GuardCatToday ? "《大福今天也在上班》" : "《救下一只猫以后》";
+            Title = TitleFor(dir);
             var sb = new StringBuilder();
             sb.AppendLine(Title);
             sb.AppendLine();

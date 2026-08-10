@@ -466,6 +466,7 @@ namespace StreetCat.UI
                     : UiLoc.T("ui.hide_dialogue");
             RefreshNotebookLocalizedChrome();
             RefreshWritingMatsLocalizedChrome();
+            RefreshInterviewMeterLabels();
             if (mode == Mode.Title)
                 RebuildTitleActionsOnly();
             else if (IsSkippableDialogueContext())

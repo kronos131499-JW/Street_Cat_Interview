@@ -108,10 +108,40 @@ namespace StreetCat.Core
                 gameUi.ShowEpilogue();
                 return;
             }
-            if (mode == "investigate" || id == SceneIds.SC04 || id == SceneIds.SC05 || id == SceneIds.SC08)
+            // Community map only — do not force SC-05/SC-08 (booth dialogue/talk) into investigate UI.
+            if (mode == "investigate" || id == SceneIds.SC04)
             {
                 sceneDirector.PlayScene(id);
                 gameUi.ShowInvestigationMode();
+                return;
+            }
+
+            // Match EnterSceneImmediate / map re-entry for guard booth beats.
+            if (id == SceneIds.SC05)
+            {
+                if (GameState.Instance.HasFlag(FlagIds.GuardIntroDone))
+                {
+                    gameUi.ShowTalkMenu();
+                    return;
+                }
+
+                sceneDirector.PlayScene(id);
+                gameUi.ShowDialogueMode();
+                return;
+            }
+
+            if (id == SceneIds.SC08)
+            {
+                // After Dafu interview, SC-08 is booth verify/talk (ShowTalkMenu → post-interview).
+                // Do not dump the player onto the community investigate map.
+                if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
+                {
+                    gameUi.ShowTalkMenu();
+                    return;
+                }
+
+                sceneDirector.PlayScene(id);
+                gameUi.ShowDialogueMode();
                 return;
             }
 

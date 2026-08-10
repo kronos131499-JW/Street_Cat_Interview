@@ -70,9 +70,7 @@ namespace StreetCat.Writing
                 yield break;
             }
 
-            var title = dir == WritingDirection.GuardCatToday
-                ? "《大福今天也在上班》"
-                : "《救下一只猫以后》";
+            var title = ArticleAssembler.TitleFor(dir);
 
             var style =
                 "你是《街角专访》的特稿写手。在保留记者当前草稿意图与可用事实的前提下，润色并扩写成一篇社区观察特稿全文。"
@@ -129,7 +127,7 @@ namespace StreetCat.Writing
         {
             var sb = new StringBuilder();
             sb.AppendLine(string.IsNullOrEmpty(title)
-                ? (dir == WritingDirection.GuardCatToday ? "《大福今天也在上班》" : "《救下一只猫以后》")
+                ? ArticleAssembler.TitleFor(dir)
                 : title);
             sb.AppendLine();
 

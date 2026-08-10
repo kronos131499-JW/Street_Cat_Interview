@@ -44,6 +44,12 @@ namespace StreetCat.UI
         Image[] interviewTrustSegs;
         Image[] interviewStressSegs;
         Image[] interviewFocusSegs;
+        Text interviewTrustLabel;
+        Text interviewStressLabel;
+        Text interviewFocusLabel;
+        Text interviewTrustValue;
+        Text interviewStressValue;
+        Text interviewFocusValue;
         Text interviewMeterCaption;
         Image interviewSendBtnImage;
         Text interviewCoachTipText;
@@ -85,7 +91,8 @@ namespace StreetCat.UI
             hrt.anchorMax = new Vector2(1f, 1f);
             hrt.pivot = new Vector2(1f, 1f);
             hrt.anchoredPosition = new Vector2(-28f, -72f);
-            hrt.sizeDelta = new Vector2(220f, 168f);
+            // Slightly wider so zh/en meter names + values stay readable.
+            hrt.sizeDelta = new Vector2(248f, 176f);
 
             var shadow = CreateImage(host.transform, "Shadow", IvPaperShadow);
             StretchFull(shadow.rectTransform);
@@ -105,12 +112,13 @@ namespace StreetCat.UI
 
             AttachPaperclip(paper.transform, new Vector2(0.92f, 1.05f), 34f, 48f, 12f);
 
-            interviewTrustSegs = BuildMeterRow(paper.transform, "Trust", 0, IvTrust, "♥",
-                UiLoc.T("ui.interview.meter_trust", "信任"));
-            interviewStressSegs = BuildMeterRow(paper.transform, "Stress", 1, IvStress, "☹",
-                UiLoc.T("ui.interview.meter_pressure", "压力"));
-            interviewFocusSegs = BuildMeterRow(paper.transform, "Focus", 2, IvFocus, "★",
-                UiLoc.T("ui.interview.meter_focus", "专注"));
+            interviewTrustSegs = BuildMeterRow(paper.transform, "Trust", 0, IvTrust,
+                out interviewTrustLabel, out interviewTrustValue);
+            interviewStressSegs = BuildMeterRow(paper.transform, "Stress", 1, IvStress,
+                out interviewStressLabel, out interviewStressValue);
+            interviewFocusSegs = BuildMeterRow(paper.transform, "Focus", 2, IvFocus,
+                out interviewFocusLabel, out interviewFocusValue);
+            RefreshInterviewMeterLabels();
 
             interviewMeterCaption = CreateUiText(paper.transform, "Caption", 13, TextAnchor.MiddleCenter,
                 IvInkMuted, Vector2.zero, Vector2.zero);
@@ -125,32 +133,41 @@ namespace StreetCat.UI
             interviewStatusText = interviewMeterCaption;
         }
 
-        Image[] BuildMeterRow(Transform parent, string name, int row, Color fill, string iconGlyph, string label)
+        Image[] BuildMeterRow(Transform parent, string name, int row, Color fill,
+            out Text labelTx, out Text valueTx)
         {
             float top = 0.92f - row * 0.26f;
             float bot = top - 0.22f;
 
             var rowGo = new GameObject(name, typeof(RectTransform));
             rowGo.transform.SetParent(parent, false);
-            Stretch(rowGo.GetComponent<RectTransform>(), new Vector2(0.06f, bot), new Vector2(0.94f, top),
+            Stretch(rowGo.GetComponent<RectTransform>(), new Vector2(0.05f, bot), new Vector2(0.95f, top),
                 Vector2.zero, Vector2.zero);
 
-            var icon = CreateUiText(rowGo.transform, "Icon", 16, TextAnchor.MiddleCenter, fill,
+            // Colored ink tick — scrapbook accent; meaning comes from the text label.
+            var tick = CreateImage(rowGo.transform, "Tick", fill);
+            Stretch(tick.rectTransform, new Vector2(0f, 0.52f), new Vector2(0.045f, 0.92f),
                 Vector2.zero, Vector2.zero);
-            Stretch(icon.rectTransform, new Vector2(0f, 0.1f), new Vector2(0.16f, 0.9f),
-                Vector2.zero, Vector2.zero);
-            icon.text = iconGlyph;
-            icon.fontStyle = FontStyle.Bold;
+            tick.raycastTarget = false;
 
-            var labelTx = CreateUiText(rowGo.transform, "Label", 12, TextAnchor.MiddleLeft, IvInkMuted,
+            labelTx = CreateUiText(rowGo.transform, "Label", 15, TextAnchor.MiddleLeft, IvInk,
                 Vector2.zero, Vector2.zero);
-            Stretch(labelTx.rectTransform, new Vector2(0.16f, 0.55f), new Vector2(0.98f, 0.98f),
+            Stretch(labelTx.rectTransform, new Vector2(0.07f, 0.48f), new Vector2(0.62f, 0.98f),
                 Vector2.zero, Vector2.zero);
-            labelTx.text = label;
+            labelTx.fontStyle = FontStyle.Bold;
+            labelTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+            labelTx.verticalOverflow = VerticalWrapMode.Truncate;
+
+            valueTx = CreateUiText(rowGo.transform, "Value", 15, TextAnchor.MiddleRight, fill,
+                Vector2.zero, Vector2.zero);
+            Stretch(valueTx.rectTransform, new Vector2(0.62f, 0.48f), new Vector2(1f, 0.98f),
+                Vector2.zero, Vector2.zero);
+            valueTx.fontStyle = FontStyle.Bold;
+            valueTx.text = "—";
 
             var bar = new GameObject("Bar", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             bar.transform.SetParent(rowGo.transform, false);
-            Stretch(bar.GetComponent<RectTransform>(), new Vector2(0.16f, 0.05f), new Vector2(0.98f, 0.55f),
+            Stretch(bar.GetComponent<RectTransform>(), new Vector2(0.07f, 0.06f), new Vector2(1f, 0.46f),
                 Vector2.zero, Vector2.zero);
             var hlg = bar.GetComponent<HorizontalLayoutGroup>();
             hlg.spacing = 4f;
@@ -172,6 +189,16 @@ namespace StreetCat.UI
             }
 
             return segs;
+        }
+
+        void RefreshInterviewMeterLabels()
+        {
+            if (interviewTrustLabel != null)
+                interviewTrustLabel.text = UiLoc.T("ui.interview.meter_trust", "信任");
+            if (interviewStressLabel != null)
+                interviewStressLabel.text = UiLoc.T("ui.interview.meter_pressure", "压力");
+            if (interviewFocusLabel != null)
+                interviewFocusLabel.text = UiLoc.T("ui.interview.meter_focus", "专注");
         }
 
         void BuildInterviewNotepad(Transform parent)
@@ -478,7 +505,10 @@ namespace StreetCat.UI
             }
             DialogueHistory.Instance?.Add("小凌", q, "interview");
             RecordInterviewReplyHistory(who, reply, reply?.replyLines);
-            RefreshInterviewView();
+            if (ic.Subject != InterviewSubject.None)
+                RefreshInterviewView();
+            else
+                SetInterviewChrome(false);
         }
 
         void RecordInterviewReplyHistory(string who, InterviewReply reply, IList<string> lines)
@@ -607,7 +637,10 @@ namespace StreetCat.UI
             ic?.AppendSpeakerReply(reply, lines);
             ic?.EndIfReplyCompleted(reply);
             RecordInterviewReplyHistory(who, reply, lines);
-            RefreshInterviewView();
+            if (ic != null && ic.Subject != InterviewSubject.None)
+                RefreshInterviewView();
+            else
+                SetInterviewChrome(false);
             interviewLlmCo = null;
         }
 
@@ -681,11 +714,15 @@ namespace StreetCat.UI
 
         void UpdateInterviewMeters(InterviewerStats st)
         {
+            RefreshInterviewMeterLabels();
             if (st == null)
             {
                 SetMeterFill(interviewTrustSegs, 0, IvTrust);
                 SetMeterFill(interviewStressSegs, 0, IvStress);
                 SetMeterFill(interviewFocusSegs, 0, IvFocus);
+                SetMeterValueText(interviewTrustValue, null);
+                SetMeterValueText(interviewStressValue, null);
+                SetMeterValueText(interviewFocusValue, null);
                 if (interviewMeterCaption != null)
                     interviewMeterCaption.text = "";
                 return;
@@ -694,6 +731,9 @@ namespace StreetCat.UI
             SetMeterFill(interviewTrustSegs, st.trust, IvTrust);
             SetMeterFill(interviewStressSegs, st.stress, IvStress);
             SetMeterFill(interviewFocusSegs, st.attention, IvFocus);
+            SetMeterValueText(interviewTrustValue, st.trust);
+            SetMeterValueText(interviewStressValue, st.stress);
+            SetMeterValueText(interviewFocusValue, st.attention);
 
             if (interviewMeterCaption != null)
             {
@@ -702,6 +742,14 @@ namespace StreetCat.UI
                     caption += " · " + UiLoc.T("ui.interview.can_end", "可结束采访");
                 interviewMeterCaption.text = caption;
             }
+        }
+
+        static void SetMeterValueText(Text valueTx, int? value0to100)
+        {
+            if (valueTx == null) return;
+            valueTx.text = value0to100.HasValue
+                ? Mathf.Clamp(value0to100.Value, 0, 100).ToString()
+                : "—";
         }
 
         static void SetMeterFill(Image[] segs, int value0to100, Color fill)
@@ -813,7 +861,7 @@ namespace StreetCat.UI
             {
                 interviewSubjectText.text = subject == InterviewSubject.Dafu
                     ? UiLoc.T("ui.interview.subject_dafu", "大福")
-                    : UiLoc.T("ui.interview.subject_lin", "受访者");
+                    : UiLoc.T("ui.interview.subject_lin", "林女士");
             }
 
             interviewInput.gameObject.SetActive(true);
@@ -829,16 +877,22 @@ namespace StreetCat.UI
 
         void RefreshInterviewView()
         {
+            // After End() subject is cleared — do not force interview chrome back open
+            // (meter force-out / confirm-end navigate away asynchronously).
+            if (InterviewController.Instance == null
+                || InterviewController.Instance.Subject == InterviewSubject.None)
+                return;
+
             if (mode != Mode.Interview)
                 mode = Mode.Interview;
             SetInterviewChrome(true);
             RefreshHeader();
 
-            if (interviewSubjectText != null && InterviewController.Instance != null)
+            if (interviewSubjectText != null)
             {
                 interviewSubjectText.text = InterviewController.Instance.Subject == InterviewSubject.Dafu
                     ? UiLoc.T("ui.interview.subject_dafu", "大福")
-                    : UiLoc.T("ui.interview.subject_lin", "受访者");
+                    : UiLoc.T("ui.interview.subject_lin", "林女士");
             }
 
             var sb = new StringBuilder();
@@ -1047,8 +1101,14 @@ namespace StreetCat.UI
             if (interviewMeterCaption != null)
             {
                 interviewMeterCaption.font = font;
-                interviewMeterCaption.fontSize = Mathf.RoundToInt(12f * scale);
+                interviewMeterCaption.fontSize = Mathf.RoundToInt(13f * scale);
             }
+            ApplyMeterLabelFont(interviewTrustLabel, scale);
+            ApplyMeterLabelFont(interviewStressLabel, scale);
+            ApplyMeterLabelFont(interviewFocusLabel, scale);
+            ApplyMeterValueFont(interviewTrustValue, scale);
+            ApplyMeterValueFont(interviewStressValue, scale);
+            ApplyMeterValueFont(interviewFocusValue, scale);
             if (interviewInput != null)
             {
                 if (interviewInput.textComponent != null)
@@ -1065,6 +1125,23 @@ namespace StreetCat.UI
                     ApplyLetterSpacing(ph, 0f);
                 }
             }
+        }
+
+        void ApplyMeterLabelFont(Text tx, float scale)
+        {
+            if (tx == null) return;
+            tx.font = font;
+            tx.fontSize = Mathf.RoundToInt(15f * scale);
+            tx.color = IvInk;
+            tx.fontStyle = FontStyle.Bold;
+        }
+
+        void ApplyMeterValueFont(Text tx, float scale)
+        {
+            if (tx == null) return;
+            tx.font = font;
+            tx.fontSize = Mathf.RoundToInt(15f * scale);
+            tx.fontStyle = FontStyle.Bold;
         }
     }
 }

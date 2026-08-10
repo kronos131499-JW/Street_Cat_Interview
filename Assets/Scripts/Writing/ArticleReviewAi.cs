@@ -75,9 +75,7 @@ namespace StreetCat.Writing
 
             var facts = new StringBuilder();
             facts.AppendLine("【权威台词/事实】");
-            facts.AppendLine("立意：" + (dir == WritingDirection.GuardCatToday
-                ? "《大福今天也在上班》"
-                : "《救下一只猫以后》"));
+            facts.AppendLine("立意：" + ArticleAssembler.TitleFor(dir));
             facts.AppendLine("成稿有效字数（约）：" + chars);
             facts.AppendLine("已选素材：");
             if (selected != null)

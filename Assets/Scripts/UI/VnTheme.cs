@@ -32,6 +32,10 @@ namespace StreetCat.UI
         public static readonly Color Letterbox = new Color(0.02f, 0.02f, 0.03f, 0.92f);
         public static readonly Color Paper = new Color(0.10f, 0.09f, 0.08f, 0.94f);
         public static readonly Color OverlayDim = new Color(0.02f, 0.025f, 0.04f, 0.72f);
+        /// <summary>Muted scrapbook green for already-investigated map hotspots.</summary>
+        public static readonly Color InvestigateDone = new Color(0.42f, 0.58f, 0.46f, 1f);
+        public static readonly Color InvestigateDoneFill = new Color(0.36f, 0.52f, 0.40f, 0.28f);
+        public static readonly Color InvestigateDoneHover = new Color(0.40f, 0.58f, 0.44f, 0.42f);
 
         // Layout fractions (screen space, bottom=0 top=1)
         public const float LetterboxH = 0.045f;

@@ -1209,12 +1209,12 @@ namespace StreetCat.UI
                 body += "\n\n素材还不够成稿。如果采访里还有没问到的，可以回去补充。";
             SetBody(body);
             ClearButtons();
-            AddChoice("《大福今天也在上班》　从流浪猫到社区保安", () =>
+            AddChoice(ArticleAssembler.TitleFor(WritingDirection.GuardCatToday) + "　从流浪猫到社区保安", () =>
             {
                 pendingDir = WritingDirection.GuardCatToday;
                 ShowMaterialPick();
             });
-            AddChoice("《救下一只猫以后》　一次没有以收养结束的救助", () =>
+            AddChoice(ArticleAssembler.TitleFor(WritingDirection.RescueWithoutAdoption) + "　一次没有以收养结束的救助", () =>
             {
                 pendingDir = WritingDirection.RescueWithoutAdoption;
                 ShowMaterialPick();

@@ -102,12 +102,18 @@ namespace StreetCat.UI
             Stretch(wdDraftCharCount.rectTransform, new Vector2(0.62f, 0.795f), new Vector2(1f, 0.84f),
                 Vector2.zero, Vector2.zero);
 
-            // Multiline InputField inside ScrollRect. Legacy InputField steals IScrollHandler —
-            // use WritingDeskDraftInputField so wheel events reach the ScrollRect.
-            var draftHost = new GameObject("DraftHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
-            draftHost.transform.SetParent(left.transform, false);
-            Stretch(draftHost.GetComponent<RectTransform>(), new Vector2(0f, 0.12f), new Vector2(1f, 0.79f),
+            // Draft scroll row: ScrollRect + InputField content, Scrollbar OUTSIDE viewport
+            // (never covered by InputField). Matches backlog ScrollRect pattern for sizing.
+            const float draftScrollbarW = 16f;
+            var draftRow = new GameObject("DraftRow", typeof(RectTransform));
+            draftRow.transform.SetParent(left.transform, false);
+            Stretch(draftRow.GetComponent<RectTransform>(), new Vector2(0f, 0.12f), new Vector2(1f, 0.79f),
                 Vector2.zero, Vector2.zero);
+
+            var draftHost = new GameObject("DraftHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+            draftHost.transform.SetParent(draftRow.transform, false);
+            Stretch(draftHost.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
+                Vector2.zero, new Vector2(-draftScrollbarW, 0f));
             var draftBg = draftHost.GetComponent<Image>();
             draftBg.color = new Color(1f, 1f, 1f, 0.15f);
             draftBg.raycastTarget = true;
@@ -118,17 +124,18 @@ namespace StreetCat.UI
             wdDraftScroll.movementType = ScrollRect.MovementType.Clamped;
             wdDraftScroll.scrollSensitivity = 48f;
             wdDraftScroll.inertia = true;
-
-            // Leave a permanent strip on the right for a drag scrollbar (wheel still works).
-            const float draftScrollbarW = 14f;
+            // Avoid AutoHideAndExpandViewport — it drives viewport/content RectTransforms and
+            // fights our manual preferred-height sizing.
+            wdDraftScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 
             var vp = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
             vp.transform.SetParent(draftHost.transform, false);
-            Stretch(vp.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
-                Vector2.zero, new Vector2(-draftScrollbarW, 0f));
+            StretchFull(vp.GetComponent<RectTransform>());
             var vpImg = vp.GetComponent<Image>();
             vpImg.color = new Color(1f, 1f, 1f, 0.01f);
             vpImg.raycastTarget = true;
+            var vpRelay = vp.AddComponent<WritingDeskScrollRelay>();
+            vpRelay.scrollRect = wdDraftScroll;
 
             var content = new GameObject("Content", typeof(RectTransform));
             content.transform.SetParent(vp.transform, false);
@@ -136,24 +143,29 @@ namespace StreetCat.UI
             crt.anchorMin = new Vector2(0f, 1f);
             crt.anchorMax = new Vector2(1f, 1f);
             crt.pivot = new Vector2(0.5f, 1f);
+            crt.anchoredPosition = Vector2.zero;
             crt.sizeDelta = Vector2.zero;
 
+            // InputField IS the scroll content child (same size as Content).
             var inputGo = new GameObject("DraftInput", typeof(RectTransform), typeof(Image));
             inputGo.transform.SetParent(content.transform, false);
-            // Top-stretch like content: height driven by RebuildWritingDeskDraftLayout.
             var inputRt = inputGo.GetComponent<RectTransform>();
-            inputRt.anchorMin = new Vector2(0f, 1f);
-            inputRt.anchorMax = new Vector2(1f, 1f);
-            inputRt.pivot = new Vector2(0.5f, 1f);
-            inputRt.sizeDelta = Vector2.zero;
+            StretchFull(inputRt);
             var inputBg = inputGo.GetComponent<Image>();
             inputBg.color = new Color(1f, 1f, 1f, 0.001f);
             inputBg.raycastTarget = true;
 
+            // Text: top-stretch width, height = preferred (NOT vertical stretch). Vertical stretch
+            // made preferredHeight unreliable vs viewport and left content unscrollable.
+            const float draftPad = 8f;
             var textGo = new GameObject("Text", typeof(RectTransform));
             textGo.transform.SetParent(inputGo.transform, false);
-            Stretch(textGo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
-                new Vector2(8, 8), new Vector2(-8, -8));
+            var textRt = textGo.GetComponent<RectTransform>();
+            textRt.anchorMin = new Vector2(0f, 1f);
+            textRt.anchorMax = new Vector2(1f, 1f);
+            textRt.pivot = new Vector2(0.5f, 1f);
+            textRt.anchoredPosition = new Vector2(0f, -draftPad);
+            textRt.sizeDelta = new Vector2(-(draftPad * 2f), 40f);
             wdDraftBody = textGo.AddComponent<Text>();
             wdDraftBody.font = font;
             wdDraftBody.fontSize = 18;
@@ -167,8 +179,12 @@ namespace StreetCat.UI
 
             var phGo = new GameObject("Placeholder", typeof(RectTransform));
             phGo.transform.SetParent(inputGo.transform, false);
-            Stretch(phGo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
-                new Vector2(8, 8), new Vector2(-8, -8));
+            var phRt = phGo.GetComponent<RectTransform>();
+            phRt.anchorMin = new Vector2(0f, 1f);
+            phRt.anchorMax = new Vector2(1f, 1f);
+            phRt.pivot = new Vector2(0.5f, 1f);
+            phRt.anchoredPosition = new Vector2(0f, -draftPad);
+            phRt.sizeDelta = new Vector2(-(draftPad * 2f), 40f);
             var ph = phGo.AddComponent<Text>();
             ph.font = font;
             ph.fontSize = 18;
@@ -194,9 +210,9 @@ namespace StreetCat.UI
             wdDraftInput.selectionColor = new Color(0.90f, 0.55f, 0.22f, 0.40f);
             wdDraftInput.onValueChanged.AddListener(_ => OnWritingDeskDraftEdited());
 
-            // Vertical drag scrollbar — dark ink handle on muted paper track.
-            var sbGo = new GameObject("Scrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
-            sbGo.transform.SetParent(draftHost.transform, false);
+            // Scrollbar sibling of DraftHost — outside InputField hierarchy so drag always hits.
+            var sbGo = new GameObject("DraftScrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            sbGo.transform.SetParent(draftRow.transform, false);
             var sbrt = sbGo.GetComponent<RectTransform>();
             sbrt.anchorMin = new Vector2(1f, 0f);
             sbrt.anchorMax = new Vector2(1f, 1f);
@@ -204,24 +220,28 @@ namespace StreetCat.UI
             sbrt.sizeDelta = new Vector2(draftScrollbarW, 0f);
             sbrt.anchoredPosition = Vector2.zero;
             var trackImg = sbGo.GetComponent<Image>();
-            trackImg.color = new Color(WdMuted.r, WdMuted.g, WdMuted.b, 0.28f);
+            trackImg.color = new Color(WdMuted.r, WdMuted.g, WdMuted.b, 0.35f);
             trackImg.raycastTarget = true;
 
             var slidingArea = new GameObject("Sliding Area", typeof(RectTransform));
             slidingArea.transform.SetParent(sbGo.transform, false);
             Stretch(slidingArea.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
-                new Vector2(2f, 3f), new Vector2(-2f, -3f));
+                new Vector2(2f, 4f), new Vector2(-2f, -4f));
 
             var handleGo = new GameObject("Handle", typeof(RectTransform), typeof(Image));
             handleGo.transform.SetParent(slidingArea.transform, false);
-            StretchFull(handleGo.GetComponent<RectTransform>());
+            var handleRt = handleGo.GetComponent<RectTransform>();
+            handleRt.anchorMin = Vector2.zero;
+            handleRt.anchorMax = Vector2.one;
+            handleRt.sizeDelta = Vector2.zero;
+            handleRt.anchoredPosition = Vector2.zero;
             var handleImg = handleGo.GetComponent<Image>();
-            handleImg.color = new Color(WdInk.r, WdInk.g, WdInk.b, 0.62f);
+            handleImg.color = new Color(WdInk.r, WdInk.g, WdInk.b, 0.70f);
             handleImg.raycastTarget = true;
 
             var scrollbar = sbGo.GetComponent<Scrollbar>();
             scrollbar.targetGraphic = handleImg;
-            scrollbar.handleRect = handleGo.GetComponent<RectTransform>();
+            scrollbar.handleRect = handleRt;
             scrollbar.direction = Scrollbar.Direction.BottomToTop;
             scrollbar.value = 1f;
             scrollbar.size = 1f;
@@ -230,7 +250,6 @@ namespace StreetCat.UI
             wdDraftScroll.viewport = vp.GetComponent<RectTransform>();
             wdDraftScroll.content = crt;
             wdDraftScroll.verticalScrollbar = scrollbar;
-            wdDraftScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 
             var srcLabel = CreateUiText(left.transform, "SourcesLabel", 14, TextAnchor.MiddleLeft,
                 WdNavy, Vector2.zero, Vector2.zero);
@@ -432,6 +451,13 @@ namespace StreetCat.UI
             writingDeskRoot.SetActive(true);
             writingDeskRoot.transform.SetAsLastSibling();
             BringOverlayStackToFront();
+            // BringOverlayStackToFront raises fade/hide-dialogue after desk; keep desk above UI chrome.
+            writingDeskRoot.transform.SetAsLastSibling();
+            if (sceneFadeImage != null)
+                sceneFadeImage.transform.SetAsLastSibling();
+            if (advanceCatcher != null)
+                advanceCatcher.gameObject.SetActive(false);
+
             RefreshWritingDesk();
             ApplyWritingFonts();
             RebuildWritingDeskDraftLayout();
@@ -441,6 +467,9 @@ namespace StreetCat.UI
 
         System.Collections.IEnumerator DeferredWritingDeskDraftLayout()
         {
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            RebuildWritingDeskDraftLayout();
             yield return null;
             Canvas.ForceUpdateCanvases();
             RebuildWritingDeskDraftLayout();
@@ -465,9 +494,7 @@ namespace StreetCat.UI
             StyleToggle(wdDirGuardBg, wdDirGuardTx, guard);
             StyleToggle(wdDirRescueBg, wdDirRescueTx, !guard);
 
-            string title = guard
-                ? UiLoc.T("ui.writing.desk.headline_guard", "大福今天又准时上岗")
-                : UiLoc.T("ui.writing.desk.headline_rescue", "救下一只猫以后");
+            string title = ArticleAssembler.HeadlineFor(pendingDir);
             if (wdHeadline != null) wdHeadline.text = title;
             if (wdKicker != null)
                 wdKicker.text = UiLoc.T("ui.writing.desk.kicker", "槐安社区特稿");
@@ -669,7 +696,8 @@ namespace StreetCat.UI
         }
 
         /// <summary>
-        /// Grow ScrollRect content (+ InputField) to the draft preferred height so wheel / scrollbar can scroll.
+        /// Grow ScrollRect content to measured draft height so wheel / scrollbar can scroll.
+        /// Uses TextGenerator with an explicit wrap width (not stretched-rect preferredHeight).
         /// </summary>
         void RebuildWritingDeskDraftLayout()
         {
@@ -678,47 +706,90 @@ namespace StreetCat.UI
             var viewport = wdDraftScroll.viewport;
             if (content == null || viewport == null) return;
 
+            const float draftPad = 8f;
             Canvas.ForceUpdateCanvases();
-            float viewW = Mathf.Max(1f, viewport.rect.width);
-            float minH = Mathf.Max(1f, viewport.rect.height);
 
-            // preferredHeight needs a laid-out width; temporarily match viewport width.
+            float viewW = viewport.rect.width;
+            float viewH = viewport.rect.height;
+            if (viewW < 8f || viewH < 8f)
+                return;
+
+            // Keep content full viewport width (top-stretch anchors → sizeDelta.x = 0).
             content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, viewW);
-            if (wdDraftInput != null)
-                wdDraftInput.GetComponent<RectTransform>()
-                    .SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, viewW);
-
-            Canvas.ForceUpdateCanvases();
-            float textH = wdDraftBody.preferredHeight + 24f;
-            float h = Mathf.Max(minH, textH);
-
-            content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
             var cSize = content.sizeDelta;
-            cSize.x = 0f; // width from stretch anchors
+            cSize.x = 0f;
             content.sizeDelta = cSize;
 
-            if (wdDraftInput != null)
-            {
-                var irt = wdDraftInput.GetComponent<RectTransform>();
-                irt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
-                var iSize = irt.sizeDelta;
-                iSize.x = 0f;
-                irt.sizeDelta = iSize;
-            }
+            float textWidth = Mathf.Max(1f, viewW - draftPad * 2f);
 
-            // Reset InputField's internal text offset (legacy multiline scroll) so ScrollRect owns motion.
-            if (wdDraftBody != null)
-            {
-                var tr = wdDraftBody.rectTransform;
-                var ap = tr.anchoredPosition;
-                ap.y = 0f;
-                tr.anchoredPosition = ap;
-            }
-
-            // Nudge ScrollRect so the permanent scrollbar handle size/position refresh after height change.
+            // Lay out text width before measuring so preferredHeight / TextGenerator agree.
+            var textRt = wdDraftBody.rectTransform;
+            textRt.anchorMin = new Vector2(0f, 1f);
+            textRt.anchorMax = new Vector2(1f, 1f);
+            textRt.pivot = new Vector2(0.5f, 1f);
+            textRt.anchoredPosition = new Vector2(0f, -draftPad);
+            textRt.sizeDelta = new Vector2(-(draftPad * 2f), 8f);
             Canvas.ForceUpdateCanvases();
+
+            string body = wdDraftInput != null ? wdDraftInput.text : wdDraftBody.text;
+            if (!string.IsNullOrEmpty(body) && wdDraftBody.text != body)
+                wdDraftBody.text = body;
+
+            float measured = MeasureWritingDeskDraftTextHeight(wdDraftBody, textWidth, body);
+            float preferred = wdDraftBody.preferredHeight;
+            float textH = Mathf.Max(measured, preferred);
+            float contentH = Mathf.Max(viewH, textH + draftPad * 2f + 4f);
+
+            content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentH);
+            cSize = content.sizeDelta;
+            cSize.x = 0f;
+            content.sizeDelta = cSize;
+
+            textRt.sizeDelta = new Vector2(-(draftPad * 2f), Mathf.Max(textH, 1f));
+            textRt.anchoredPosition = new Vector2(0f, -draftPad);
+
+            if (wdDraftInput is WritingDeskDraftInputField deskField)
+                deskField.textTopPad = draftPad;
+
+            if (wdDraftInput != null && wdDraftInput.placeholder is Text ph)
+            {
+                var phRt = ph.rectTransform;
+                phRt.anchorMin = new Vector2(0f, 1f);
+                phRt.anchorMax = new Vector2(1f, 1f);
+                phRt.pivot = new Vector2(0.5f, 1f);
+                phRt.anchoredPosition = new Vector2(0f, -draftPad);
+                phRt.sizeDelta = new Vector2(-(draftPad * 2f), Mathf.Max(textH, 1f));
+            }
+
+            LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+            Canvas.ForceUpdateCanvases();
+
+            // Refresh scrollbar handle size after content bounds change.
             float n = wdDraftScroll.verticalNormalizedPosition;
             wdDraftScroll.verticalNormalizedPosition = Mathf.Clamp01(n);
+            wdDraftScroll.velocity = Vector2.zero;
+
+#if UNITY_EDITOR
+            if (contentH > viewH + 1f && (Time.frameCount % 120 == 0))
+                Debug.Log($"[WritingDesk] draft scrollable contentH={contentH:F0} viewH={viewH:F0} norm={n:F2}");
+#endif
+        }
+
+        static float MeasureWritingDeskDraftTextHeight(Text text, float width, string content)
+        {
+            if (text == null || width < 1f)
+                return 0f;
+            if (string.IsNullOrEmpty(content))
+                content = " ";
+
+            var settings = text.GetGenerationSettings(new Vector2(width, 0f));
+            settings.horizontalOverflow = HorizontalWrapMode.Wrap;
+            settings.verticalOverflow = VerticalWrapMode.Overflow;
+            settings.generateOutOfBounds = true;
+
+            float px = text.cachedTextGeneratorForLayout.GetPreferredHeight(content, settings);
+            float ppu = Mathf.Max(0.01f, text.pixelsPerUnit);
+            return px / ppu;
         }
 
         void UpdateWritingDeskCharCount()

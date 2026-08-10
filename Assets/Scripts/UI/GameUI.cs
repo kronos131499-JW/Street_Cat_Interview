@@ -2044,19 +2044,28 @@ namespace StreetCat.UI
             rt.offsetMax = Vector2.zero;
 
             var img = go.GetComponent<Image>();
+            var mark = VnTheme.InvestigateDone;
             var idle = inspected
-                ? new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.05f)
+                ? VnTheme.InvestigateDoneFill
                 : new Color(1f, 1f, 1f, 0.02f);
-            var hover = new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.18f);
+            var hover = inspected
+                ? VnTheme.InvestigateDoneHover
+                : new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.18f);
             img.color = idle;
 
-            var outline = CreateImage(go.transform, "Outline", new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0f));
+            var outlineIdle = inspected
+                ? new Color(mark.r, mark.g, mark.b, 0.10f)
+                : new Color(0, 0, 0, 0);
+            var outline = CreateImage(go.transform, "Outline", outlineIdle);
             StretchFull(outline.rectTransform);
             outline.raycastTarget = false;
 
+            var edgeIdle = inspected
+                ? new Color(mark.r, mark.g, mark.b, 0.45f)
+                : new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0f);
             Image MakeEdge(string n, Vector2 aMin, Vector2 aMax, Vector2 offMin, Vector2 offMax)
             {
-                var e = CreateImage(go.transform, n, new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0f));
+                var e = CreateImage(go.transform, n, edgeIdle);
                 Stretch(e.rectTransform, aMin, aMax, offMin, offMax);
                 e.raycastTarget = false;
                 return e;
@@ -2065,6 +2074,30 @@ namespace StreetCat.UI
             var botE = MakeEdge("B", new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, new Vector2(0, 2));
             var leftE = MakeEdge("L", new Vector2(0, 0), new Vector2(0, 1), Vector2.zero, new Vector2(2, 0));
             var rightE = MakeEdge("R", new Vector2(1, 0), new Vector2(1, 1), new Vector2(-2, 0), Vector2.zero);
+
+            if (inspected)
+            {
+                var badge = CreateImage(go.transform, "DoneBadge",
+                    new Color(0.22f, 0.34f, 0.26f, 0.92f));
+                badge.raycastTarget = false;
+                var brt = badge.rectTransform;
+                brt.anchorMin = brt.anchorMax = new Vector2(1f, 1f);
+                brt.pivot = new Vector2(1f, 1f);
+                brt.anchoredPosition = new Vector2(-3f, -3f);
+                brt.sizeDelta = new Vector2(22f, 22f);
+
+                var checkGo = new GameObject("Check", typeof(RectTransform));
+                checkGo.transform.SetParent(badge.transform, false);
+                StretchFull(checkGo.GetComponent<RectTransform>());
+                var check = checkGo.AddComponent<Text>();
+                check.font = font;
+                check.fontSize = 15;
+                check.fontStyle = FontStyle.Bold;
+                check.alignment = TextAnchor.MiddleCenter;
+                check.color = new Color(0.78f, 0.92f, 0.80f, 1f);
+                check.text = "✓";
+                check.raycastTarget = false;
+            }
 
             var btn = go.GetComponent<Button>();
             btn.transition = Selectable.Transition.None;
@@ -2098,16 +2131,27 @@ namespace StreetCat.UI
                 if (InvestigateHotspotEditMode.Enabled) return;
 #endif
                 img.color = on ? hover : idle;
-                var edgeCol = on
-                    ? new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.85f)
-                    : new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0f);
+                Color edgeCol;
+                Color outlineCol;
+                if (on)
+                {
+                    edgeCol = inspected
+                        ? new Color(mark.r, mark.g, mark.b, 0.90f)
+                        : new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.85f);
+                    outlineCol = inspected
+                        ? new Color(mark.r, mark.g, mark.b, 0.18f)
+                        : new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.08f);
+                }
+                else
+                {
+                    edgeCol = edgeIdle;
+                    outlineCol = outlineIdle;
+                }
                 topE.color = edgeCol;
                 botE.color = edgeCol;
                 leftE.color = edgeCol;
                 rightE.color = edgeCol;
-                outline.color = on
-                    ? new Color(VnTheme.Accent.r, VnTheme.Accent.g, VnTheme.Accent.b, 0.08f)
-                    : new Color(0, 0, 0, 0);
+                outline.color = outlineCol;
                 if (investigateHoverLabel != null)
                 {
                     if (on)
@@ -2360,7 +2404,15 @@ namespace StreetCat.UI
             if (confirmRoot != null) confirmRoot.transform.SetAsLastSibling();
             if (settingsRoot != null) settingsRoot.transform.SetAsLastSibling();
             if (hideDialogueBtn != null) hideDialogueBtn.transform.SetAsLastSibling();
+            // Scene fade stays last for transitions; raycastTarget is off when idle.
             if (sceneFadeImage != null) sceneFadeImage.transform.SetAsLastSibling();
+            // Keep an open writing desk above hide-dialogue chrome (fade still tops for blackouts).
+            if (writingDeskRoot != null && writingDeskRoot.activeSelf)
+            {
+                writingDeskRoot.transform.SetAsLastSibling();
+                if (sceneFadeImage != null)
+                    sceneFadeImage.transform.SetAsLastSibling();
+            }
         }
 
         void SetInvestigateChrome(bool on)
@@ -3225,7 +3277,7 @@ namespace StreetCat.UI
                 dialogueClick.interactable = allowClick;
             if (advanceCatcher != null)
             {
-                bool showCatcher = allowClick &&
+                bool showCatcher = allowClick && !writingDeskActive && !writingMatsActive &&
                     (mode == Mode.Dialogue || inspectClick || talkBeats || talkClick || epilogueBeats);
                 advanceCatcher.gameObject.SetActive(showCatcher);
                 var btn = advanceCatcher.GetComponent<Button>();
@@ -3668,6 +3720,25 @@ namespace StreetCat.UI
                     else
                         StartWaitForDafuOutro();
                 }, true);
+            // Incomplete Dafu interview left the map — skip SC-06 intro and resume free interview.
+            if (GameState.Instance.HasFlag(FlagIds.WaitingForDafu)
+                && !GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
+            {
+                AddInvestigateAction("继续采访大福", () =>
+                {
+                    SetInvestigateChrome(false);
+                    ChapterFlowController.Instance.GoToScene(SceneIds.SC07);
+                }, true);
+            }
+            if (GameState.Instance.HasFlag(FlagIds.LinCafeIntroDone)
+                && !GameState.Instance.HasFlag(FlagIds.LinInterviewDone))
+            {
+                AddInvestigateAction("继续采访林女士", () =>
+                {
+                    SetInvestigateChrome(false);
+                    ChapterFlowController.Instance.GoToScene(SceneIds.SC09);
+                }, true);
+            }
             if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
                 AddInvestigateAction("打听救助者", () =>
                 {
@@ -4082,16 +4153,35 @@ namespace StreetCat.UI
             SetSpeaker("系统", LineSpeaker.System);
             SetBody("用大福提供的线索，向保安打听当年的救助者。");
             ClearButtons();
-            foreach (var topic in InvestigationService.Instance.PostInterviewTopics)
+            var service = InvestigationService.Instance;
+            foreach (var topic in service.PostInterviewTopics)
             {
+                // Gate 「林姐的信息」 on LinIdentity from who_rescued finishing first.
+                if (!service.CanAsk(topic))
+                    continue;
+
                 var t = topic;
                 AddChoice(t.label, () =>
                 {
+                    if (!InvestigationService.Instance.CanAsk(t))
+                    {
+                        SetSpeaker("系统", LineSpeaker.System);
+                        SetBody("（还缺少相关线索。先问清当初是谁救助的大福。）", true, "system");
+                        statusText.text = "点击返回话题";
+                        talkAwaitingClickReturn = true;
+                        talkIsPostInterview = true;
+                        ClearButtons();
+                        AddStandardDialogueActions(includeSkip: true);
+                        SetAdvanceEnabled(true);
+                        return;
+                    }
+
                     var reply = InvestigationService.Instance.Talk(t);
                     SetSpeaker("保安叔叔", LineSpeaker.Character, t.portrait);
                     SetBody(reply, true, "talk");
                     ClearButtons();
-                    if (!string.IsNullOrEmpty(t.nextSceneId))
+                    // nextSceneId (lin_info → WeChat) only after Talk succeeds.
+                    if (!string.IsNullOrEmpty(t.nextSceneId) && t.done)
                     {
                         talkAwaitingClickReturn = false;
                         AddAction("等待回复", () =>

@@ -72,6 +72,10 @@ namespace StreetCat.Investigation
         public string requiredIntel;
         public bool requiresFlag;
         public string requiredFlag;
+        /// <summary>
+        /// Marks who_rescued: grants LinIdentity so 「林姐的信息」 can appear.
+        /// Does not set FlagIds.LinUnlocked (that happens after WeChat contact).
+        /// </summary>
         public bool unlocksLinFlow;
         public bool done;
     }
@@ -533,13 +537,31 @@ namespace StreetCat.Investigation
             };
         }
 
+        /// <summary>
+        /// Whether a talk topic may be offered. Post-interview 「林姐的信息」 stays hidden
+        /// until 「当初是谁救助的大福？」 grants <see cref="IntelIds.LinIdentity"/>.
+        /// </summary>
+        public bool CanAsk(TalkTopic topic)
+        {
+            if (topic == null) return false;
+            if (topic.requiresIntel && !GameState.Instance.HasIntel(topic.requiredIntel))
+                return false;
+            if (topic.requiresFlag && !GameState.Instance.HasFlag(topic.requiredFlag))
+                return false;
+            return true;
+        }
+
         public string Talk(TalkTopic topic)
         {
             if (topic == null) return "";
-            if (topic.requiresIntel && !GameState.Instance.HasIntel(topic.requiredIntel))
-                return "（还缺少相关线索。）";
-            if (topic.requiresFlag && !GameState.Instance.HasFlag(topic.requiredFlag))
-                return "（现在还不能问这个。）";
+            if (!CanAsk(topic))
+            {
+                if (topic.requiresIntel && !GameState.Instance.HasIntel(topic.requiredIntel))
+                    return "（还缺少相关线索。）";
+                if (topic.requiresFlag && !GameState.Instance.HasFlag(topic.requiredFlag))
+                    return "（现在还不能问这个。）";
+                return "";
+            }
 
             topic.done = true;
             if (!string.IsNullOrEmpty(topic.grantIntel))
@@ -548,8 +570,8 @@ namespace StreetCat.Investigation
                 GameState.Instance.GrantIntel(topic.grantIntel2, topic.noteLine2);
             if (!string.IsNullOrEmpty(topic.setObjective))
                 GameState.Instance.SetObjective(topic.setObjective);
-            if (topic.unlocksLinFlow)
-                GameState.Instance.SetFlag(FlagIds.LinUnlocked, false); // identity only; contact later
+            // who_rescued: unlocksLinFlow marks Lin identity known via LinIdentity intel only.
+            // FlagIds.LinUnlocked is set later when WeChat contact chat finishes (StartLinContactChat).
 
             return topic.reply ?? "";
         }
