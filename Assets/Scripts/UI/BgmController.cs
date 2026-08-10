@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using StreetCat.Loc;
 using UnityEngine;
 
 namespace StreetCat.UI
@@ -15,8 +17,8 @@ namespace StreetCat.UI
 
         public static bool MusicEnabled = true;
 
-        /// <summary>Master playback level; per-clip gain is applied on top.</summary>
-        const float TargetVolume = 0.38f;
+        /// <summary>Master playback level; per-clip gain is applied on top (from GameSettings).</summary>
+        float TargetVolume => Mathf.Max(0.001f, GameSettings.BgmMaster);
 
         /// <summary>Fade outgoing track to silence when switching.</summary>
         const float FadeOutSeconds = 1.5f;
@@ -37,7 +39,7 @@ namespace StreetCat.UI
         const float MaxGain = 2.2f;
 
         /// <summary>Max seconds of audio to scan for peak (keeps GetData cheap).</summary>
-        const float PeakScanSeconds = 45f;
+        const float PeakScanSeconds = 20f;
 
         AudioSource a;
         AudioSource b;
@@ -46,18 +48,48 @@ namespace StreetCat.UI
         string stickyScriptKey;
         float currentGain = 1f;
         Coroutine fadeCo;
+        /// <summary>
+        /// True after <see cref="BeginTransitionDip"/> until volume is restored or a SoftSwitch starts.
+        /// Sticky same-track scene jumps must restore; same-key Play during SoftSwitch must not.
+        /// </summary>
+        bool volumeDipped;
         readonly Dictionary<string, AudioClip> cache = new Dictionary<string, AudioClip>();
+        /// <summary>Final gain (auto peak × user multiplier).</summary>
         readonly Dictionary<string, float> gainCache = new Dictionary<string, float>();
+        /// <summary>Peak-normalization gain only; survives user-loudness invalidation.</summary>
+        readonly Dictionary<string, float> autoPeakCache = new Dictionary<string, float>();
 
         void Awake()
         {
             Instance = this;
+            GameSettings.EnsureLoaded();
+            MusicEnabled = GameSettings.BgmVolume > 0.001f;
             a = gameObject.AddComponent<AudioSource>();
             b = gameObject.AddComponent<AudioSource>();
             Configure(a);
             Configure(b);
+            GameSettings.OnChanged += OnSettingsChanged;
             if (!MusicEnabled)
                 StopAll();
+        }
+
+        void OnDestroy()
+        {
+            GameSettings.OnChanged -= OnSettingsChanged;
+            if (Instance == this) Instance = null;
+        }
+
+        void OnSettingsChanged()
+        {
+            MusicEnabled = GameSettings.BgmVolume > 0.001f;
+            if (!MusicEnabled)
+            {
+                StopAll();
+                return;
+            }
+            float vol = EffectiveVolume;
+            if (a != null && a.isPlaying) a.volume = vol;
+            if (b != null && b.isPlaying) b.volume = vol;
         }
 
         static void Configure(AudioSource src)
@@ -122,12 +154,14 @@ namespace StreetCat.UI
             if (b != null) { b.Stop(); b.volume = 0f; b.clip = null; }
             currentKey = null;
             currentGain = 1f;
+            volumeDipped = false;
         }
 
         public void FadeOut()
         {
             if (fadeCo != null)
                 StopCoroutine(fadeCo);
+            volumeDipped = false;
             fadeCo = StartCoroutine(FadeOutCo());
             currentKey = null;
         }
@@ -138,6 +172,7 @@ namespace StreetCat.UI
             if (!MusicEnabled || a == null) return;
             if (fadeCo != null)
                 StopCoroutine(fadeCo);
+            volumeDipped = true;
             fadeCo = StartCoroutine(TransitionDipCo(Mathf.Max(0.2f, seconds)));
         }
 
@@ -184,8 +219,18 @@ namespace StreetCat.UI
                 StopAll();
                 return;
             }
-            if (string.IsNullOrEmpty(key) || key == currentKey)
+            if (string.IsNullOrEmpty(key))
                 return;
+
+            // Same track: scene transitions BeginTransitionDip then re-ApplyBgm with sticky BGM.
+            // SoftSwitch is skipped for the same key, so restore full level after the dip.
+            // Do NOT restore when SoftSwitch is already running for this key (ApplyBgm + script cue).
+            if (key == currentKey)
+            {
+                if (volumeDipped)
+                    RestoreFullVolumeAfterDip();
+                return;
+            }
 
             var clip = Load(key);
             if (clip == null)
@@ -198,10 +243,45 @@ namespace StreetCat.UI
             bool hadOutgoing = HasAudibleMusic() || !string.IsNullOrEmpty(currentKey);
             currentKey = key;
             currentGain = gain;
+            volumeDipped = false;
 
             if (fadeCo != null)
                 StopCoroutine(fadeCo);
             fadeCo = StartCoroutine(SoftSwitch(clip, gain, hadOutgoing));
+        }
+
+        /// <summary>
+        /// Cancel an in-progress transition dip and bring active source(s) back to EffectiveVolume.
+        /// Used when sticky script BGM continues across a scene transition.
+        /// </summary>
+        void RestoreFullVolumeAfterDip()
+        {
+            if (fadeCo != null)
+            {
+                StopCoroutine(fadeCo);
+                fadeCo = null;
+            }
+            volumeDipped = false;
+
+            float target = EffectiveVolume;
+            bool anyPlaying = false;
+            if (a != null && a.isPlaying && a.clip != null)
+            {
+                a.volume = target;
+                anyPlaying = true;
+            }
+            if (b != null && b.isPlaying && b.clip != null)
+            {
+                b.volume = target;
+                anyPlaying = true;
+            }
+
+            // Dip may have finished with sources still playing at reduced volume.
+            if (!anyPlaying)
+            {
+                if (a != null && a.clip != null) a.volume = target;
+                if (b != null && b.clip != null) b.volume = target;
+            }
         }
 
         bool HasAudibleMusic()
@@ -289,37 +369,143 @@ namespace StreetCat.UI
             if (gainCache.TryGetValue(key, out var g))
                 return g;
 
-            float peak = MeasurePeak(clip);
-            g = Mathf.Clamp(RefPeak / peak, MinGain, MaxGain);
-            gainCache[key] = g;
+            float auto = GetAutoPeakGain(key, clip);
+            float user = BgmLoudnessData.Asset != null
+                ? BgmLoudnessData.Asset.GetMultiplier(key)
+                : BgmLoudnessData.DefaultMultiplier;
+            g = Mathf.Clamp(auto * user, MinGain * BgmLoudnessData.MinMultiplier,
+                MaxGain * BgmLoudnessData.MaxMultiplier);
+            // Only persist when peak is settled (measured or permanent default).
+            if (autoPeakCache.ContainsKey(key))
+                gainCache[key] = g;
             return g;
         }
 
-        static float MeasurePeak(AudioClip clip)
+        /// <summary>Peak-normalization gain only (before user loudness multiplier).</summary>
+        public float GetAutoPeakGain(string key)
         {
+            if (string.IsNullOrEmpty(key)) return 1f;
+            if (autoPeakCache.TryGetValue(key, out var cached))
+                return cached;
+            return GetAutoPeakGain(key, Load(key));
+        }
+
+        /// <summary>True if peak gain is already cached (no LoadAudioData / GetData).</summary>
+        public bool TryGetCachedAutoPeakGain(string key, out float autoGain)
+        {
+            if (!string.IsNullOrEmpty(key) && autoPeakCache.TryGetValue(key, out autoGain))
+                return true;
+            autoGain = 1f;
+            return false;
+        }
+
+        float GetAutoPeakGain(string key, AudioClip clip)
+        {
+            if (string.IsNullOrEmpty(key)) return 1f;
+            if (autoPeakCache.TryGetValue(key, out var cached))
+                return cached;
+            if (clip == null)
+            {
+                autoPeakCache[key] = 1f;
+                return 1f;
+            }
+            if (!TryMeasurePeak(clip, out float peak))
+            {
+                // Transient Loading: don't cache. Permanent failures: cache default.
+                if (clip.loadType == AudioClipLoadType.Streaming ||
+                    clip.loadState == AudioDataLoadState.Failed ||
+                    clip.samples <= 0)
+                    autoPeakCache[key] = 1f;
+                return 1f;
+            }
+            float auto = Mathf.Clamp(RefPeak / peak, MinGain, MaxGain);
+            autoPeakCache[key] = auto;
+            return auto;
+        }
+
+        public void InvalidateGainCache()
+        {
+            // Keep autoPeakCache: peaks don't change when the user multiplier is tweaked.
+            gainCache.Clear();
+            BgmLoudnessData.InvalidateCache();
+        }
+
+        /// <summary>Drop peak + gain caches (e.g. after replacing an audio file).</summary>
+        public void InvalidatePeakCache()
+        {
+            autoPeakCache.Clear();
+            gainCache.Clear();
+        }
+
+        /// <summary>Re-apply loudness for the currently playing track (after editor tweaks).</summary>
+        public void RefreshCurrentLoudness()
+        {
+            if (string.IsNullOrEmpty(currentKey)) return;
+            var clip = Load(currentKey);
+            if (clip == null) return;
+            gainCache.Remove(currentKey);
+            currentGain = GetGain(currentKey, clip);
+            float vol = EffectiveVolume;
+            if (a != null && a.isPlaying && a.clip == clip) a.volume = vol;
+            if (b != null && b.isPlaying && b.clip == clip) b.volume = vol;
+        }
+
+        public string CurrentKey => currentKey;
+
+        /// <summary>All BGM clip stems under Resources/Audio/Bgm.</summary>
+        public static List<string> ListResourceKeys()
+        {
+            var list = new List<string>();
+            var clips = Resources.LoadAll<AudioClip>("Audio/Bgm");
+            if (clips == null) return list;
+            var seen = new HashSet<string>();
+            for (int i = 0; i < clips.Length; i++)
+            {
+                var c = clips[i];
+                if (c == null || string.IsNullOrEmpty(c.name)) continue;
+                if (!seen.Add(c.name)) continue;
+                list.Add(c.name);
+            }
+            list.Sort(StringComparer.Ordinal);
+            return list;
+        }
+
+        static bool TryMeasurePeak(AudioClip clip, out float peak)
+        {
+            peak = RefPeak;
             if (clip == null || clip.samples <= 0 || clip.channels <= 0)
-                return RefPeak;
+                return false;
+
+            // Streaming clips cannot GetData.
+            if (clip.loadType == AudioClipLoadType.Streaming)
+                return false;
 
             if (clip.loadState != AudioDataLoadState.Loaded)
+            {
                 clip.LoadAudioData();
-
-            if (clip.loadState != AudioDataLoadState.Loaded)
-                return RefPeak;
+                // No busy-wait: caller may retry next frame / next Play().
+                if (clip.loadState != AudioDataLoadState.Loaded)
+                    return false;
+            }
 
             int channels = clip.channels;
             int maxFrames = Mathf.Min(clip.samples, Mathf.Max(1, Mathf.RoundToInt(clip.frequency * PeakScanSeconds)));
             var data = new float[maxFrames * channels];
             if (!clip.GetData(data, 0))
-                return RefPeak;
+                return false;
 
-            float peak = 0f;
-            for (int i = 0; i < data.Length; i++)
+            // Stride scan: loudness normalize doesn't need sample-perfect peaks.
+            const int targetSamples = 48000;
+            int stride = Mathf.Max(1, data.Length / targetSamples);
+            float p = 0f;
+            for (int i = 0; i < data.Length; i += stride)
             {
                 float abs = Mathf.Abs(data[i]);
-                if (abs > peak) peak = abs;
+                if (abs > p) p = abs;
             }
 
-            return Mathf.Max(peak, 1e-4f);
+            peak = Mathf.Max(p, 1e-4f);
+            return true;
         }
 
         public static string ResolveScriptLabel(string label)

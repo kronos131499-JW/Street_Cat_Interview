@@ -265,7 +265,7 @@ namespace StreetCat.Investigation
                         TB("小凌", "所以没有一起上班？", "思考"),
                         TB("保安叔叔", "它那个也叫上班啊......", "苦笑"),
                         TN("保安叔叔忍不住笑了一下。"),
-                        TB("保安叔叔", "反正他有时候会过来看看我。", "常态"),
+                        TB("保安叔叔", "反正它有时候会过来看看我。", "常态"),
                         TB("小凌", "看您？", "思考"),
                         TB("保安叔叔", "看有没有吃的。", "苦笑"),
                         TB("小凌", "某种程度上，也挺像同事的。", "吐槽"),
@@ -307,7 +307,7 @@ namespace StreetCat.Investigation
                         TB("保安叔叔", "具体怎么伤的、后来怎么治的，我就不清楚了。", "常态"),
                         TB("小凌", "当时送它去医院的人，您认识吗？", "认真"),
                         TB("保安叔叔", "认识。", "常态"),
-                        TB("保安叔叔", "这样吧，你不是还要等大福吗？先跟它聊聊。等会儿回来，我帮你问问那个人愿不愿意接受采访。", "常态"),
+                        TB("保安叔叔", "这样吧，一会儿你先看看大福。我晚点帮你问问那个人愿不愿意接受采访。", "常态"),
                         TB("小凌", "好，麻烦您了。", "常态"),
                         TS("获得情报——“大福成为保安猫的时间”"),
                         TS("大福原本只是附近活动的流浪猫。接受救治并被放归后，它才逐渐开始在保安亭附近长期活动。"),
@@ -359,7 +359,6 @@ namespace StreetCat.Investigation
                         TB("保安叔叔", "你手上又没吃的。", "常态"),
                         TB("小凌", "……", "局促"),
                         TB("小凌", "有道理。", "吐槽"),
-                        TS("无相关情报")
                     }
                 }
             };
@@ -559,5 +558,31 @@ namespace StreetCat.Investigation
         {
             return GameState.Instance.HasIntel(IntelIds.DafuAppearTime);
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>
+        /// Clear hotspot/talk topic progress so debug jumps don't inherit a stuck map/talk state.
+        /// (Beat queues live on GameUI; those are cleared via GameUI.DebugCloseOverlays.)
+        /// </summary>
+        public void ResetForDebugJump()
+        {
+            pendingGuardAppear = false;
+            if (Hotspots != null)
+            {
+                foreach (var h in Hotspots)
+                    h.inspected = false;
+            }
+            if (GuardTopics != null)
+            {
+                foreach (var t in GuardTopics)
+                    t.done = false;
+            }
+            if (PostInterviewTopics != null)
+            {
+                foreach (var t in PostInterviewTopics)
+                    t.done = false;
+            }
+        }
+#endif
     }
 }

@@ -17,6 +17,11 @@ namespace StreetCat.UI
     {
         public List<TitleRectEntry> entries = new List<TitleRectEntry>();
 
+        [Header("Tape menu button size (px)")]
+        public float buttonWidth = 260f;
+        public float buttonHeight = 72f;
+        public float buttonSpacing = 16f;
+
         public bool TryGet(string id, out Vector4 rect)
         {
             rect = default;

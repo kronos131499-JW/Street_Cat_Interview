@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9ecb96ae10bf5b489f755436bc0b89f, type: 3}
+  m_Name: BgmLoudness
+  m_EditorClassIdentifier: 
+  entries:
+  - key: bgm_cafe
+    multiplier: 1.32
+  - key: bgm_community
+    multiplier: 1
+  - key: bgm_community_afternoon
+    multiplier: 1
+  - key: bgm_community_dusk
+    multiplier: 1
+  - key: bgm_dafu
+    multiplier: 1
+  - key: bgm_editorial_01
+    multiplier: 1
+  - key: bgm_editorial_02
+    multiplier: 1
+  - key: bgm_epilogue
+    multiplier: 1
+  - key: bgm_guard_booth
+    multiplier: 1
+  - key: bgm_interview
+    multiplier: 1
+  - key: bgm_magazine
+    multiplier: 1
+  - key: bgm_shenhe_office
+    multiplier: 0.69
+  - key: bgm_title
+    multiplier: 1.64
+  - key: bgm_writing
+    multiplier: 1

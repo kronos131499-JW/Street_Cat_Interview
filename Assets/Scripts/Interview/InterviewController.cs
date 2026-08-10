@@ -19,12 +19,17 @@ namespace StreetCat.Interview
         int crossChecks;
         bool returnToWritingAfterEnd;
         readonly HashSet<string> gainedThisInterview = new HashSet<string>();
+        InterviewReply lastReply;
+        string lastPlayerQuestion;
 
         public InterviewSubject Subject => subject;
         public InterviewerStats Stats => engine?.Stats;
         public IReadOnlyList<string> Log => log;
         public bool IsReinterviewFromWriting => returnToWritingAfterEnd;
         public bool IsTranslating { get; private set; }
+        public InterviewReply LastReply => lastReply;
+        public string LastPlayerQuestion => lastPlayerQuestion;
+        public IReadOnlyCollection<string> AskedIntents => engine?.AskedIntents;
 
         public event Action<InterviewReply> OnReply;
         public event Action OnEnded;
@@ -42,6 +47,8 @@ namespace StreetCat.Interview
             log.Clear();
             gainedThisInterview.Clear();
             boundaryHit = false;
+            lastReply = null;
+            lastPlayerQuestion = null;
             crossChecks = GameState.Instance.Data.crossChecksCompleted;
             SaveSystem.Autosave();
 
@@ -62,7 +69,9 @@ namespace StreetCat.Interview
                 return null;
 
             log.Add("小凌：" + question);
+            lastPlayerQuestion = question;
             var reply = engine.Process(question);
+            lastReply = reply;
 
             if (!deferSpeakerLines)
                 AppendSpeakerReply(reply);
@@ -401,6 +410,8 @@ namespace StreetCat.Interview
             OnEnded?.Invoke();
             subject = InterviewSubject.None;
             engine = null;
+            lastReply = null;
+            lastPlayerQuestion = null;
 
             if (backToWriting)
             {
@@ -427,6 +438,8 @@ namespace StreetCat.Interview
             returnToWritingAfterEnd = false;
             subject = InterviewSubject.None;
             engine = null;
+            lastReply = null;
+            lastPlayerQuestion = null;
             ChapterFlowController.Instance.ReturnToWritingFromReinterview();
         }
     }

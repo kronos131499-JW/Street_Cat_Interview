@@ -186,24 +186,27 @@ namespace StreetCat.UI
             // for callers that opt in via Character lines.
             if (kind == LineSpeaker.Inner)
             {
-                if (string.IsNullOrEmpty(name) || name.Contains("小凌") || name.Contains("笔记"))
+                if (string.IsNullOrEmpty(name) || name.Contains("小凌") || name.Contains("Ling") || name.Contains("笔记"))
                     return ResolveXiaolingExpression(name, expression);
             }
 
             if (string.IsNullOrEmpty(name))
                 return null;
 
-            if (name.Contains("小凌"))
+            if (name.Contains("小凌") || name.Contains("Ling"))
                 return ResolveXiaolingExpression(name, expression);
-            if (name.Contains("沈禾"))
+            if (name.Contains("沈禾") || name.Contains("Shen He") || name.Contains("ShenHe"))
                 return ResolveShenheExpression(name, expression);
-            if (name.Contains("大福"))
+            if (name.Contains("大福") || name.Contains("Dafu"))
                 return ResolveDafuExpression(name, expression);
-            if (name.Contains("林"))
+            if (name.Contains("林女士") || name.Contains("Ms. Lin") || name.Contains("Ms Lin"))
                 return ResolveLinExpression(name, expression);
-            if (name.Contains("保安"))
+            // Avoid matching "Ling" via substring "Lin".
+            if (name == "Lin" || name.StartsWith("Lin ") || name.EndsWith(" Lin"))
+                return ResolveLinExpression(name, expression);
+            if (name.Contains("保安") || name.Contains("Uncle Guard") || name.Contains("Guard"))
                 return ResolveGuardExpression(name, expression);
-            if (name.Contains("梨花") || name.Contains("李华") || name.Contains("狸花"))
+            if (name.Contains("梨花") || name.Contains("李华") || name.Contains("狸花") || name.Contains("Lihua"))
                 return "ch_lihua_default";
 
             return null;

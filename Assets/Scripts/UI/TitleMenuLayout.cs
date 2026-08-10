@@ -19,10 +19,12 @@ namespace StreetCat.UI
             { "logo_cn", new Vector4(0.08f, 0.78f, 0.92f, 0.96f) },
             { "logo_en", new Vector4(0.10f, 0.68f, 0.90f, 0.80f) },
             { "quote_box", new Vector4(0.08f, 0.10f, 0.92f, 0.36f) },
-            { "subtitle", new Vector4(0.16f, 0.14f, 0.88f, 0.32f) },
+            // Inside quote_box with padding; wide enough for ZH/EN wrap + BestFit.
+            { "subtitle", new Vector4(0.08f, 0.13f, 0.62f, 0.34f) },
             { "blurb_deco", new Vector4(0.55f, 0.02f, 0.98f, 0.22f) },
             { "right_page", new Vector4(0.52f, 0.10f, 0.96f, 0.92f) },
             { "contents_header", new Vector4(0.06f, 0.86f, 0.94f, 0.96f) },
+            { "contents_label", new Vector4(0.12f, 0.88f, 0.88f, 0.98f) },
             { "title_actions", new Vector4(0.16f, 0.20f, 0.84f, 0.82f) },
             { "tagline", new Vector4(0.08f, 0.06f, 0.92f, 0.18f) },
             { "prop_translator", new Vector4(0.01f, 0.02f, 0.14f, 0.42f) },
@@ -43,7 +45,8 @@ namespace StreetCat.UI
             { "subtitle", "左页文案" },
             { "blurb_deco", "左页装饰" },
             { "right_page", "右页区域" },
-            { "contents_header", "CONTENTS 头" },
+            { "contents_header", "CONTENTS 装饰线" },
+            { "contents_label", "CONTENTS 文字" },
             { "title_actions", "菜单按钮区" },
             { "tagline", "右页标语" },
             { "prop_translator", "翻译器" },
@@ -66,6 +69,51 @@ namespace StreetCat.UI
         }
 
         public static void InvalidateCache() => _cached = null;
+
+        public const float DefaultButtonWidth = 260f;
+        public const float DefaultButtonHeight = 88f;
+        public const float DefaultButtonSpacing = 16f;
+
+        public static float ButtonWidth
+        {
+            get
+            {
+                var a = Asset;
+                return a != null && a.buttonWidth > 40f ? a.buttonWidth : DefaultButtonWidth;
+            }
+        }
+
+        public static float ButtonHeight
+        {
+            get
+            {
+                var a = Asset;
+                return a != null && a.buttonHeight > 30f ? a.buttonHeight : DefaultButtonHeight;
+            }
+        }
+
+        public static float ButtonSpacing
+        {
+            get
+            {
+                var a = Asset;
+                return a != null && a.buttonSpacing >= 0f ? a.buttonSpacing : DefaultButtonSpacing;
+            }
+        }
+
+#if UNITY_EDITOR
+        public static void SetButtonMetrics(float width, float height, float spacing)
+        {
+            var asset = EnsureAsset();
+            if (asset == null) return;
+            asset.buttonWidth = Mathf.Clamp(width, 160f, 480f);
+            asset.buttonHeight = Mathf.Clamp(height, 40f, 120f);
+            asset.buttonSpacing = Mathf.Clamp(spacing, 0f, 40f);
+            UnityEditor.EditorUtility.SetDirty(asset);
+            UnityEditor.AssetDatabase.SaveAssets();
+            _cached = asset;
+        }
+#endif
 
         public static bool TryGet(string id, out Vector4 rect)
         {
@@ -122,6 +170,9 @@ namespace StreetCat.UI
             var asset = ScriptableObject.CreateInstance<TitleMenuLayoutData>();
             foreach (var kv in Defaults)
                 asset.entries.Add(new TitleRectEntry { id = kv.Key, rect = kv.Value });
+            asset.buttonWidth = DefaultButtonWidth;
+            asset.buttonHeight = DefaultButtonHeight;
+            asset.buttonSpacing = DefaultButtonSpacing;
 
             UnityEditor.AssetDatabase.CreateAsset(asset, path);
             UnityEditor.AssetDatabase.SaveAssets();

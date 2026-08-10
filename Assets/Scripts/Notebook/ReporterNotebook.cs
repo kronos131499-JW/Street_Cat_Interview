@@ -718,8 +718,23 @@ namespace StreetCat.Notebook
         /// <summary>
         /// Short askable presets for free interview chips: incomplete notebook topics first,
         /// then a tiny static fallback. Investigate-only inspirations are skipped.
+        /// Prefer <see cref="StreetCat.Interview.InterviewHintService"/> for Play Mode tips;
+        /// this remains a notebook-only candidate source.
         /// </summary>
         public List<string> GetPresetAskQuestions(InterviewSubject subject, int max = 4)
+        {
+            return GetContextualAskQuestions(subject, null, max, includeFallbacks: true);
+        }
+
+        /// <summary>
+        /// Rank incomplete notebook ask-questions for a subject. Open topics first, then New.
+        /// Skips topics whose primary intent was already asked this interview when possible.
+        /// </summary>
+        public List<string> GetContextualAskQuestions(
+            InterviewSubject subject,
+            IReadOnlyCollection<string> askedIntents,
+            int max = 4,
+            bool includeFallbacks = false)
         {
             var list = new List<string>();
             if (Topics == null || max <= 0 || subject == InterviewSubject.None)
@@ -735,14 +750,36 @@ namespace StreetCat.Notebook
                 list.Add(q);
             }
 
+            // Pass 1: Open (还有疑问) — highest value "what to try next".
             foreach (var t in VisibleTopics())
             {
                 if (list.Count >= max) break;
-                if (t.status == TopicStatus.Complete) continue;
+                if (t.status != TopicStatus.Open) continue;
+                if (TopicLikelyAsked(subject, t.id, askedIntents)) continue;
                 TryAdd(GetInspirationQuestion(t.id));
             }
 
-            if (list.Count < 2)
+            // Pass 2: New clues.
+            foreach (var t in VisibleTopics())
+            {
+                if (list.Count >= max) break;
+                if (t.status != TopicStatus.New) continue;
+                if (TopicLikelyAsked(subject, t.id, askedIntents)) continue;
+                TryAdd(GetInspirationQuestion(t.id));
+            }
+
+            // Pass 3: any remaining incomplete even if intent was asked (different phrasing).
+            if (list.Count < max)
+            {
+                foreach (var t in VisibleTopics())
+                {
+                    if (list.Count >= max) break;
+                    if (t.status == TopicStatus.Complete) continue;
+                    TryAdd(GetInspirationQuestion(t.id));
+                }
+            }
+
+            if (includeFallbacks && list.Count < 2)
             {
                 foreach (var q in FallbackPresets(subject))
                 {
@@ -752,6 +789,69 @@ namespace StreetCat.Notebook
             }
 
             return list;
+        }
+
+        static bool TopicLikelyAsked(
+            InterviewSubject subject, string topicId, IReadOnlyCollection<string> askedIntents)
+        {
+            if (askedIntents == null || askedIntents.Count == 0 || string.IsNullOrEmpty(topicId))
+                return false;
+            foreach (var intent in IntentsForTopic(subject, topicId))
+            {
+                foreach (var a in askedIntents)
+                {
+                    if (string.Equals(a, intent, StringComparison.Ordinal))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        static IEnumerable<string> IntentsForTopic(InterviewSubject subject, string topicId)
+        {
+            if (subject == InterviewSubject.Dafu)
+            {
+                switch (topicId)
+                {
+                    case "community": yield return "daily"; break;
+                    case "past": yield return "past_fear"; break;
+                    case "neck": yield return "neck"; break;
+                    case "rescuer":
+                        yield return "woman";
+                        yield return "capture";
+                        break;
+                    case "after":
+                        yield return "strange_place";
+                        yield return "cognitive_boundary";
+                        break;
+                    case "return": yield return "return"; break;
+                }
+            }
+            else
+            {
+                switch (topicId)
+                {
+                    case "community": yield return "community"; break;
+                    case "past": yield return "discovery"; break;
+                    case "neck":
+                        yield return "injury";
+                        yield return "cause_unknown";
+                        break;
+                    case "rescuer":
+                        yield return "feeding";
+                        yield return "capture";
+                        break;
+                    case "after":
+                        yield return "hospital";
+                        yield return "cost";
+                        yield return "hesitate";
+                        break;
+                    case "return":
+                        yield return "release";
+                        yield return "release_accuse";
+                        break;
+                }
+            }
         }
 
         static bool FitsInterviewSubject(InterviewSubject subject, string q)

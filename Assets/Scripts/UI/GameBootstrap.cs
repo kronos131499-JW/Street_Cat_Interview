@@ -1,6 +1,7 @@
 using StreetCat.Core;
 using StreetCat.Investigation;
 using StreetCat.Interview;
+using StreetCat.Loc;
 using StreetCat.Narrative;
 using StreetCat.Notebook;
 using StreetCat.UI;
@@ -26,6 +27,7 @@ namespace StreetCat
         void Awake()
         {
             DontDestroyOnLoad(gameObject);
+            GameSettings.EnsureLoaded();
             GameState.Ensure();
 
             Ensure<SceneDirector>();

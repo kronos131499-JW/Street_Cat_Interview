@@ -172,11 +172,7 @@ namespace StreetCat.Narrative
                 text = "发现采访对象“大福”",
                 setFlag = FlagIds.FoundDafu
             });
-            s.lines.Add(Sys("获得初始情报"));
-            s.lines.Add(Sys("大福通常在下午出现在社区"));
-            s.lines.Add(Sys("曾经受过严重的伤"));
-            s.lines.Add(Sys("康复后被放归原社区"));
-            s.lines.Add(Sys("目前由多名社区居民共同照顾"));
+
             s.lines.Add(new ScriptLine
             {
                 speaker = LineSpeaker.System,

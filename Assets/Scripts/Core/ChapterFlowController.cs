@@ -7,7 +7,7 @@ using UnityEngine;
 namespace StreetCat.Core
 {
     /// <summary>Drives chapter progression between scripted scenes and gameplay modes.</summary>
-    public class ChapterFlowController : MonoBehaviour
+    public partial class ChapterFlowController : MonoBehaviour
     {
         public static ChapterFlowController Instance { get; private set; }
 

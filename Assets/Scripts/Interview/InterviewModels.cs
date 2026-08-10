@@ -63,6 +63,7 @@ namespace StreetCat.Interview
         protected readonly HashSet<string> askedIntents = new HashSet<string>();
         protected readonly InterviewerStats stats = new InterviewerStats();
         public InterviewerStats Stats => stats;
+        public IReadOnlyCollection<string> AskedIntents => askedIntents;
 
         public abstract InterviewSubject Subject { get; }
 

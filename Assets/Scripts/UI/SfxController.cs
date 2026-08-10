@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using StreetCat.Loc;
 using UnityEngine;
 
 namespace StreetCat.UI
@@ -12,17 +13,31 @@ namespace StreetCat.UI
         public static SfxController Instance { get; private set; }
         public static bool Enabled = true;
 
-        const float Master = 0.45f;
+        float Master => Mathf.Max(0f, GameSettings.SfxMaster);
         AudioSource src;
         readonly Dictionary<string, AudioClip> cache = new Dictionary<string, AudioClip>();
 
         void Awake()
         {
             Instance = this;
+            GameSettings.EnsureLoaded();
+            Enabled = GameSettings.SfxVolume > 0.001f;
             src = gameObject.AddComponent<AudioSource>();
             src.playOnAwake = false;
             src.spatialBlend = 0f;
             src.loop = false;
+            GameSettings.OnChanged += OnSettingsChanged;
+        }
+
+        void OnDestroy()
+        {
+            GameSettings.OnChanged -= OnSettingsChanged;
+            if (Instance == this) Instance = null;
+        }
+
+        void OnSettingsChanged()
+        {
+            Enabled = GameSettings.SfxVolume > 0.001f;
         }
 
         public void PlayAdvance() => Play("advance", 0.55f);

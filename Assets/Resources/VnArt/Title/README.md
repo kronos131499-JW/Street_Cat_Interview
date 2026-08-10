@@ -17,7 +17,12 @@ Authoring mirror: `Assets/Art/UI/Title/` (same files).
 | `title_logo_en.png` | English strip + mic |
 | `title_quote_box_l.png` | Left-page quote frame |
 | `title_blurb_deco.png` | Cat mark + decorative rules |
-| `title_contents_header.png` | Right-page header rule; overlay “CONTENTS” in UI |
+| `title_contents_header.png` | Right-page header rule |
+| `title_txt_contents.png` | Pre-rendered “CONTENTS” (logo ink / SimHei) |
+| `title_txt_subtitle.png` | Left-page magazine blurb |
+| `title_txt_tagline.png` | Right-page chapter line |
+| `title_txt_tagline_cleared.png` | “存档已清除” feedback |
+| `title_btn_01_newgame.png` … `title_btn_05_exit.png` | Tape button labels (indexed) |
 | `btn_tape_primary_idle.png` / `_hover.png` | Orange primary tape button |
 | `btn_tape_idle.png` / `_hover.png` / `_pressed.png` | Beige secondary tape button |
 | `deco_paperclip.png` | Clip on primary button |
@@ -36,4 +41,5 @@ Authoring mirror: `Assets/Art/UI/Title/` (same files).
 ## Unity import
 
 - Texture Type: Sprite (2D and UI), Alpha Is Transparency
-- Buttons use independent Button rects + Chinese Text labels (do not bake copy into art)
+- Text sprites: uncompressed preferred; mipmaps off (see `.meta`)
+- Buttons use independent Button rects + pre-rendered label sprites (`title_btn_*`); Text fallback if missing

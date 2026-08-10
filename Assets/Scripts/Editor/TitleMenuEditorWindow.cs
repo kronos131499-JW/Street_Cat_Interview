@@ -10,7 +10,7 @@ namespace StreetCat.Editor
         public static void Open()
         {
             var win = GetWindow<TitleMenuEditorWindow>("主菜单布局");
-            win.minSize = new Vector2(340, 320);
+            win.minSize = new Vector2(360, 420);
             win.Show();
         }
 
@@ -32,7 +32,8 @@ namespace StreetCat.Editor
                 "2. Play → 进入标题界面\n" +
                 "3. Game 视图拖拽青色半透明框：中间移动，四角缩放\n" +
                 "4. 松手写入 Resources/TitleMenuLayout.asset\n" +
-                "编辑开启时菜单按钮点击会被屏蔽，避免误进游戏。",
+                "CONTENTS 文字与装饰线可分开拖。\n" +
+                "下方滑条可调胶带按钮宽高（Play 中即时生效）。",
                 MessageType.Info);
 
             EditorGUILayout.Space(8);
@@ -41,10 +42,48 @@ namespace StreetCat.Editor
             if (next != edit)
                 TitleMenuEditMode.Enabled = next;
 
+            EditorGUILayout.Space(10);
+            EditorGUILayout.LabelField("胶带按钮比例", EditorStyles.boldLabel);
+            var asset = TitleMenuLayout.EnsureAsset();
+            if (asset != null)
+            {
+                EditorGUI.BeginChangeCheck();
+                float w = EditorGUILayout.Slider("宽度", asset.buttonWidth, 160f, 420f);
+                float h = EditorGUILayout.Slider("高度", asset.buttonHeight, 44f, 100f);
+                float s = EditorGUILayout.Slider("间距", asset.buttonSpacing, 0f, 32f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    TitleMenuLayout.SetButtonMetrics(w, h, s);
+                    if (Application.isPlaying && GameUI.Instance != null)
+                        GameUI.Instance.ApplyTitleButtonMetrics();
+                }
+
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("偏短宽 (240×76)"))
+                {
+                    TitleMenuLayout.SetButtonMetrics(240f, 76f, 16f);
+                    if (Application.isPlaying && GameUI.Instance != null)
+                        GameUI.Instance.ApplyTitleButtonMetrics();
+                }
+                if (GUILayout.Button("默认 (260×72)"))
+                {
+                    TitleMenuLayout.SetButtonMetrics(260f, 72f, 16f);
+                    if (Application.isPlaying && GameUI.Instance != null)
+                        GameUI.Instance.ApplyTitleButtonMetrics();
+                }
+                if (GUILayout.Button("偏长 (300×64)"))
+                {
+                    TitleMenuLayout.SetButtonMetrics(300f, 64f, 14f);
+                    if (Application.isPlaying && GameUI.Instance != null)
+                        GameUI.Instance.ApplyTitleButtonMetrics();
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
             EditorGUILayout.Space(8);
             if (GUILayout.Button("创建 / 选中 Layout 资源"))
             {
-                var asset = TitleMenuLayout.EnsureAsset();
+                asset = TitleMenuLayout.EnsureAsset();
                 if (asset != null)
                 {
                     Selection.activeObject = asset;
@@ -57,13 +96,18 @@ namespace StreetCat.Editor
                 if (EditorUtility.DisplayDialog("重置主菜单布局",
                         "用代码默认坐标覆盖 TitleMenuLayout.asset？", "重置", "取消"))
                 {
-                    var asset = TitleMenuLayout.EnsureAsset();
+                    asset = TitleMenuLayout.EnsureAsset();
                     asset.entries.Clear();
                     foreach (var kv in TitleMenuLayout.Defaults)
                         asset.entries.Add(new TitleRectEntry { id = kv.Key, rect = kv.Value });
+                    asset.buttonWidth = TitleMenuLayout.DefaultButtonWidth;
+                    asset.buttonHeight = TitleMenuLayout.DefaultButtonHeight;
+                    asset.buttonSpacing = TitleMenuLayout.DefaultButtonSpacing;
                     EditorUtility.SetDirty(asset);
                     AssetDatabase.SaveAssets();
                     TitleMenuLayout.InvalidateCache();
+                    if (Application.isPlaying && GameUI.Instance != null)
+                        GameUI.Instance.ApplyTitleButtonMetrics();
                 }
             }
 
@@ -81,7 +125,7 @@ namespace StreetCat.Editor
                 if (e == null) continue;
                 var name = TitleMenuLayout.DisplayNames.TryGetValue(e.id, out var n) ? n : e.id;
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField(name, GUILayout.Width(90));
+                EditorGUILayout.LabelField(name, GUILayout.Width(100));
                 EditorGUILayout.LabelField($"({e.rect.x:F2}, {e.rect.y:F2}, {e.rect.z:F2}, {e.rect.w:F2})");
                 EditorGUILayout.EndHorizontal();
             }
@@ -91,8 +135,8 @@ namespace StreetCat.Editor
                 EditorGUILayout.Space(6);
                 EditorGUILayout.HelpBox(
                     TitleMenuEditMode.Enabled
-                        ? "Play 中 · 编辑已开。在标题界面 Game 视图拖拽。"
-                        : "Play 中 · 请勾选上方「启用编辑模式」。",
+                        ? "Play 中 · 编辑已开。可拖 CONTENTS 文字 / 菜单区；滑条改按钮宽高。"
+                        : "Play 中 · 勾选编辑模式后可拖拽；滑条随时可调按钮比例。",
                     MessageType.None);
             }
         }

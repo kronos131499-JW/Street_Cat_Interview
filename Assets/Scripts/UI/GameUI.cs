@@ -6,6 +6,7 @@ using StreetCat.Core;
 using StreetCat.Data;
 using StreetCat.Investigation;
 using StreetCat.Interview;
+using StreetCat.Loc;
 using StreetCat.Narrative;
 using StreetCat.Notebook;
 using StreetCat.Writing;
@@ -15,7 +16,7 @@ using UnityEngine.UI;
 
 namespace StreetCat.UI
 {
-    public class GameUI : MonoBehaviour
+    public partial class GameUI : MonoBehaviour
     {
         public static GameUI Instance { get; private set; }
 
@@ -57,26 +58,66 @@ namespace StreetCat.UI
         Transform choiceRoot;
         InputField inputField;
         GameObject titleRoot;
+        Image titleLogoCn;
+        Image titleLogoEn;
         Text titleBrand;
         Text titleSubtitle;
+        Text titleContentsLabel;
         Text titleTagline;
+        bool titleTaglineCleared;
 
         // Menu / backlog / notebook
         GameObject menuRoot;
+        Text menuTitleText;
+        GameObject settingsRoot;
+        Text settingsTitleText;
+        Text settingsBgmValue;
+        Text settingsSfxValue;
+        Text settingsAutoDelayValue;
+        Slider settingsBgmSlider;
+        Slider settingsSfxSlider;
+        Slider settingsAutoDelaySlider;
+        Text settingsLangZhBtn;
+        Text settingsLangEnBtn;
+        Text settingsFontNameLabel;
+        Text settingsFontSizeValue;
+        Text settingsLetterSpacingValue;
+        Slider settingsFontSizeSlider;
+        Slider settingsLetterSpacingSlider;
+        Text settingsSpeedSlowBtn;
+        Text settingsSpeedNormalBtn;
+        Text settingsSpeedFastBtn;
+        Text settingsAutoOnBtn;
+        Text settingsAutoOffBtn;
+        Text settingsFullscreenBtn;
+        Text settingsWindowedBtn;
+        Coroutine autoPlayCo;
         GameObject backlogRoot;
         GameObject notebookRoot;
         GameObject saveLoadRoot;
+        Text backlogTitleText;
         Text backlogText;
         ScrollRect backlogScroll;
-        Text notebookLegendText;
-        Text notebookDetailText;
-        Text notebookInspireText;
-        Transform notebookTopicList;
-        Transform notebookTabRow;
+        Text notebookTitleText;
+        Text notebookCloseLabel;
+        Text notebookDetailTitleText;
+        Text notebookStatusChipText;
+        Image notebookStatusChipBg;
+        Text notebookDetailBodyText;
+        Text notebookSourceText;
+        Text notebookInspireHeaderText;
+        Text notebookInspireBodyText;
+        Button notebookInspireButton;
+        Image notebookInspirePanel;
+        Transform notebookStickyGrid;
+        Transform notebookModeRow;
         ScrollRect notebookDetailScroll;
+        Image notebookPageImage;
         string notebookSelectedTopicId;
         int notebookTab; // 0=主题 1=待确认 2=提问记录
         readonly List<GameObject> notebookSpawned = new List<GameObject>();
+        Sprite notebookLinedPaperSprite;
+        Sprite notebookNavySprite;
         Text saveLoadTitle;
         Transform saveLoadList;
         bool saveLoadIsSave; // true=存档, false=读档
@@ -119,7 +160,6 @@ namespace StreetCat.UI
         Coroutine fadeCo;
         Coroutine typewriterCo;
         Coroutine portraitFadeCo;
-        Coroutine hintPulseCo;
         Coroutine interviewLlmCo;
         const float SceneTitleFadeIn = 0.35f;
         const float SceneTitleHold = 2.2f;
@@ -128,6 +168,7 @@ namespace StreetCat.UI
         bool typewriterRunning;
         float skipHoldTimer;
         Image advanceCatcher;
+        Image topBarImage;
         Image choiceHostImage;
         CanvasGroup portraitFade;
         Image atmosphereWash;
@@ -152,49 +193,198 @@ namespace StreetCat.UI
         void Awake()
         {
             Instance = this;
+            GameSettings.EnsureLoaded();
             font = ResolveUiFont();
             titleFont = ResolveTitleFont() ?? font;
             BuildCanvas();
+            ApplyActiveFonts();
+            GameSettings.OnChanged += OnGameSettingsChanged;
         }
 
-        static Font ResolveUiFont()
+        void OnDestroy()
         {
-            var os = TryOsFont(new[]
-            {
-                "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
-                "Noto Sans CJK SC", "Source Han Sans SC", "SimHei", "微软雅黑"
-            }, 28);
-            if (os != null) return os;
-            var builtin = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            return builtin != null ? builtin : Resources.GetBuiltinResource<Font>("Arial.ttf");
+            GameSettings.OnChanged -= OnGameSettingsChanged;
+            if (Instance == this) Instance = null;
         }
 
-        static Font ResolveTitleFont()
+        void OnGameSettingsChanged()
         {
-            return TryOsFont(new[]
-            {
-                "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC",
-                "STSong", "SimSun", "微软雅黑", "华文楷体", "KaiTi"
-            }, 40);
+            ApplyActiveFonts();
+            ApplyTitleLanguageVisuals();
+            RefreshLocalizedChrome();
+            if (settingsRoot != null && settingsRoot.activeSelf)
+                SyncSettingsWidgets();
+            // Safe refresh: do not re-enter OnScriptLine (would Advance cue lines / dup history).
+            if (mode == Mode.Dialogue)
+                RefreshCurrentDialogueDisplay();
+            else if (IsSkippableDialogueContext())
+                RebuildSkippableDialogueActions();
+            else if (mode == Mode.Talk)
+                RefreshHeader();
         }
 
-        static Font TryOsFont(string[] names, int size)
+        /// <summary>Re-apply localized speaker/body/choices without side effects.</summary>
+        void RefreshCurrentDialogueDisplay()
         {
-            if (names == null) return null;
-            foreach (var name in names)
+            var display = SceneDirector.Instance?.CurrentDisplayLine;
+            if (display == null) return;
+            if (string.IsNullOrEmpty(display.text)
+                && (display.choices == null || display.choices.Count == 0))
             {
-                if (string.IsNullOrEmpty(name)) continue;
-                try
+                RefreshHeader();
+                return;
+            }
+
+            var speaker = display.speakerName;
+            var lineKind = display.speaker;
+            if (lineKind == LineSpeaker.Narration || speaker == "旁白" || speaker == "Narration")
+            {
+                speaker = "";
+                lineKind = LineSpeaker.Narration;
+            }
+            if (lineKind == LineSpeaker.System)
+                speaker = ScriptLoc.MapSpeaker("系统");
+            else if (!string.IsNullOrEmpty(speaker))
+                speaker = ScriptLoc.MapSpeaker(speaker);
+
+            SetSpeaker(speaker, lineKind, display.portrait, display.text);
+            var kind = lineKind == LineSpeaker.System ? "system"
+                : (lineKind == LineSpeaker.Narration || lineKind == LineSpeaker.Inner) ? "narration"
+                : "dialogue";
+            SetBody(display.text, false, kind);
+
+            if (display.choices != null && display.choices.Count > 0 && waitingForChoice)
+            {
+                ClearButtons();
+                statusText.text = UiLoc.T("ui.make_choice");
+                SetAdvanceEnabled(false, true);
+                for (int i = 0; i < display.choices.Count; i++)
                 {
-                    var f = Font.CreateDynamicFontFromOSFont(name, size);
-                    if (f != null) return f;
+                    int idx = i;
+                    AddChoice(display.choices[i].label, () => SceneDirector.Instance.Choose(idx));
                 }
-                catch
+                AddStandardDialogueActions(includeSkip: false);
+            }
+            else if (!waitingForChoice)
+            {
+                statusText.text = UiLoc.T("ui.status_advance");
+                ClearButtons();
+                AddStandardDialogueActions(includeSkip: true);
+                SetAdvanceEnabled(true);
+            }
+            RefreshHeader();
+            RefreshAdvanceHint();
+        }
+
+        static Font ResolveUiFont() => FontCatalog.Resolve(GameSettings.UiFontId);
+
+        static Font ResolveTitleFont() => FontCatalog.Resolve(GameSettings.UiFontId);
+
+        void ApplyActiveFonts()
+        {
+            font = ResolveUiFont();
+            titleFont = ResolveTitleFont() ?? font;
+            if (canvasRt == null || font == null) return;
+
+            float scale = GameSettings.FontSizeScale;
+            float spacing = GameSettings.LetterSpacing;
+
+            var texts = canvasRt.GetComponentsInChildren<Text>(true);
+            for (int i = 0; i < texts.Length; i++)
+            {
+                var t = texts[i];
+                if (t == null) continue;
+                bool titleish = titleRoot != null && t.transform.IsChildOf(titleRoot.transform);
+                t.font = titleish ? titleFont : font;
+                // Letter-spacing mesh hack breaks Wrap — only apply to non-wrapping lines.
+                // Writing corkboard: keep tracking off (scrapbook cards + chrome stay crisp).
+                bool wraps = t.horizontalOverflow == HorizontalWrapMode.Wrap;
+                bool underWriting = writingMatsRoot != null && t.transform.IsChildOf(writingMatsRoot.transform);
+                ApplyLetterSpacing(t, (wraps || underWriting) ? 0f : spacing);
+            }
+
+            if (bodyText != null)
+            {
+                bodyText.font = font;
+                bodyText.fontSize = Mathf.RoundToInt(24f * scale);
+                bodyText.alignment = TextAnchor.UpperLeft;
+                bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                bodyText.verticalOverflow = VerticalWrapMode.Overflow;
+                bodyText.alignByGeometry = false;
+                ApplyLetterSpacing(bodyText, 0f);
+                var contentRt = bodyText.rectTransform;
+                if (dialogueScroll != null && dialogueScroll.viewport != null)
                 {
-                    // ignore missing OS fonts
+                    contentRt.anchorMin = new Vector2(0f, 1f);
+                    contentRt.anchorMax = new Vector2(1f, 1f);
+                    contentRt.pivot = new Vector2(0.5f, 1f);
+                    contentRt.offsetMin = new Vector2(0f, contentRt.offsetMin.y);
+                    contentRt.offsetMax = new Vector2(0f, contentRt.offsetMax.y);
+                    float w = dialogueScroll.viewport.rect.width;
+                    if (w > 1f)
+                        contentRt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
                 }
             }
-            return null;
+            if (nameText != null)
+            {
+                nameText.font = font;
+                nameText.fontSize = Mathf.RoundToInt(20f * scale);
+                nameText.alignment = TextAnchor.MiddleCenter;
+                nameText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                nameText.color = VnTheme.TextPrimary;
+                ApplyLetterSpacing(nameText, spacing * 0.35f);
+            }
+            if (statusText != null)
+            {
+                statusText.font = font;
+                statusText.fontSize = Mathf.RoundToInt(15f * scale);
+                statusText.alignment = TextAnchor.LowerLeft;
+                statusText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                ApplyLetterSpacing(statusText, spacing * 0.35f);
+            }
+            if (clickHintText != null)
+            {
+                clickHintText.font = font;
+                clickHintText.fontSize = Mathf.RoundToInt(16f * Mathf.Max(1f, scale));
+                clickHintText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                ApplyLetterSpacing(clickHintText, spacing * 0.35f);
+            }
+            if (objectiveText != null)
+            {
+                objectiveText.font = font;
+                objectiveText.alignment = TextAnchor.MiddleLeft;
+                objectiveText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                ApplyLetterSpacing(objectiveText, 0f);
+            }
+            if (locationText != null)
+            {
+                locationText.font = font;
+                ApplyLetterSpacing(locationText, spacing * 0.35f);
+            }
+            if (backlogTitleText != null)
+            {
+                backlogTitleText.font = font;
+                ApplyLetterSpacing(backlogTitleText, 0f);
+            }
+            if (backlogText != null)
+            {
+                backlogText.font = font;
+                backlogText.alignment = TextAnchor.UpperLeft;
+                backlogText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                ApplyLetterSpacing(backlogText, 0f);
+            }
+            ApplyNotebookFonts();
+            ApplyInterviewFonts();
+            ApplyWritingFonts();
+        }
+
+        static void ApplyLetterSpacing(Text t, float spacing)
+        {
+            if (t == null) return;
+            var ls = t.GetComponent<UILetterSpacing>();
+            if (ls == null)
+                ls = t.gameObject.AddComponent<UILetterSpacing>();
+            ls.Spacing = spacing;
         }
 
         void Start()
@@ -222,6 +412,7 @@ namespace StreetCat.UI
             var canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 10;
+            canvas.pixelPerfect = true;
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
@@ -262,17 +453,18 @@ namespace StreetCat.UI
             var accent = CreateImage(canvasGo.transform, "AccentStrip", VnTheme.AccentDim);
             Stretch(accent.rectTransform, new Vector2(0.12f, 1f - VnTheme.LetterboxH), new Vector2(0.88f, 1f - VnTheme.LetterboxH),
                 new Vector2(0, -2), new Vector2(0, 0));
+            accent.raycastTarget = false;
 
             // Top HUD — sits in letterbox band, never over stage
-            var topBar = CreateImage(canvasGo.transform, "TopBar", VnTheme.TopBar);
-            Stretch(topBar.rectTransform, new Vector2(0, VnTheme.TopHudBottom), new Vector2(1, 1f - VnTheme.LetterboxH),
+            topBarImage = CreateImage(canvasGo.transform, "TopBar", VnTheme.TopBar);
+            Stretch(topBarImage.rectTransform, new Vector2(0, VnTheme.TopHudBottom), new Vector2(1, 1f - VnTheme.LetterboxH),
                 Vector2.zero, Vector2.zero);
 
-            chapterChip = CreateUiText(topBar.transform, "ChapterChip", 17, TextAnchor.MiddleLeft,
+            chapterChip = CreateUiText(topBarImage.transform, "ChapterChip", 17, TextAnchor.MiddleLeft,
                 VnTheme.Accent, new Vector2(40, 0), new Vector2(380, 36));
             chapterChip.text = "第一章　·　编外保安大福";
 
-            objectiveText = CreateUiText(topBar.transform, "Objective", 16, TextAnchor.MiddleLeft,
+            objectiveText = CreateUiText(topBarImage.transform, "Objective", 16, TextAnchor.MiddleLeft,
                 VnTheme.TextMuted, new Vector2(420, 0), new Vector2(720, 36));
             var ort = objectiveText.GetComponent<RectTransform>();
             ort.anchorMin = new Vector2(0, 0.5f);
@@ -333,8 +525,11 @@ namespace StreetCat.UI
             portraitFade.alpha = 0f;
             portraitFade.blocksRaycasts = false;
 
-            // Full-stage click catcher (VN: click anywhere to advance) — under title/dialogue/choices
+            // Stage click catcher (VN: click to advance). Stops below TopHud so 回看/菜单 stay clickable.
+            // Kept under title/dialogue/choices; TopBar is raised above this via EnsureTopHudClickable.
             advanceCatcher = CreateFillImage(canvasGo.transform, "AdvanceCatcher", new Color(0, 0, 0, 0.001f));
+            Stretch(advanceCatcher.rectTransform, Vector2.zero, new Vector2(1f, VnTheme.TopHudBottom),
+                Vector2.zero, Vector2.zero);
             advanceCatcher.raycastTarget = true;
             var advBtn = advanceCatcher.gameObject.AddComponent<Button>();
             advBtn.transition = Selectable.Transition.None;
@@ -422,7 +617,7 @@ namespace StreetCat.UI
             var chRt = clickHintText.GetComponent<RectTransform>();
             chRt.anchorMin = chRt.anchorMax = new Vector2(1, 0);
             chRt.pivot = new Vector2(1, 0);
-            clickHintText.text = "点击对话框继续";
+            clickHintText.text = UiLoc.T("ui.click_continue");
 
             // Choice band — soft panel above dialogue
             choiceHostImage = CreateImage(canvasGo.transform, "ChoiceHost", new Color(0, 0, 0, 0.001f));
@@ -479,7 +674,7 @@ namespace StreetCat.UI
             dialoguePanel.raycastTarget = true;
 
             var hudActions = new GameObject("HudActions", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-            hudActions.transform.SetParent(topBar.transform, false);
+            hudActions.transform.SetParent(topBarImage.transform, false);
             var hart = hudActions.GetComponent<RectTransform>();
             hart.anchorMin = hart.anchorMax = new Vector2(1, 0.5f);
             hart.pivot = new Vector2(1, 0.5f);
@@ -491,16 +686,22 @@ namespace StreetCat.UI
             hhlg.childForceExpandWidth = false;
             SpawnHudChip(hudActions.transform, "回看", OpenBacklog);
             SpawnHudChip(hudActions.transform, "菜单", OpenMenu);
+            EnsureTopHudClickable();
 
             BuildInvestigateOverlay(canvasGo.transform);
             BuildInterviewOverlay(canvasGo.transform);
             BuildMenuOverlay(canvasGo.transform);
             BuildBacklogOverlay(canvasGo.transform);
             BuildNotebookOverlay(canvasGo.transform);
+            BuildWritingMaterialsOverlay(canvasGo.transform);
             BuildSaveLoadOverlay(canvasGo.transform);
             BuildConfirmOverlay(canvasGo.transform);
+            BuildSettingsOverlay(canvasGo.transform);
             BuildHideDialogueControl(canvasGo.transform);
             BuildSceneFadeOverlay(canvasGo.transform);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            BuildDebugJumpPanel(canvasGo.transform);
+#endif
         }
 
         void BuildHideDialogueControl(Transform parent)
@@ -510,7 +711,7 @@ namespace StreetCat.UI
             var rt = go.GetComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
             rt.pivot = new Vector2(1f, 0f);
-            rt.anchoredPosition = new Vector2(-18f, 18f);
+            rt.anchoredPosition = new Vector2(-18f, 210f);
             rt.sizeDelta = new Vector2(112f, 34f);
             var img = go.GetComponent<Image>();
             img.color = new Color(0.1f, 0.1f, 0.12f, 0.82f);
@@ -529,7 +730,7 @@ namespace StreetCat.UI
             hideDialogueLabel = CreateUiText(go.transform, "Label", 15, TextAnchor.MiddleCenter,
                 VnTheme.TextPrimary, Vector2.zero, Vector2.zero);
             StretchFull(hideDialogueLabel.GetComponent<RectTransform>());
-            hideDialogueLabel.text = "隐藏对白";
+            hideDialogueLabel.text = UiLoc.T("ui.hide_dialogue");
             hideDialogueLabel.raycastTarget = false;
             go.SetActive(false);
         }
@@ -643,7 +844,9 @@ namespace StreetCat.UI
             bool wasHidden = dialogueHidden;
             dialogueHidden = hidden && CanHideDialogue();
             if (hideDialogueLabel != null)
-                hideDialogueLabel.text = dialogueHidden ? "显示对白" : "隐藏对白";
+                hideDialogueLabel.text = dialogueHidden
+                    ? UiLoc.T("ui.show_dialogue")
+                    : UiLoc.T("ui.hide_dialogue");
             if (!dialogueHidden && wasHidden && dialoguePanel != null
                 && (mode == Mode.Dialogue || mode == Mode.Talk
                     || (mode == Mode.Investigate && !investigateHotspotsVisible)))
@@ -672,9 +875,25 @@ namespace StreetCat.UI
                 choiceHostImage.gameObject.SetActive(false);
             if (portraitImage != null)
                 portraitImage.gameObject.SetActive(false);
-            // Full-stage click restores (also advances only after restore on next click).
+            // Stage click restores (also advances only after restore on next click).
             if (advanceCatcher != null)
+            {
                 advanceCatcher.gameObject.SetActive(true);
+                EnsureTopHudClickable();
+            }
+        }
+
+        /// <summary>
+        /// Keep TopBar (回看/菜单) above the advance catcher so chrome chips remain clickable
+        /// while click-to-advance still covers the stage / dialogue band.
+        /// </summary>
+        void EnsureTopHudClickable()
+        {
+            if (topBarImage == null || advanceCatcher == null) return;
+            int catcherIdx = advanceCatcher.transform.GetSiblingIndex();
+            int topIdx = topBarImage.transform.GetSiblingIndex();
+            if (topIdx <= catcherIdx)
+                topBarImage.transform.SetSiblingIndex(catcherIdx + 1);
         }
 
         void BuildInvestigateOverlay(Transform parent)
@@ -741,153 +960,7 @@ namespace StreetCat.UI
             investigateRoot.SetActive(false);
         }
 
-        void BuildInterviewOverlay(Transform parent)
-        {
-            interviewRoot = new GameObject("InterviewOverlay", typeof(RectTransform));
-            interviewRoot.transform.SetParent(parent, false);
-            Stretch(interviewRoot.GetComponent<RectTransform>(), new Vector2(0.04f, VnTheme.LetterboxH + 0.02f), new Vector2(0.96f, VnTheme.TopHudBottom - 0.01f),
-                Vector2.zero, Vector2.zero);
-
-            var shell = CreateImage(interviewRoot.transform, "Shell", VnTheme.Paper);
-            StretchFull(shell.rectTransform);
-            // Shell catches leftover clicks so nothing under the overlay steals them.
-            shell.raycastTarget = true;
-            var shellEdge = CreateImage(shell.transform, "TopEdge", VnTheme.Accent);
-            Stretch(shellEdge.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -3), new Vector2(0, 0));
-            shellEdge.raycastTarget = false;
-
-            var header = CreateImage(shell.transform, "Header", new Color(0.08f, 0.09f, 0.11f, 1f));
-            Stretch(header.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -72), new Vector2(0, 0));
-            header.raycastTarget = false;
-
-            interviewSubjectText = CreateUiText(header.transform, "Subject", 28, TextAnchor.MiddleLeft,
-                VnTheme.TextPrimary, new Vector2(28, 0), new Vector2(700, 40));
-            var subRt = interviewSubjectText.GetComponent<RectTransform>();
-            subRt.anchorMin = new Vector2(0, 0.5f);
-            subRt.anchorMax = new Vector2(0, 0.5f);
-            subRt.pivot = new Vector2(0, 0.5f);
-            interviewSubjectText.fontStyle = FontStyle.Bold;
-            interviewSubjectText.text = "自由采访";
-
-            interviewStatusText = CreateUiText(header.transform, "Status", 18, TextAnchor.MiddleRight,
-                VnTheme.TextMuted, new Vector2(-28, 0), new Vector2(900, 40));
-            var ist = interviewStatusText.GetComponent<RectTransform>();
-            ist.anchorMin = ist.anchorMax = new Vector2(1, 0.5f);
-            ist.pivot = new Vector2(1, 0.5f);
-
-            var composer = CreateImage(shell.transform, "Composer", new Color(0.07f, 0.08f, 0.1f, 1f));
-            Stretch(composer.rectTransform, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(0, 204));
-            composer.raycastTarget = true;
-            var composerEdge = CreateImage(composer.transform, "Edge", VnTheme.DialogueEdge);
-            Stretch(composerEdge.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -2), new Vector2(0, 0));
-            composerEdge.raycastTarget = false;
-
-            interviewHintRoot = new GameObject("Presets", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
-            interviewHintRoot.SetParent(composer.transform, false);
-            var hrt = interviewHintRoot.GetComponent<RectTransform>();
-            hrt.anchorMin = new Vector2(0, 0);
-            hrt.anchorMax = new Vector2(1, 0);
-            hrt.pivot = new Vector2(0.5f, 0);
-            hrt.anchoredPosition = new Vector2(0, 114);
-            hrt.sizeDelta = new Vector2(-40, 34);
-            var hhlg = interviewHintRoot.GetComponent<HorizontalLayoutGroup>();
-            hhlg.spacing = 8;
-            hhlg.childAlignment = TextAnchor.MiddleLeft;
-            hhlg.childForceExpandWidth = false;
-            hhlg.childForceExpandHeight = true;
-            hhlg.childControlWidth = true;
-            hhlg.childControlHeight = true;
-            hhlg.padding = new RectOffset(20, 20, 0, 0);
-
-            interviewInput = CreateVnInput(composer.transform);
-            var iirt = interviewInput.GetComponent<RectTransform>();
-            iirt.anchorMin = new Vector2(0, 0);
-            iirt.anchorMax = new Vector2(1, 0);
-            iirt.pivot = new Vector2(0.5f, 0);
-            iirt.anchoredPosition = new Vector2(-70, 58);
-            iirt.sizeDelta = new Vector2(-200, 48);
-            interviewInput.lineType = InputField.LineType.SingleLine;
-            interviewInput.GetComponent<Image>().color = VnTheme.InputBg;
-
-            var sendGo = new GameObject("Send", typeof(RectTransform), typeof(Image), typeof(Button));
-            sendGo.transform.SetParent(composer.transform, false);
-            var srt = sendGo.GetComponent<RectTransform>();
-            srt.anchorMin = srt.anchorMax = new Vector2(1, 0);
-            srt.pivot = new Vector2(1, 0);
-            srt.anchoredPosition = new Vector2(-24, 58);
-            srt.sizeDelta = new Vector2(110, 48);
-            sendGo.GetComponent<Image>().color = new Color(0.22f, 0.18f, 0.12f, 1f);
-            sendGo.GetComponent<Image>().raycastTarget = true;
-            sendGo.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                SfxController.Instance?.PlayUi();
-                SubmitInterviewQuestion();
-            });
-            var sendLabel = CreateUiText(sendGo.transform, "L", 20, TextAnchor.MiddleCenter, VnTheme.Accent, Vector2.zero, new Vector2(110, 48));
-            StretchFull(sendLabel.GetComponent<RectTransform>());
-            sendLabel.text = "发送";
-            sendLabel.raycastTarget = false;
-
-            interviewActionRoot = new GameObject("Actions", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
-            interviewActionRoot.SetParent(composer.transform, false);
-            var art = interviewActionRoot.GetComponent<RectTransform>();
-            art.anchorMin = new Vector2(0, 0);
-            art.anchorMax = new Vector2(1, 0);
-            art.pivot = new Vector2(0.5f, 0);
-            art.anchoredPosition = new Vector2(0, 12);
-            art.sizeDelta = new Vector2(-40, 40);
-            var ahlg = interviewActionRoot.GetComponent<HorizontalLayoutGroup>();
-            ahlg.spacing = 10;
-            ahlg.childAlignment = TextAnchor.MiddleRight;
-            ahlg.childForceExpandWidth = false;
-            ahlg.childControlWidth = true;
-            ahlg.childControlHeight = true;
-            ahlg.padding = new RectOffset(20, 20, 0, 0);
-
-            var logPanel = CreateImage(shell.transform, "LogPanel", new Color(0.06f, 0.07f, 0.09f, 1f));
-            // Keep clear of composer (204px) so log never eats preset/send/action clicks.
-            Stretch(logPanel.rectTransform, new Vector2(0, 0), new Vector2(1, 1),
-                new Vector2(16, 212), new Vector2(-16, -84));
-            logPanel.raycastTarget = false;
-
-            interviewScroll = logPanel.gameObject.AddComponent<ScrollRect>();
-            interviewScroll.horizontal = false;
-            interviewScroll.vertical = true;
-            interviewScroll.movementType = ScrollRect.MovementType.Clamped;
-
-            var viewport = CreateImage(logPanel.transform, "Viewport", new Color(0, 0, 0, 0.01f));
-            Stretch(viewport.rectTransform, Vector2.zero, Vector2.one, new Vector2(20, 16), new Vector2(-20, -16));
-            viewport.gameObject.AddComponent<RectMask2D>();
-            viewport.raycastTarget = true;
-
-            var content = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
-            content.transform.SetParent(viewport.transform, false);
-            var crt = content.GetComponent<RectTransform>();
-            crt.anchorMin = new Vector2(0, 1);
-            crt.anchorMax = new Vector2(1, 1);
-            crt.pivot = new Vector2(0.5f, 1);
-            crt.sizeDelta = new Vector2(0, 0);
-            content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            interviewLogText = content.AddComponent<Text>();
-            interviewLogText.font = font;
-            interviewLogText.fontSize = 24;
-            interviewLogText.color = VnTheme.TextPrimary;
-            interviewLogText.alignment = TextAnchor.UpperLeft;
-            interviewLogText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            interviewLogText.verticalOverflow = VerticalWrapMode.Overflow;
-            interviewLogText.lineSpacing = 1.25f;
-            interviewLogText.raycastTarget = false;
-            interviewLogText.supportRichText = true;
-
-            interviewScroll.viewport = viewport.rectTransform;
-            interviewScroll.content = crt;
-
-            // Composer must paint/raycast above LogPanel (built later in hierarchy).
-            composer.transform.SetAsLastSibling();
-
-            interviewRoot.SetActive(false);
-        }
+        // BuildInterviewOverlay → GameUI.Interview.cs (scrapbook redesign)
 
         void SpawnHudChip(Transform parent, string label, UnityEngine.Events.UnityAction action)
         {
@@ -926,13 +999,14 @@ namespace StreetCat.UI
             var panel = CreateImage(menuRoot.transform, "Panel", VnTheme.Paper);
             var prt = panel.rectTransform;
             prt.anchorMin = prt.anchorMax = new Vector2(0.5f, 0.5f);
-            prt.sizeDelta = new Vector2(420, 500);
+            prt.sizeDelta = new Vector2(420, 560);
             var menuEdge = CreateImage(panel.transform, "Edge", VnTheme.DialogueEdge);
             Stretch(menuEdge.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -2.5f), new Vector2(0, 0));
 
             var title = CreateUiText(panel.transform, "MenuTitle", 26, TextAnchor.UpperCenter,
                 VnTheme.Accent, new Vector2(0, -22), new Vector2(360, 40));
-            title.text = "菜单";
+            menuTitleText = title;
+            title.text = UiLoc.T("ui.menu");
             title.fontStyle = FontStyle.Bold;
             var tr = title.GetComponent<RectTransform>();
             tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 1);
@@ -946,9 +1020,9 @@ namespace StreetCat.UI
             v.childForceExpandWidth = true;
             v.childControlHeight = true;
 
-            void Item(string label, UnityEngine.Events.UnityAction act)
+            void Item(string locKey, UnityEngine.Events.UnityAction act)
             {
-                var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+                var go = new GameObject(locKey, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
                 go.transform.SetParent(list.transform, false);
                 go.GetComponent<Image>().color = VnTheme.Button;
                 go.GetComponent<LayoutElement>().preferredHeight = 46;
@@ -961,24 +1035,28 @@ namespace StreetCat.UI
                 tx.fontSize = 20;
                 tx.alignment = TextAnchor.MiddleCenter;
                 tx.color = VnTheme.TextPrimary;
-                tx.text = label;
+                tx.text = UiLoc.T(locKey);
                 tx.raycastTarget = false;
+                var tag = go.AddComponent<LocTag>();
+                tag.key = locKey;
+                tag.target = tx;
             }
 
-            Item("继续", CloseMenu);
-            Item("回看", () => { CloseMenuSilent(); OpenBacklog(); });
-            Item("自动存档（读）", () =>
+            Item("ui.menu.resume", CloseMenu);
+            Item("ui.menu.backlog", () => { CloseMenuSilent(); OpenBacklog(); });
+            Item("ui.menu.auto_load", () =>
             {
                 CloseMenuSilent();
                 if (SaveSystem.SlotExists(SaveSystem.AutoSlot))
                     ChapterFlowController.Instance.LoadSlot(SaveSystem.AutoSlot);
                 else
-                    statusText.text = "还没有自动存档";
+                    statusText.text = UiLoc.T("ui.no_autosave");
             });
-            Item("存档", () => { CloseMenuSilent(); OpenSaveLoad(true); });
-            Item("读档", () => { CloseMenuSilent(); OpenSaveLoad(false); });
-            Item("笔记", () => { CloseMenuSilent(); OpenNotebook(); });
-            Item("返回标题", () =>
+            Item("ui.menu.save", () => { CloseMenuSilent(); OpenSaveLoad(true); });
+            Item("ui.menu.load", () => { CloseMenuSilent(); OpenSaveLoad(false); });
+            Item("ui.menu.notebook", () => { CloseMenuSilent(); OpenNotebook(); });
+            Item("ui.menu.settings", () => { OpenSettingsFromMenu(); });
+            Item("ui.menu.title", () =>
             {
                 CloseMenuSilent();
                 ChapterFlowController.Instance.GoToTitle();
@@ -1236,14 +1314,21 @@ namespace StreetCat.UI
             var edge = CreateImage(panel.transform, "Edge", VnTheme.DialogueEdge);
             Stretch(edge.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -3), new Vector2(0, 0));
 
-            var title = CreateUiText(panel.transform, "Title", 24, TextAnchor.UpperLeft,
-                VnTheme.Accent, new Vector2(28, -20), new Vector2(400, 36));
-            title.text = "对话回看";
+            // Dedicated top header so title never sits over scroll content.
+            const float headerH = 56f;
+            backlogTitleText = CreateUiText(panel.transform, "Title", 26, TextAnchor.MiddleLeft,
+                VnTheme.Accent, Vector2.zero, Vector2.zero);
+            backlogTitleText.text = UiLoc.T("ui.backlog.title", "对话回看");
+            backlogTitleText.fontStyle = FontStyle.Bold;
+            var titleRt = backlogTitleText.GetComponent<RectTransform>();
+            Stretch(titleRt, new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(28f, -headerH), new Vector2(-120f, -8f));
 
             var scrollGo = new GameObject("Scroll", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             scrollGo.transform.SetParent(panel.transform, false);
             var srt = scrollGo.GetComponent<RectTransform>();
-            Stretch(srt, new Vector2(0.04f, 0.1f), new Vector2(0.96f, 0.9f), Vector2.zero, Vector2.zero);
+            Stretch(srt, new Vector2(0.04f, 0.08f), new Vector2(0.96f, 1f),
+                Vector2.zero, new Vector2(0f, -headerH));
             scrollGo.GetComponent<Image>().color = new Color(0, 0, 0, 0.2f);
             backlogScroll = scrollGo.GetComponent<ScrollRect>();
             backlogScroll.horizontal = false;
@@ -1297,160 +1382,6 @@ namespace StreetCat.UI
             backlogRoot.SetActive(false);
         }
 
-        void BuildNotebookOverlay(Transform parent)
-        {
-            notebookRoot = new GameObject("NotebookOverlay", typeof(RectTransform));
-            notebookRoot.transform.SetParent(parent, false);
-            StretchFull(notebookRoot.GetComponent<RectTransform>());
-            var dim = CreateImage(notebookRoot.transform, "Dim", VnTheme.OverlayDim);
-            StretchFull(dim.rectTransform);
-            dim.raycastTarget = true;
-
-            var panel = CreateImage(notebookRoot.transform, "Panel", VnTheme.Paper);
-            Stretch(panel.rectTransform, new Vector2(0.08f, 0.07f), new Vector2(0.92f, 0.93f), Vector2.zero, Vector2.zero);
-            var edge = CreateImage(panel.transform, "Edge", VnTheme.DialogueEdge);
-            Stretch(edge.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -3), new Vector2(0, 0));
-
-            var title = CreateUiText(panel.transform, "Title", 26, TextAnchor.UpperLeft,
-                VnTheme.Accent, new Vector2(28, -18), new Vector2(420, 36));
-            title.text = "记者笔记";
-            title.fontStyle = FontStyle.Bold;
-
-            notebookLegendText = CreateUiText(panel.transform, "Legend", 15, TextAnchor.UpperLeft,
-                VnTheme.TextMuted, new Vector2(28, -52), new Vector2(700, 24));
-            notebookLegendText.text = "○ 新线索　　◐ 还有疑问　　● 已充分了解";
-
-            notebookTabRow = new GameObject("Tabs", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
-            notebookTabRow.SetParent(panel.transform, false);
-            var trt = notebookTabRow.GetComponent<RectTransform>();
-            Stretch(trt, new Vector2(0.04f, 0.86f), new Vector2(0.72f, 0.93f), Vector2.zero, Vector2.zero);
-            var th = notebookTabRow.GetComponent<HorizontalLayoutGroup>();
-            th.spacing = 8;
-            th.childForceExpandWidth = true;
-            th.childForceExpandHeight = true;
-
-            void Tab(string label, int idx)
-            {
-                var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-                go.transform.SetParent(notebookTabRow, false);
-                go.GetComponent<Image>().color = VnTheme.Button;
-                go.GetComponent<LayoutElement>().preferredHeight = 36;
-                int captured = idx;
-                go.GetComponent<Button>().onClick.AddListener(() =>
-                {
-                    notebookTab = captured;
-                    RefreshNotebookPanel();
-                });
-                var tg = new GameObject("T", typeof(RectTransform));
-                tg.transform.SetParent(go.transform, false);
-                StretchFull(tg.GetComponent<RectTransform>());
-                var tx = tg.AddComponent<Text>();
-                tx.font = font;
-                tx.fontSize = 17;
-                tx.alignment = TextAnchor.MiddleCenter;
-                tx.color = VnTheme.TextPrimary;
-                tx.text = label;
-                tx.raycastTarget = false;
-            }
-
-            Tab("采访主题", 0);
-            Tab("待确认", 1);
-            Tab("提问记录", 2);
-
-            var closeBtn = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
-            closeBtn.transform.SetParent(panel.transform, false);
-            var cbrt = closeBtn.GetComponent<RectTransform>();
-            cbrt.anchorMin = cbrt.anchorMax = new Vector2(1, 1);
-            cbrt.pivot = new Vector2(1, 1);
-            cbrt.anchoredPosition = new Vector2(-16, -14);
-            cbrt.sizeDelta = new Vector2(100, 36);
-            closeBtn.GetComponent<Image>().color = VnTheme.Button;
-            closeBtn.GetComponent<Button>().onClick.AddListener(CloseNotebook);
-            var ct = new GameObject("T", typeof(RectTransform));
-            ct.transform.SetParent(closeBtn.transform, false);
-            StretchFull(ct.GetComponent<RectTransform>());
-            var ctx = ct.AddComponent<Text>();
-            ctx.font = font;
-            ctx.fontSize = 18;
-            ctx.alignment = TextAnchor.MiddleCenter;
-            ctx.color = VnTheme.TextPrimary;
-            ctx.text = "关闭";
-            ctx.raycastTarget = false;
-
-            var listHost = new GameObject("TopicListHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
-            listHost.transform.SetParent(panel.transform, false);
-            Stretch(listHost.GetComponent<RectTransform>(), new Vector2(0.04f, 0.12f), new Vector2(0.34f, 0.84f), Vector2.zero, Vector2.zero);
-            listHost.GetComponent<Image>().color = new Color(0, 0, 0, 0.22f);
-            var listScroll = listHost.GetComponent<ScrollRect>();
-            listScroll.horizontal = false;
-            var listVp = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
-            listVp.transform.SetParent(listHost.transform, false);
-            StretchFull(listVp.GetComponent<RectTransform>());
-            listVp.GetComponent<Image>().color = new Color(1, 1, 1, 0.01f);
-            var listContent = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-            listContent.transform.SetParent(listVp.transform, false);
-            notebookTopicList = listContent.transform;
-            var lcrt = listContent.GetComponent<RectTransform>();
-            lcrt.anchorMin = new Vector2(0, 1);
-            lcrt.anchorMax = new Vector2(1, 1);
-            lcrt.pivot = new Vector2(0.5f, 1);
-            lcrt.sizeDelta = Vector2.zero;
-            var lv = listContent.GetComponent<VerticalLayoutGroup>();
-            lv.spacing = 6;
-            lv.padding = new RectOffset(8, 8, 8, 8);
-            lv.childForceExpandWidth = true;
-            lv.childControlHeight = true;
-            listContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            listScroll.viewport = listVp.GetComponent<RectTransform>();
-            listScroll.content = lcrt;
-
-            var detailHost = new GameObject("DetailHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
-            detailHost.transform.SetParent(panel.transform, false);
-            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.36f, 0.20f), new Vector2(0.96f, 0.84f), Vector2.zero, Vector2.zero);
-            detailHost.GetComponent<Image>().color = new Color(0, 0, 0, 0.22f);
-            notebookDetailScroll = detailHost.GetComponent<ScrollRect>();
-            notebookDetailScroll.horizontal = false;
-            var dVp = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
-            dVp.transform.SetParent(detailHost.transform, false);
-            StretchFull(dVp.GetComponent<RectTransform>());
-            dVp.GetComponent<Image>().color = new Color(1, 1, 1, 0.01f);
-            var dContent = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
-            dContent.transform.SetParent(dVp.transform, false);
-            var dcrt = dContent.GetComponent<RectTransform>();
-            dcrt.anchorMin = new Vector2(0, 1);
-            dcrt.anchorMax = new Vector2(1, 1);
-            dcrt.pivot = new Vector2(0.5f, 1);
-            dcrt.sizeDelta = Vector2.zero;
-            dContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            notebookDetailText = dContent.AddComponent<Text>();
-            notebookDetailText.font = font;
-            notebookDetailText.fontSize = 20;
-            notebookDetailText.color = VnTheme.TextPrimary;
-            notebookDetailText.alignment = TextAnchor.UpperLeft;
-            notebookDetailText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            notebookDetailText.verticalOverflow = VerticalWrapMode.Overflow;
-            notebookDetailText.lineSpacing = 1.15f;
-            notebookDetailScroll.viewport = dVp.GetComponent<RectTransform>();
-            notebookDetailScroll.content = dcrt;
-
-            var inspireBtn = new GameObject("Inspire", typeof(RectTransform), typeof(Image), typeof(Button));
-            inspireBtn.transform.SetParent(panel.transform, false);
-            Stretch(inspireBtn.GetComponent<RectTransform>(), new Vector2(0.36f, 0.04f), new Vector2(0.96f, 0.17f), Vector2.zero, Vector2.zero);
-            inspireBtn.GetComponent<Image>().color = VnTheme.ButtonPrimary;
-            inspireBtn.GetComponent<Button>().onClick.AddListener(UseNotebookInspiration);
-            notebookInspireText = CreateUiText(inspireBtn.transform, "InspireLabel", 17, TextAnchor.MiddleLeft,
-                VnTheme.Accent, Vector2.zero, Vector2.zero);
-            StretchFull(notebookInspireText.rectTransform);
-            notebookInspireText.rectTransform.offsetMin = new Vector2(16, 6);
-            notebookInspireText.rectTransform.offsetMax = new Vector2(-16, -6);
-            notebookInspireText.text = "✦ 提问灵感";
-            notebookInspireText.alignment = TextAnchor.MiddleLeft;
-            notebookInspireText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            notebookInspireText.verticalOverflow = VerticalWrapMode.Truncate;
-
-            notebookRoot.SetActive(false);
-        }
-
         void BuildTitleScreen(Transform canvas)
         {
             titleRoot = new GameObject("TitleRoot", typeof(RectTransform));
@@ -1489,26 +1420,25 @@ namespace StreetCat.UI
             feature.preserveAspect = true;
             MakeTitleEditable(feature.gameObject, "feature_art");
 
-            var logoCn = CreateTitleSprite(left.transform, "LogoCn", "title_logo_cn", Color.white, false);
-            TitleMenuLayout.Apply(logoCn.rectTransform, "logo_cn",
+            titleLogoCn = CreateTitleSprite(left.transform, "LogoCn", "title_logo_cn", Color.white, false);
+            TitleMenuLayout.Apply(titleLogoCn.rectTransform, "logo_cn",
                 new Vector2(0.08f, 0.78f), new Vector2(0.92f, 0.96f));
-            logoCn.preserveAspect = true;
-            MakeTitleEditable(logoCn.gameObject, "logo_cn");
+            titleLogoCn.preserveAspect = true;
+            MakeTitleEditable(titleLogoCn.gameObject, "logo_cn");
 
-            var logoEn = CreateTitleSprite(left.transform, "LogoEn", "title_logo_en", Color.white, false);
-            TitleMenuLayout.Apply(logoEn.rectTransform, "logo_en",
+            titleLogoEn = CreateTitleSprite(left.transform, "LogoEn", "title_logo_en", Color.white, false);
+            TitleMenuLayout.Apply(titleLogoEn.rectTransform, "logo_en",
                 new Vector2(0.10f, 0.68f), new Vector2(0.90f, 0.80f));
-            logoEn.preserveAspect = true;
-            MakeTitleEditable(logoEn.gameObject, "logo_en");
+            titleLogoEn.preserveAspect = true;
+            MakeTitleEditable(titleLogoEn.gameObject, "logo_en");
 
-            titleBrand = CreateUiText(left.transform, "Brand", 48, TextAnchor.MiddleCenter,
-                new Color(0.12f, 0.10f, 0.09f, 0.96f), Vector2.zero, new Vector2(420, 64));
-            titleBrand.font = titleFont != null ? titleFont : font;
-            titleBrand.text = "街角专访";
-            titleBrand.fontStyle = FontStyle.Bold;
+            titleBrand = CreateUiText(left.transform, "Brand", 50, TextAnchor.MiddleCenter,
+                new Color(0.10f, 0.08f, 0.07f, 0.98f), Vector2.zero, new Vector2(420, 64));
+            titleBrand.text = UiLoc.T("ui.title.brand");
+            StyleTitleMenuFittedText(titleBrand, 50, true);
             TitleMenuLayout.Apply(titleBrand.GetComponent<RectTransform>(), "logo_cn",
                 new Vector2(0.08f, 0.82f), new Vector2(0.92f, 0.94f));
-            titleBrand.gameObject.SetActive(logoCn.sprite == null);
+            titleBrand.gameObject.SetActive(titleLogoCn.sprite == null);
 
             var quoteBox = CreateTitleSprite(left.transform, "QuoteBox", "title_quote_box_l", Color.white, false);
             TitleMenuLayout.Apply(quoteBox.rectTransform, "quote_box",
@@ -1516,13 +1446,12 @@ namespace StreetCat.UI
             quoteBox.preserveAspect = true;
             MakeTitleEditable(quoteBox.gameObject, "quote_box");
 
-            titleSubtitle = CreateUiText(left.transform, "Sub", 17, TextAnchor.UpperLeft,
-                new Color(0.28f, 0.22f, 0.16f, 0.88f), Vector2.zero, new Vector2(360, 80));
-            titleSubtitle.font = titleFont != null ? titleFont : font;
-            titleSubtitle.lineSpacing = 1.15f;
-            titleSubtitle.text = "此间　·　社会观察专栏\n街角的声音，值得被听见。";
+            titleSubtitle = CreateUiText(left.transform, "Sub", 20, TextAnchor.MiddleLeft,
+                new Color(0.16f, 0.12f, 0.09f, 0.94f), Vector2.zero, new Vector2(360, 80));
+            titleSubtitle.text = UiLoc.T("ui.title.subtitle");
+            StyleTitleMenuBodyText(titleSubtitle, 20);
             TitleMenuLayout.Apply(titleSubtitle.GetComponent<RectTransform>(), "subtitle",
-                new Vector2(0.16f, 0.14f), new Vector2(0.88f, 0.32f));
+                new Vector2(0.08f, 0.13f), new Vector2(0.62f, 0.34f));
             MakeTitleEditable(titleSubtitle.gameObject, "subtitle");
 
             var blurb = CreateTitleSprite(left.transform, "BlurbDeco", "title_blurb_deco", Color.white, false);
@@ -1545,13 +1474,13 @@ namespace StreetCat.UI
             contentsHeader.preserveAspect = true;
             MakeTitleEditable(contentsHeader.gameObject, "contents_header");
 
-            var contentsLabel = CreateUiText(right.transform, "ContentsLabel", 20, TextAnchor.MiddleCenter,
-                new Color(0.30f, 0.24f, 0.18f, 0.78f), Vector2.zero, new Vector2(280, 36));
-            contentsLabel.font = titleFont != null ? titleFont : font;
-            contentsLabel.text = "CONTENTS";
-            contentsLabel.fontStyle = FontStyle.Bold;
-            TitleMenuLayout.Apply(contentsLabel.GetComponent<RectTransform>(), "contents_header",
-                new Vector2(0.1f, 0.86f), new Vector2(0.9f, 0.96f));
+            titleContentsLabel = CreateUiText(right.transform, "ContentsLabel", 22, TextAnchor.MiddleCenter,
+                new Color(0.16f, 0.12f, 0.09f, 0.95f), Vector2.zero, new Vector2(280, 36));
+            titleContentsLabel.text = UiLoc.T("ui.title.contents");
+            StyleTitleMenuText(titleContentsLabel, 22, true);
+            TitleMenuLayout.Apply(titleContentsLabel.GetComponent<RectTransform>(), "contents_label",
+                new Vector2(0.12f, 0.88f), new Vector2(0.88f, 0.98f));
+            MakeTitleEditable(titleContentsLabel.gameObject, "contents_label");
 
             titleActionRoot = new GameObject("TitleActions", typeof(RectTransform), typeof(VerticalLayoutGroup)).transform;
             titleActionRoot.SetParent(right.transform, false);
@@ -1560,7 +1489,7 @@ namespace StreetCat.UI
                 new Vector2(0.16f, 0.20f), new Vector2(0.84f, 0.82f));
             MakeTitleEditable(titleActionRoot.gameObject, "title_actions");
             var tah = titleActionRoot.GetComponent<VerticalLayoutGroup>();
-            tah.spacing = 14;
+            tah.spacing = TitleMenuLayout.ButtonSpacing;
             tah.childAlignment = TextAnchor.UpperCenter;
             tah.childForceExpandWidth = false;
             tah.childForceExpandHeight = false;
@@ -1568,15 +1497,160 @@ namespace StreetCat.UI
             tah.childControlHeight = true;
             tah.padding = new RectOffset(12, 12, 6, 6);
 
-            titleTagline = CreateUiText(right.transform, "Tag", 15, TextAnchor.MiddleCenter,
-                new Color(0.32f, 0.26f, 0.20f, 0.72f), Vector2.zero, new Vector2(360, 40));
-            titleTagline.font = titleFont != null ? titleFont : font;
-            titleTagline.text = "第一章　　编外保安大福";
-            TitleMenuLayout.Apply(titleTagline.GetComponent<RectTransform>(), "tagline",
-                new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f));
-            MakeTitleEditable(titleTagline.gameObject, "tagline");
+            // Chapter tagline removed from title ("第一章　编外保安大福").
+            // Cleared-saves notice is shown on demand via SetTitleTaglineMessage(true).
+            titleTagline = null;
+            titleTaglineCleared = false;
 
             BuildTitleDeskProps(titleRoot.transform);
+            ApplyTitleLanguageVisuals();
+        }
+
+        static void MakeTitleSpriteCrisp(Sprite spr)
+        {
+            if (spr == null || spr.texture == null) return;
+            spr.texture.filterMode = FilterMode.Point;
+            spr.texture.anisoLevel = 0;
+            spr.texture.mipMapBias = 0f;
+        }
+
+        void SetTitleTaglineMessage(bool cleared)
+        {
+            titleTaglineCleared = cleared;
+            if (!cleared)
+            {
+                if (titleTagline != null)
+                    titleTagline.gameObject.SetActive(false);
+                return;
+            }
+
+            // Only show "saves cleared" notice — no default chapter tagline.
+            if (titleTagline == null && titleRoot != null)
+            {
+                var right = titleRoot.transform.Find("MagazineHost/RightPage");
+                var parent = right != null ? right : titleRoot.transform;
+                titleTagline = CreateUiText(parent, "TagCleared", 17, TextAnchor.MiddleCenter,
+                    new Color(0.18f, 0.14f, 0.10f, 0.92f), Vector2.zero, new Vector2(360, 40));
+                StyleTitleMenuText(titleTagline, 17, true);
+                TitleMenuLayout.Apply(titleTagline.GetComponent<RectTransform>(), "tagline",
+                    new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.18f));
+                MakeTitleEditable(titleTagline.gameObject, "tagline");
+            }
+            if (titleTagline != null)
+            {
+                titleTagline.gameObject.SetActive(true);
+                titleTagline.text = UiLoc.T("ui.title.saves_cleared");
+                StyleTitleMenuText(titleTagline, 17, true);
+            }
+        }
+
+        void StyleTitleMenuText(Text t, int size, bool bold)
+        {
+            if (t == null) return;
+            t.font = titleFont != null ? titleFont : font;
+            float scale = GameSettings.FontSizeScale;
+            // Render larger then scale down via layout — sharper than tiny Dynamic fonts.
+            t.fontSize = Mathf.RoundToInt(Mathf.Max(size, 28) * scale);
+            t.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            t.alignByGeometry = true;
+            t.resizeTextForBestFit = false;
+            t.horizontalOverflow = HorizontalWrapMode.Overflow;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
+            // Drop Outline/Shadow — they soft-blur CJK/Latin UI Text on the title screen.
+            foreach (var fx in t.GetComponents<Shadow>())
+            {
+                if (fx != null) fx.enabled = false;
+            }
+            ApplyLetterSpacing(t, GameSettings.LetterSpacing);
+        }
+
+        /// <summary>
+        /// Left-page magazine blurb: wrap + BestFit inside the quote rect.
+        /// Letter-spacing is off (mesh tracking breaks Wrap).
+        /// </summary>
+        void StyleTitleMenuBodyText(Text t, int preferredSize)
+        {
+            if (t == null) return;
+            t.font = titleFont != null ? titleFont : font;
+            float scale = GameSettings.FontSizeScale;
+            // Do not force the button-style min-28 size — it overflows the quote box.
+            int maxSize = Mathf.RoundToInt(Mathf.Clamp(preferredSize * scale, 14f, 30f));
+            int minSize = Mathf.Max(11, Mathf.RoundToInt(maxSize * 0.55f));
+            t.fontSize = maxSize;
+            t.fontStyle = FontStyle.Normal;
+            t.alignByGeometry = true;
+            t.alignment = TextAnchor.MiddleLeft;
+            t.horizontalOverflow = HorizontalWrapMode.Wrap;
+            t.verticalOverflow = VerticalWrapMode.Truncate;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = minSize;
+            t.resizeTextMaxSize = maxSize;
+            t.lineSpacing = 1.15f;
+            foreach (var fx in t.GetComponents<Shadow>())
+            {
+                if (fx != null) fx.enabled = false;
+            }
+            ApplyLetterSpacing(t, 0f);
+        }
+
+        /// <summary>Single-line title brand fallback when logo sprites are missing.</summary>
+        void StyleTitleMenuFittedText(Text t, int preferredSize, bool bold)
+        {
+            if (t == null) return;
+            t.font = titleFont != null ? titleFont : font;
+            float scale = GameSettings.FontSizeScale;
+            int maxSize = Mathf.RoundToInt(Mathf.Clamp(preferredSize * scale, 22f, 56f));
+            int minSize = Mathf.Max(14, Mathf.RoundToInt(maxSize * 0.45f));
+            t.fontSize = maxSize;
+            t.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
+            t.alignByGeometry = true;
+            t.alignment = TextAnchor.MiddleCenter;
+            t.horizontalOverflow = HorizontalWrapMode.Overflow;
+            t.verticalOverflow = VerticalWrapMode.Overflow;
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = minSize;
+            t.resizeTextMaxSize = maxSize;
+            foreach (var fx in t.GetComponents<Shadow>())
+            {
+                if (fx != null) fx.enabled = false;
+            }
+            // Tracking widens glyphs after BestFit — keep light or off so EN fits.
+            ApplyLetterSpacing(t, GameSettings.LetterSpacing * 0.35f);
+        }
+
+        /// <summary>Play Mode: apply tape button W/H/spacing from TitleMenuLayout (editor sliders).</summary>
+        public void ApplyTitleButtonMetrics()
+        {
+            if (titleActionRoot == null) return;
+            var tah = titleActionRoot.GetComponent<VerticalLayoutGroup>();
+            if (tah != null)
+                tah.spacing = TitleMenuLayout.ButtonSpacing;
+
+            float w = TitleMenuLayout.ButtonWidth;
+            float h = TitleMenuLayout.ButtonHeight;
+            for (int i = 0; i < titleActionRoot.childCount; i++)
+            {
+                var child = titleActionRoot.GetChild(i);
+                var le = child.GetComponent<LayoutElement>();
+                if (le == null) continue;
+            bool primary = child.name.Contains("新游戏") || child.name.Contains("New Game");
+                float bw = primary ? w + 12f : w;
+                float bh = primary ? h + 4f : h;
+                le.minWidth = bw;
+                le.preferredWidth = bw;
+                le.minHeight = bh;
+                le.preferredHeight = bh;
+                le.flexibleWidth = 0f;
+
+                var label = child.Find("Label");
+                if (label != null)
+                {
+                    var tx = label.GetComponent<Text>();
+                    if (tx != null)
+                        StyleTitleMenuText(tx, primary ? 24 : 21, true);
+                }
+            }
+            LayoutRebuilder.ForceRebuildLayoutImmediate(titleActionRoot as RectTransform);
         }
 
         void MakeTitleEditable(GameObject go, string id)
@@ -1787,7 +1861,23 @@ namespace StreetCat.UI
                 SpawnTitleMenuButton(label, action, primary);
                 return;
             }
+            // Top HUD chips already cover backlog / menu — don't duplicate them in the footer row.
+            if (IsBuiltInDialogueChromeAction(label))
+                return;
             SpawnButton(buttonRoot, label, action, primary, 118);
+        }
+
+        /// <summary>
+        /// True when the label is already exposed by permanent classic VN chrome (top HUD chips).
+        /// Skip / notebook still spawn as classic dialogue footer actions.
+        /// </summary>
+        bool IsBuiltInDialogueChromeAction(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return false;
+            return label == UiLoc.T("ui.backlog")
+                || label == UiLoc.T("ui.menu")
+                || label == "回看" || label == "Backlog"
+                || label == "菜单" || label == "Menu";
         }
 
         void SpawnTitleMenuButton(string label, UnityEngine.Events.UnityAction action, bool primary)
@@ -1803,6 +1893,9 @@ namespace StreetCat.UI
             var idle = VnArt.GetTitle(idleKey);
             var hover = VnArt.GetTitle(hoverKey);
             var pressed = VnArt.GetTitle(pressedKey);
+            MakeTitleSpriteCrisp(idle);
+            MakeTitleSpriteCrisp(hover);
+            MakeTitleSpriteCrisp(pressed);
             if (idle != null)
             {
                 img.sprite = idle;
@@ -1844,9 +1937,9 @@ namespace StreetCat.UI
                 action();
             });
 
-            // Shorter + taller tape strips (avoid full-page-width ribbons).
-            float btnH = primary ? 70f : 62f;
-            float btnW = primary ? 300f : 280f;
+            // Size from TitleMenuLayout (editable in 主菜单布局编辑器).
+            float btnW = TitleMenuLayout.ButtonWidth + (primary ? 12f : 0f);
+            float btnH = TitleMenuLayout.ButtonHeight + (primary ? 4f : 0f);
             var le = go.GetComponent<LayoutElement>();
             le.minHeight = btnH;
             le.preferredHeight = btnH;
@@ -1856,6 +1949,7 @@ namespace StreetCat.UI
 
             string iconKey = TitleIconForLabel(label);
             var iconSpr = VnArt.GetTitle(iconKey);
+            MakeTitleSpriteCrisp(iconSpr);
             if (iconSpr != null)
             {
                 var icon = CreateImage(go.transform, "Icon", Color.white);
@@ -1867,12 +1961,13 @@ namespace StreetCat.UI
                 irt.anchorMax = new Vector2(0f, 0.5f);
                 irt.pivot = new Vector2(0f, 0.5f);
                 irt.anchoredPosition = new Vector2(18f, 0f);
-                irt.sizeDelta = new Vector2(30f, 30f);
+                irt.sizeDelta = new Vector2(36f, 36f);
             }
 
             if (primary)
             {
                 var clipSpr = VnArt.GetTitle("deco_paperclip");
+                MakeTitleSpriteCrisp(clipSpr);
                 if (clipSpr != null)
                 {
                     var clip = CreateImage(go.transform, "Paperclip", Color.white);
@@ -1888,33 +1983,34 @@ namespace StreetCat.UI
                 }
             }
 
+            float padL = iconSpr != null ? 56f : 22f;
+            float padR = primary ? -28f : -16f;
             var labelColor = primary
-                ? new Color(0.14f, 0.08f, 0.05f, 0.96f)
-                : new Color(0.18f, 0.14f, 0.10f, 0.94f);
+                ? new Color(0.10f, 0.06f, 0.04f, 0.98f)
+                : new Color(0.12f, 0.09f, 0.06f, 0.96f);
             var tgo = new GameObject("Label", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
-                new Vector2(iconSpr != null ? 52f : 20f, 2f), new Vector2(primary ? -28f : -16f, -2f));
+                new Vector2(padL, 2f), new Vector2(padR, -2f));
             var tx = tgo.AddComponent<Text>();
-            tx.font = titleFont != null ? titleFont : font;
-            tx.fontSize = primary ? 23 : 20;
-            tx.fontStyle = primary ? FontStyle.Bold : FontStyle.Normal;
             tx.alignment = TextAnchor.MiddleLeft;
             tx.color = labelColor;
             tx.text = string.Format("{0:00}  {1}", index, label);
             tx.raycastTarget = false;
+            StyleTitleMenuText(tx, primary ? 24 : 21, true);
 
             spawnedButtons.Add(go);
         }
 
         static string TitleIconForLabel(string label)
         {
-            if (label.Contains("新游戏")) return "icon_play";
-            if (label.Contains("继续") || label.Contains("自动档")) return "icon_cassette";
-            if (label.Contains("读档")) return "icon_map";
-            if (label.Contains("笔记") || label.Contains("清除")) return "icon_doc";
-            if (label.Contains("设置")) return "icon_gear";
-            if (label.Contains("退出")) return "icon_exit";
+            if (string.IsNullOrEmpty(label)) return "icon_doc";
+            if (label.Contains("新游戏") || label.Contains("New Game")) return "icon_play";
+            if (label.Contains("继续") || label.Contains("Continue") || label.Contains("自动档")) return "icon_cassette";
+            if (label.Contains("读档") || label.Contains("Load")) return "icon_map";
+            if (label.Contains("笔记") || label.Contains("Notebook") || label.Contains("清除") || label.Contains("Clear")) return "icon_doc";
+            if (label.Contains("设置") || label.Contains("Settings")) return "icon_gear";
+            if (label.Contains("退出") || label.Contains("Quit")) return "icon_exit";
             return "icon_doc";
         }
 
@@ -2151,7 +2247,8 @@ namespace StreetCat.UI
 
         void SetChrome(bool showDialogue, bool showTitle, bool showLocation)
         {
-            dialoguePanel.gameObject.SetActive(showDialogue);
+            if (dialoguePanel != null)
+                dialoguePanel.gameObject.SetActive(showDialogue);
             titleRoot.SetActive(showTitle);
             // Scene name is a brief toast (see RequestSceneTitleReveal), not persistent chrome.
             if (!showLocation || showTitle || mode == Mode.Investigate || mode == Mode.Interview)
@@ -2188,6 +2285,11 @@ namespace StreetCat.UI
                 dialogueHidden = false;
             if (interviewRoot != null)
                 interviewRoot.SetActive(on);
+            if (!on && interviewCompanionPortrait != null)
+            {
+                interviewCompanionPortrait.enabled = false;
+                interviewCompanionPortrait.gameObject.SetActive(false);
+            }
             if (investigateRoot != null)
                 investigateRoot.SetActive(false);
             if (dialoguePanel != null)
@@ -2223,17 +2325,24 @@ namespace StreetCat.UI
         void BringInterviewAboveGameplay()
         {
             if (interviewRoot == null) return;
+            // Keep stage portraits visible above BG/props but under interview chrome.
+            if (portraitImage != null)
+                portraitImage.transform.SetAsLastSibling();
             interviewRoot.transform.SetAsLastSibling();
             BringOverlayStackToFront();
         }
 
         void BringOverlayStackToFront()
         {
+            // Writing corkboard sits under menu/notebook; those overlays must stay on top.
+            if (writingMatsRoot != null && writingMatsRoot.activeSelf)
+                writingMatsRoot.transform.SetAsLastSibling();
             if (menuRoot != null) menuRoot.transform.SetAsLastSibling();
             if (backlogRoot != null) backlogRoot.transform.SetAsLastSibling();
             if (notebookRoot != null) notebookRoot.transform.SetAsLastSibling();
             if (saveLoadRoot != null) saveLoadRoot.transform.SetAsLastSibling();
             if (confirmRoot != null) confirmRoot.transform.SetAsLastSibling();
+            if (settingsRoot != null) settingsRoot.transform.SetAsLastSibling();
             if (hideDialogueBtn != null) hideDialogueBtn.transform.SetAsLastSibling();
             if (sceneFadeImage != null) sceneFadeImage.transform.SetAsLastSibling();
         }
@@ -2425,10 +2534,16 @@ namespace StreetCat.UI
         /// <summary>
         /// Keep a constant portrait slot height; width follows sprite aspect (clamped).
         /// Avoids landscape plates looking tiny inside a tall preserveAspect rect.
+        /// Interview mode uses a dedicated left-side solo slot (see LayoutInterviewPortraitSlot).
         /// </summary>
         void LayoutPortraitRect(Sprite sprite)
         {
             if (portraitImage == null) return;
+            if (mode == Mode.Interview)
+            {
+                LayoutInterviewPortraitSlot(sprite);
+                return;
+            }
 
             // ~25% larger than prior 0.70–0.94 × (DialogueTop-0.03)–0.76 slot;
             // still upper-right of dialogue, bottom rests on dialogue top edge.
@@ -2480,280 +2595,7 @@ namespace StreetCat.UI
             portraitFadeCo = null;
         }
 
-        void ClearInterviewChromeButtons()
-        {
-            foreach (var go in interviewSpawned)
-                if (go) Destroy(go);
-            interviewSpawned.Clear();
-        }
-
-        void AddInterviewAction(string label, UnityEngine.Events.UnityAction action, bool primary = false)
-        {
-            var go = new GameObject("Act", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-            go.transform.SetParent(interviewActionRoot, false);
-            go.GetComponent<Image>().color = primary ? new Color(0.2f, 0.16f, 0.12f, 1f) : VnTheme.Button;
-            go.GetComponent<Image>().raycastTarget = true;
-            var le = go.GetComponent<LayoutElement>();
-            le.minHeight = 36;
-            le.preferredHeight = 36;
-            le.minWidth = 110;
-            le.preferredWidth = Mathf.Max(110, 18 + label.Length * 18);
-            go.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                SfxController.Instance?.PlayUi();
-                action();
-            });
-            var tgo = new GameObject("L", typeof(RectTransform));
-            tgo.transform.SetParent(go.transform, false);
-            StretchFull(tgo.GetComponent<RectTransform>());
-            var tx = tgo.AddComponent<Text>();
-            tx.font = font;
-            tx.fontSize = 17;
-            tx.alignment = TextAnchor.MiddleCenter;
-            tx.color = primary ? VnTheme.Accent : VnTheme.TextPrimary;
-            tx.text = label;
-            tx.raycastTarget = false;
-            interviewSpawned.Add(go);
-        }
-
-        void SubmitInterviewQuestion()
-        {
-            if (mode != Mode.Interview) return;
-            if (interviewInput == null || InterviewController.Instance == null)
-                return;
-            // Block double-submit (Enter + 发送) — second submit used to dump rule lines mid-wait.
-            if (interviewLlmCo != null)
-                return;
-            if (InterviewController.Instance.IsTranslating)
-                return;
-
-            var q = (interviewInput.text ?? "").Trim();
-            if (string.IsNullOrEmpty(q))
-                return;
-            interviewInput.text = "";
-
-            var ic = InterviewController.Instance;
-            var who = ic.Subject == InterviewSubject.Dafu ? "大福" : "林女士";
-            bool llmReady = LlmClient.Instance != null
-                && LlmClient.Instance.IsConfigured
-                && ic.Subject != InterviewSubject.None;
-
-            // When LLM is configured, NEVER append rule speaker lines in Ask — wait for DeepSeek.
-            var reply = ic.Ask(q, deferSpeakerLines: llmReady);
-
-            // Hostile: rule silence only — no free LLM (avoids long defensiveness).
-            bool skipLlm = reply != null
-                           && string.Equals(reply.intent, "hostile", StringComparison.Ordinal);
-
-            if (llmReady && reply != null
-                && !skipLlm
-                && !reply.shouldEnd
-                && reply.understood
-                && reply.replyLines != null
-                && reply.replyLines.Count > 0)
-            {
-                DialogueHistory.Instance?.Add("小凌", q, "interview");
-                ic.SetTranslatingPlaceholder(true);
-                RefreshInterviewView();
-                interviewLlmCo = StartCoroutine(PreferLlmInterviewReplyCo(q, reply, who));
-                return;
-            }
-
-            // No LLM key, hostile, or reply not worth translating: show rule lines once.
-            if (llmReady && reply != null)
-                ic.AppendSpeakerReply(reply);
-            DialogueHistory.Instance?.Add("小凌", q, "interview");
-            RecordInterviewReplyHistory(who, reply, reply?.replyLines);
-            RefreshInterviewView();
-        }
-
-        void RecordInterviewReplyHistory(string who, InterviewReply reply, IList<string> lines)
-        {
-            if (reply == null || DialogueHistory.Instance == null) return;
-            if (!string.IsNullOrEmpty(reply.behavior))
-                DialogueHistory.Instance.Add("", "（" + reply.behavior + "）", "interview");
-            if (lines == null) return;
-            foreach (var line in lines)
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                    DialogueHistory.Instance.Add(who, line.Trim(), "interview");
-            }
-        }
-
-        /// <summary>Wait for DeepSeek; only then show lines. Rule text is fallback-only.</summary>
-        IEnumerator PreferLlmInterviewReplyCo(string question, InterviewReply reply, string who)
-        {
-            var llm = LlmClient.Instance;
-            var ic = InterviewController.Instance;
-            // Keep a frozen copy of rule lines — reply.replyLines must not be overwritten before fallback.
-            var ruleLines = reply?.replyLines != null
-                ? new List<string>(reply.replyLines)
-                : new List<string>();
-
-            if (llm == null || !llm.IsConfigured || ic == null || reply == null)
-            {
-                FinishInterviewReply(ic, reply, who, ruleLines, null);
-                yield break;
-            }
-
-            // Repeat / stale「刚才说过了」must not be stuffed into the LLM as RULE facts.
-            bool omitRuleFacts = reply.isRepeat
-                                 || LooksLikeStaleRepeatRule(ruleLines);
-            string facts = "";
-            if (!omitRuleFacts)
-            {
-                facts = string.Join("\n", ruleLines);
-                if (!string.IsNullOrEmpty(reply.behavior))
-                    facts = "行为：" + reply.behavior + "\n台词：\n" + facts;
-            }
-            else if (reply.cognitiveBoundary)
-            {
-                // Boundary: keep a short confused cue only — no invented medical facts.
-                facts = "（认知边界：保持困惑，短答「不知道/那是什么」，勿解释人类医疗）";
-            }
-            // Freer answer mode: question-first; rule lines are soft reference only.
-            var userMsg = ic.BuildFreeAnswerUserMessage(facts, question, reply);
-
-            // Wait out rate-limit / min-interval instead of dumping rule lines early.
-            while (llm.IsCoolingDown)
-            {
-                if (mode != Mode.Interview)
-                {
-                    ic.SetTranslatingPlaceholder(false);
-                    interviewLlmCo = null;
-                    yield break;
-                }
-                float left = Mathf.Max(0.1f, llm.SecondsUntilReady);
-                yield return new WaitForSecondsRealtime(Mathf.Min(0.5f, left));
-            }
-
-            string rephrased = null;
-            yield return llm.RephraseCoroutine(ic.BuildStylePrompt(reply), userMsg, question, text => rephrased = text);
-
-            if (mode != Mode.Interview || ic.Subject == InterviewSubject.None)
-            {
-                ic.SetTranslatingPlaceholder(false);
-                interviewLlmCo = null;
-                yield break;
-            }
-
-            var aiLines = string.IsNullOrWhiteSpace(rephrased) ? null : SplitLlmReplyLines(rephrased);
-            string outcome;
-            string detail = null;
-            // Design gate: reject leaks / over-explanation; fall back to rule lines.
-            if (aiLines != null && !ic.AcceptRephrasedLines(aiLines, reply, out var reject))
-            {
-                detail = reject;
-                Debug.LogWarning("[Interview] LLM rejected by design filter: " + reject
-                    + "\nRule:\n" + string.Join("\n", ruleLines)
-                    + "\nAI:\n" + rephrased);
-                aiLines = null;
-                outcome = "rejected_fallback_rule";
-            }
-            else if (aiLines != null && aiLines.Count > 0)
-            {
-                outcome = "ai_ok";
-                Debug.Log("[Interview] LLM free answer ok (" + who + " / " + (reply.intent ?? "?") + ")\nQ: "
-                    + question + "\nAI:\n" + string.Join("\n", aiLines));
-            }
-            else
-            {
-                outcome = "fallback_rule";
-                detail = llm.LastError ?? "empty";
-                Debug.Log("[Interview] LLM fallback to rule lines (" + who + "): " + detail);
-            }
-
-            InterviewDebugLog.Exchange(
-                question,
-                reply.intent,
-                freeMode: true,
-                ruleText: facts,
-                aiText: rephrased,
-                outcome: outcome,
-                detail: detail);
-
-            FinishInterviewReply(ic, reply, who, ruleLines, aiLines);
-        }
-
-        static bool LooksLikeStaleRepeatRule(IList<string> ruleLines)
-        {
-            if (ruleLines == null || ruleLines.Count == 0) return false;
-            var joined = string.Join("", ruleLines);
-            return joined.Contains("刚才说过了")
-                   || joined.Contains("这段我刚才说过了")
-                   || joined.Contains("没更多了")
-                   || joined.Contains("换个问法");
-        }
-
-        void FinishInterviewReply(
-            InterviewController ic,
-            InterviewReply reply,
-            string who,
-            List<string> ruleLines,
-            List<string> aiLines)
-        {
-            ic?.SetTranslatingPlaceholder(false);
-            var lines = (aiLines != null && aiLines.Count > 0) ? aiLines : ruleLines;
-            if (reply != null)
-                reply.replyLines = lines != null ? new List<string>(lines) : new List<string>();
-            ic?.AppendSpeakerReply(reply, lines);
-            RecordInterviewReplyHistory(who, reply, lines);
-            RefreshInterviewView();
-            interviewLlmCo = null;
-        }
-
-        static List<string> SplitLlmReplyLines(string text)
-        {
-            var result = new List<string>();
-            if (string.IsNullOrWhiteSpace(text))
-                return result;
-            var parts = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
-            foreach (var p in parts)
-            {
-                var line = p.Trim();
-                if (line.Length == 0)
-                    continue;
-                // Strip common speaker prefixes if the model echoes them.
-                if (line.StartsWith("大福：") || line.StartsWith("大福:"))
-                    line = line.Substring(3).Trim();
-                else if (line.StartsWith("林女士：") || line.StartsWith("林女士:"))
-                    line = line.Substring(4).Trim();
-                if (line.Length > 0)
-                    result.Add(line);
-            }
-            if (result.Count == 0)
-                result.Add(text.Trim());
-            return result;
-        }
-
-        void FormatInterviewLog(StringBuilder sb)
-        {
-            var log = InterviewController.Instance.Log;
-            foreach (var line in log)
-            {
-                if (line.StartsWith("小凌："))
-                {
-                    sb.AppendLine();
-                    sb.Append("<color=#E8C07A>").Append(line).Append("</color>\n");
-                }
-                else if (line.StartsWith("大福：") || line.StartsWith("林女士："))
-                {
-                    sb.Append("<color=#F2EDE6>").Append(line).Append("</color>\n");
-                }
-                else if (line.StartsWith("（") || line.StartsWith("("))
-                {
-                    sb.Append("<color=#9AA3AD>").Append(line).Append("</color>\n");
-                }
-                else if (line.StartsWith("系统"))
-                {
-                    sb.Append("<color=#D4B56A>").Append(line).Append("</color>\n");
-                }
-                else
-                {
-                    sb.AppendLine(line);
-                }
-            }
-        }
+        // Interview ask/LLM/refresh -> GameUI.Interview.cs
 
         void PlayDialogueFade()
         {
@@ -2779,7 +2621,9 @@ namespace StreetCat.UI
         void RefreshHeader()
         {
             var gs = GameState.Instance;
-            objectiveText.text = string.IsNullOrEmpty(gs?.Data.currentObjective) ? "" : "目标　" + gs.Data.currentObjective;
+            objectiveText.text = string.IsNullOrEmpty(gs?.Data.currentObjective)
+                ? ""
+                : UiLoc.T("ui.objective_prefix") + ScriptLoc.MapObjective(gs.Data.currentObjective);
             var scene = SceneDirector.Instance?.Current;
             // Keep investigate / epilogue custom labels; elsewhere prefer runtime BG override.
             if (mode != Mode.Investigate && mode != Mode.Epilogue)
@@ -2792,7 +2636,7 @@ namespace StreetCat.UI
                         locationText.text = scene.backgroundLabel.Replace("_", "　");
                 }
                 if (stageHint != null && scene != null && !string.IsNullOrEmpty(scene.title))
-                    stageHint.text = scene.title;
+                    stageHint.text = ScriptLoc.SceneTitle(scene.id, scene.title);
             }
             ApplyAtmosphere();
             ApplyStageArt();
@@ -2907,7 +2751,7 @@ namespace StreetCat.UI
             if (string.IsNullOrEmpty(name) || kind == LineSpeaker.Narration)
             {
                 namePlate.gameObject.SetActive(false);
-                bodyText.color = VnTheme.TextMuted;
+                ApplyDialogueInkColors(LineSpeaker.Narration);
                 lastHistorySpeaker = "";
                 // Hide during narration so a leftover expression doesn't sit on unrelated prose.
                 SetPortrait(null);
@@ -2918,27 +2762,50 @@ namespace StreetCat.UI
             {
                 // No「小凌（内心）」nameplate; show soft portrait for monologue.
                 namePlate.gameObject.SetActive(false);
-                bodyText.color = VnTheme.TextInner;
+                ApplyDialogueInkColors(LineSpeaker.Inner);
                 lastHistorySpeaker = "";
                 ApplyPortrait(name, kind, portraitTag, lineText);
                 return;
             }
             else if (kind == LineSpeaker.System)
             {
-                nameText.text = "系统";
-                bodyText.color = VnTheme.TextSystem;
-                lastHistorySpeaker = "系统";
+                nameText.text = ScriptLoc.MapSpeaker("系统");
+                ApplyDialogueInkColors(LineSpeaker.System);
+                lastHistorySpeaker = nameText.text;
                 SetPortrait(null);
                 return;
             }
             else
             {
                 nameText.text = name;
-                bodyText.color = VnTheme.TextPrimary;
+                ApplyDialogueInkColors(LineSpeaker.Character);
                 lastHistorySpeaker = name;
             }
 
             ApplyPortrait(name, kind, portraitTag, lineText);
+        }
+
+        /// <summary>
+        /// Classic dialogue panel ink: mute narration, cool inner monologue, warm system, primary speech.
+        /// </summary>
+        void ApplyDialogueInkColors(LineSpeaker kind)
+        {
+            if (bodyText == null) return;
+            switch (kind)
+            {
+                case LineSpeaker.Narration:
+                    bodyText.color = VnTheme.TextMuted;
+                    break;
+                case LineSpeaker.Inner:
+                    bodyText.color = VnTheme.TextInner;
+                    break;
+                case LineSpeaker.System:
+                    bodyText.color = VnTheme.TextSystem;
+                    break;
+                default:
+                    bodyText.color = VnTheme.TextPrimary;
+                    break;
+            }
         }
 
         void ApplyPortrait(string name, LineSpeaker kind, string portraitTag, string lineText = null)
@@ -2950,7 +2817,7 @@ namespace StreetCat.UI
                 return;
             }
 
-            var isXiaoling = (!string.IsNullOrEmpty(name) && name.Contains("小凌"))
+            var isXiaoling = (!string.IsNullOrEmpty(name) && (name.Contains("小凌") || name.Contains("Ling")))
                 || kind == LineSpeaker.Inner;
             if (isXiaoling)
             {
@@ -3008,7 +2875,7 @@ namespace StreetCat.UI
 
         IEnumerator TypewriterRoutine(string full)
         {
-            const float cps = 42f;
+            float cps = GameSettings.TypewriterCps;
             float acc = 0f;
             int shown = 0;
             int typeTick = 0;
@@ -3034,6 +2901,7 @@ namespace StreetCat.UI
             typewriterRunning = false;
             typewriterCo = null;
             RefreshAdvanceHint();
+            ScheduleAutoPlayIfNeeded();
         }
 
         void CompleteTypewriter()
@@ -3050,15 +2918,29 @@ namespace StreetCat.UI
             if (dialogueScroll != null)
                 dialogueScroll.verticalNormalizedPosition = 0f;
             RefreshAdvanceHint();
+            ScheduleAutoPlayIfNeeded();
         }
 
         void Update()
         {
-            if (mode == Mode.Title)
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (HandleDebugJumpHotkey())
                 return;
+#endif
+            if (mode == Mode.Title)
+            {
+                if (Input.GetKeyDown(KeyCode.Escape) && settingsRoot != null && settingsRoot.activeSelf)
+                    CloseSettings();
+                return;
+            }
 
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                if (settingsRoot != null && settingsRoot.activeSelf)
+                {
+                    CloseSettings();
+                    return;
+                }
                 if (dialogueHidden)
                 {
                     SetDialogueHidden(false);
@@ -3099,9 +2981,11 @@ namespace StreetCat.UI
                 TryAdvanceByClick();
             }
 
-            // Hold Ctrl to continuously skip (classic VN)
+            // Hold Ctrl to continuously skip (classic VN) — scripted, inspect, and talk beats
             bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-            if (!inputFocused && canClickAdvance && !waitingForChoice && ctrl && mode == Mode.Dialogue)
+            bool ctrlSkipOk = !inputFocused && !waitingForChoice && ctrl && IsSkippableDialogueContext()
+                && (mode != Mode.Dialogue || canClickAdvance);
+            if (ctrlSkipOk)
             {
                 skipHoldTimer -= Time.unscaledDeltaTime;
                 if (skipHoldTimer <= 0f || Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl))
@@ -3175,18 +3059,84 @@ namespace StreetCat.UI
                 SceneDirector.Instance?.Advance();
         }
 
+        /// <summary>
+        /// True when the player can skip through the current dialogue body
+        /// (scripted VN, inspect beats, or talk beats / single replies).
+        /// </summary>
+        bool IsSkippableDialogueContext()
+        {
+            if (waitingForChoice) return false;
+            if (mode == Mode.Dialogue) return true;
+            if (mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0)
+                return true;
+            if (mode == Mode.Talk && (talkQueue.Count > 0 || talkAwaitingClickReturn))
+                return true;
+            return false;
+        }
+
+        void AddStandardDialogueActions(bool includeSkip)
+        {
+            if (includeSkip)
+                AddAction(UiLoc.T("ui.skip"), TrySkipDialogue);
+            AddAction(UiLoc.T("ui.backlog"), OpenBacklog);
+            AddAction(UiLoc.T("ui.notebook"), OpenNotebook);
+            AddAction(UiLoc.T("ui.menu"), OpenMenu);
+        }
+
+        void RebuildSkippableDialogueActions()
+        {
+            if (!IsSkippableDialogueContext()) return;
+            ClearButtons();
+            AddStandardDialogueActions(includeSkip: true);
+            if (mode == Mode.Dialogue)
+                SetAdvanceEnabled(!waitingForChoice, waitingForChoice);
+            else
+                SetAdvanceEnabled(true);
+            RefreshAdvanceHint();
+        }
+
         void TrySkipDialogue()
         {
-            if (!canClickAdvance || waitingForChoice)
-                return;
-            if (mode != Mode.Dialogue)
+            if (waitingForChoice)
                 return;
             if (mode == Mode.Menu || mode == Mode.Backlog || mode == Mode.Notebook || mode == Mode.Title)
                 return;
             if (inputField != null && inputField.gameObject.activeSelf && inputField.isFocused)
                 return;
+            if (!IsSkippableDialogueContext())
+                return;
             if (typewriterRunning)
                 CompleteTypewriter();
+
+            // Inspect beats: jump to end of current queue (same break as clicking through).
+            if (mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0)
+            {
+                inspectIndex = inspectQueue.Count - 1;
+                AdvanceInspectOrFinish();
+                return;
+            }
+
+            // Talk multi-beat: jump to end of current topic / outro queue.
+            if (mode == Mode.Talk && talkQueue.Count > 0)
+            {
+                talkIndex = talkQueue.Count - 1;
+                AdvanceTalkBeatOrFinish();
+                return;
+            }
+
+            // Talk single reply: return to topic menu.
+            if (mode == Mode.Talk && talkAwaitingClickReturn)
+            {
+                talkAwaitingClickReturn = false;
+                if (talkIsPostInterview)
+                    ShowPostInterviewTalk();
+                else
+                    ShowTalkMenu();
+                return;
+            }
+
+            if (mode != Mode.Dialogue || !canClickAdvance)
+                return;
             SceneDirector.Instance?.SkipToBreak(RecordSkippedLine);
         }
 
@@ -3214,12 +3164,12 @@ namespace StreetCat.UI
             }
             else if (line.speaker == LineSpeaker.System)
             {
-                speaker = "系统";
+                speaker = ScriptLoc.MapSpeaker("系统");
                 kind = "system";
             }
             else
             {
-                speaker = line.speakerName ?? "";
+                speaker = ScriptLoc.MapSpeaker(line.speakerName ?? "");
                 kind = "dialogue";
             }
             DialogueHistory.Instance.Add(speaker, line.text, kind);
@@ -3242,6 +3192,8 @@ namespace StreetCat.UI
                 advanceCatcher.gameObject.SetActive(showCatcher);
                 var btn = advanceCatcher.GetComponent<Button>();
                 if (btn != null) btn.interactable = showCatcher;
+                if (showCatcher)
+                    EnsureTopHudClickable();
             }
             RefreshAdvanceHint();
         }
@@ -3267,38 +3219,21 @@ namespace StreetCat.UI
             clickHintText.gameObject.SetActive(show);
             if (!show) return;
             if (typewriterRunning)
-                clickHintText.text = "点击显示全文";
+                clickHintText.text = UiLoc.T("ui.click_show_full");
             else if (inspectClick)
                 clickHintText.text = playingGuardAppear
-                    ? (inspectIndex >= inspectQueue.Count - 1 ? "点击返回平面图" : "点击继续")
-                    : (inspectIndex >= inspectQueue.Count - 1 ? "点击返回调查" : "点击继续");
+                    ? (inspectIndex >= inspectQueue.Count - 1 ? UiLoc.T("ui.click_return_map") : UiLoc.T("ui.click_continue"))
+                    : (inspectIndex >= inspectQueue.Count - 1 ? UiLoc.T("ui.click_return_investigate") : UiLoc.T("ui.click_continue"));
             else if (talkBeats)
-                clickHintText.text = talkIndex >= talkQueue.Count - 1 ? "点击返回话题" : "点击继续";
+                clickHintText.text = talkIndex >= talkQueue.Count - 1 ? UiLoc.T("ui.click_return_topics") : UiLoc.T("ui.click_continue");
             else if (talkClick)
-                clickHintText.text = "点击返回话题";
+                clickHintText.text = UiLoc.T("ui.click_return_topics");
             else
-                clickHintText.text = "点击继续　长按Ctrl跳过";
-            if (hintPulseCo != null) StopCoroutine(hintPulseCo);
-            if (show && !typewriterRunning)
-                hintPulseCo = StartCoroutine(PulseHint());
-        }
-
-        IEnumerator PulseHint()
-        {
-            while (clickHintText != null && clickHintText.gameObject.activeSelf && !typewriterRunning && canClickAdvance)
-            {
-                float t = 0f;
-                while (t < 1.2f)
-                {
-                    t += Time.unscaledDeltaTime;
-                    float a = 0.35f + 0.35f * (0.5f + 0.5f * Mathf.Sin(t * 4f));
-                    var c = clickHintText.color;
-                    c.a = a;
-                    clickHintText.color = c;
-                    yield return null;
-                }
-            }
-            hintPulseCo = null;
+                clickHintText.text = UiLoc.T("ui.click_ctrl_skip");
+            // Static idle indicator only — do not pulse/restart on every advance click.
+            var c = clickHintText.color;
+            c.a = 0.55f;
+            clickHintText.color = c;
         }
 
         public void ShowTitle()
@@ -3315,28 +3250,32 @@ namespace StreetCat.UI
             if (backlogRoot) backlogRoot.SetActive(false);
             if (saveLoadRoot) saveLoadRoot.SetActive(false);
             if (notebookRoot) notebookRoot.SetActive(false);
+            if (writingMatsRoot) writingMatsRoot.SetActive(false);
+            if (settingsRoot) settingsRoot.SetActive(false);
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(false, true, false);
             ClearButtons();
             statusText.text = "";
+            // Drop script sticky so title always uses bgm_title, not last scene cue.
+            BgmController.Instance?.ClearScriptSticky();
             ApplyAtmosphere();
             ApplyStageArt();
             SetPortrait(null);
             SetProp(null);
-            if (titleTagline != null && (titleTagline.text == "存档已清除" || string.IsNullOrEmpty(titleTagline.text)))
-                titleTagline.text = "第一章　　编外保安大福";
+            if (titleTaglineCleared)
+                SetTitleTaglineMessage(false);
 
-            AddAction("新游戏", () => ChapterFlowController.Instance.StartNewGame(), true);
-            AddAction("继续", () => ChapterFlowController.Instance.ContinueOrNew());
-            AddAction("读档", () => OpenSaveLoad(false));
-            AddAction("清除存档", () =>
+            AddAction(UiLoc.T("ui.title.new_game"), () => ChapterFlowController.Instance.StartNewGame(), true);
+            AddAction(UiLoc.T("ui.title.continue"), () => ChapterFlowController.Instance.ContinueOrNew());
+            AddAction(UiLoc.T("ui.title.load"), () => OpenSaveLoad(false));
+            AddAction(UiLoc.T("ui.title.clear_saves"), () =>
             {
                 SaveSystem.Delete();
-                if (titleTagline != null)
-                    titleTagline.text = "存档已清除";
+                SetTitleTaglineMessage(true);
             });
-            AddAction("退出", () =>
+            AddAction(UiLoc.T("ui.title.settings"), OpenSettings);
+            AddAction(UiLoc.T("ui.title.quit"), () =>
             {
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
@@ -3344,6 +3283,7 @@ namespace StreetCat.UI
                 Application.Quit();
 #endif
             });
+            ApplyTitleLanguageVisuals();
         }
 
         public void ShowDialogueMode()
@@ -3352,6 +3292,8 @@ namespace StreetCat.UI
             if (GameState.Instance != null)
                 GameState.Instance.Data.uiMode = "dialogue";
             inputField.gameObject.SetActive(false);
+            HideWritingMaterialsBoard();
+            writingMatsActive = false;
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
@@ -3363,12 +3305,9 @@ namespace StreetCat.UI
                 ApplyStageArt();
             RefreshHeader();
             ClearButtons();
-            AddAction("跳过", TrySkipDialogue);
-            AddAction("回看", OpenBacklog);
-            AddAction("笔记", OpenNotebook);
-            AddAction("菜单", OpenMenu);
+            AddStandardDialogueActions(includeSkip: true);
             SetAdvanceEnabled(true);
-            statusText.text = "点击继续　·　Ctrl / 跳过";
+            statusText.text = UiLoc.T("ui.status_advance");
         }
 
         void OpenLinInterviewFromScript()
@@ -3432,7 +3371,7 @@ namespace StreetCat.UI
                 speaker = "";
                 lineKind = LineSpeaker.Narration;
             }
-            if (lineKind == LineSpeaker.System) speaker = "系统";
+            if (lineKind == LineSpeaker.System) speaker = ScriptLoc.MapSpeaker("系统");
             SetSpeaker(speaker, lineKind, line.portrait, line.text);
             var kind = lineKind == LineSpeaker.System ? "system"
                 : (lineKind == LineSpeaker.Narration || lineKind == LineSpeaker.Inner) ? "narration"
@@ -3443,26 +3382,22 @@ namespace StreetCat.UI
             ClearButtons();
             if (line.choices != null && line.choices.Count > 0)
             {
-                statusText.text = "做出选择";
+                statusText.text = UiLoc.T("ui.make_choice");
                 SetAdvanceEnabled(false, true);
                 for (int i = 0; i < line.choices.Count; i++)
                 {
                     int idx = i;
                     AddChoice(line.choices[i].label, () => SceneDirector.Instance.Choose(idx));
                 }
-                AddAction("回看", OpenBacklog);
-                AddAction("笔记", OpenNotebook);
-                AddAction("菜单", OpenMenu);
+                AddStandardDialogueActions(includeSkip: false);
             }
             else
             {
-                statusText.text = "点击继续　·　Ctrl / 跳过";
+                statusText.text = UiLoc.T("ui.status_advance");
                 SetAdvanceEnabled(true);
-                AddAction("跳过", TrySkipDialogue);
-                AddAction("回看", OpenBacklog);
-                AddAction("笔记", OpenNotebook);
-                AddAction("菜单", OpenMenu);
+                AddStandardDialogueActions(includeSkip: true);
             }
+            ScheduleAutoPlayIfNeeded();
         }
 
         void OpenMenu()
@@ -3556,17 +3491,40 @@ namespace StreetCat.UI
                     SetInterviewChrome(false);
                     SetChrome(true, false, true);
                     ClearButtons();
-                    AddAction("跳过", TrySkipDialogue);
-                    AddAction("回看", OpenBacklog);
-                    AddAction("笔记", OpenNotebook);
-                    AddAction("菜单", OpenMenu);
+                    AddStandardDialogueActions(includeSkip: !waitingForChoice);
                     SetAdvanceEnabled(!waitingForChoice, waitingForChoice);
-                    statusText.text = waitingForChoice ? "做出选择" : "点击继续　·　Ctrl / 跳过";
+                    statusText.text = waitingForChoice
+                        ? UiLoc.T("ui.make_choice")
+                        : UiLoc.T("ui.status_advance");
                     break;
-                case Mode.Investigate: ShowInvestigationMode(); break;
-                case Mode.Talk: ShowTalkMenu(); break;
+                case Mode.Investigate:
+                    if (inspectQueue.Count > 0 && !investigateHotspotsVisible)
+                    {
+                        mode = Mode.Investigate;
+                        SetInvestigateChrome(false);
+                        SetInterviewChrome(false);
+                        SetChrome(true, false, true);
+                        RebuildSkippableDialogueActions();
+                    }
+                    else
+                        ShowInvestigationMode();
+                    break;
+                case Mode.Talk:
+                    if (talkQueue.Count > 0 || talkAwaitingClickReturn)
+                    {
+                        mode = Mode.Talk;
+                        SetInvestigateChrome(false);
+                        SetInterviewChrome(false);
+                        SetChrome(true, false, true);
+                        RebuildSkippableDialogueActions();
+                    }
+                    else if (talkIsPostInterview)
+                        ShowPostInterviewTalk();
+                    else
+                        ShowTalkMenu();
+                    break;
                 case Mode.Interview: RefreshInterviewView(); break;
-                case Mode.Writing: ShowWritingDirectionPick(); break;
+                case Mode.Writing: ResumeWritingMode(); break;
                 case Mode.Epilogue: ShowEpilogue(); break;
                 default:
                     mode = Mode.Dialogue;
@@ -3589,6 +3547,8 @@ namespace StreetCat.UI
                 GameState.Instance.Data.uiMode = "investigate";
             SetAdvanceEnabled(false);
             inputField.gameObject.SetActive(false);
+            HideWritingMaterialsBoard();
+            writingMatsActive = false;
             SetProp(null);
             SetChrome(false, false, false);
             SetInvestigateChrome(true);
@@ -3772,8 +3732,7 @@ namespace StreetCat.UI
                 ? $"继续　{inspectIndex + 1}/{inspectQueue.Count}"
                 : $"调查　{inspectIndex + 1}/{inspectQueue.Count}";
             ClearButtons();
-            AddAction("笔记", OpenNotebook);
-            AddAction("菜单", OpenMenu);
+            AddStandardDialogueActions(includeSkip: true);
             SetAdvanceEnabled(true);
         }
 
@@ -3879,8 +3838,7 @@ namespace StreetCat.UI
             stageHint.text = "交谈";
             RefreshHeader();
             ClearButtons();
-            AddAction("回看", OpenBacklog);
-            AddAction("菜单", OpenMenu);
+            // Actions rebuilt in ShowTalkBeat (includes Skip).
             ShowTalkBeat();
         }
 
@@ -3904,8 +3862,7 @@ namespace StreetCat.UI
             stageHint.text = "消息";
             RefreshHeader();
             ClearButtons();
-            AddAction("回看", OpenBacklog);
-            AddAction("菜单", OpenMenu);
+            // Actions rebuilt in ShowTalkBeat (includes Skip).
             ShowTalkBeat();
         }
 
@@ -3922,8 +3879,7 @@ namespace StreetCat.UI
                 talkQueue.AddRange(topic.beats);
                 talkIndex = 0;
                 ClearButtons();
-                AddAction("回看", OpenBacklog);
-                AddAction("菜单", OpenMenu);
+                // Actions rebuilt in ShowTalkBeat (includes Skip).
                 ShowTalkBeat();
                 return;
             }
@@ -3935,6 +3891,7 @@ namespace StreetCat.UI
             statusText.text = "点击返回话题";
             ClearButtons();
             talkAwaitingClickReturn = true;
+            AddAction(UiLoc.T("ui.skip"), TrySkipDialogue);
             AddAction("结束交谈", () =>
             {
                 talkAwaitingClickReturn = false;
@@ -3943,8 +3900,8 @@ namespace StreetCat.UI
                 else
                     ShowInvestigationMode();
             }, true);
-            AddAction("回看", OpenBacklog);
-            AddAction("菜单", OpenMenu);
+            AddAction(UiLoc.T("ui.backlog"), OpenBacklog);
+            AddAction(UiLoc.T("ui.menu"), OpenMenu);
             SetAdvanceEnabled(true);
         }
 
@@ -3983,8 +3940,7 @@ namespace StreetCat.UI
                 ? $"消息　{talkIndex + 1}/{talkQueue.Count}"
                 : $"交谈　{talkIndex + 1}/{talkQueue.Count}";
             ClearButtons();
-            AddAction("回看", OpenBacklog);
-            AddAction("菜单", OpenMenu);
+            AddStandardDialogueActions(includeSkip: true);
             SetAdvanceEnabled(true);
         }
 
@@ -4071,16 +4027,17 @@ namespace StreetCat.UI
                             SfxController.Instance?.PlayScriptLabel("信息发送");
                             StartLinContactChat();
                         }, true);
+                        AddAction(UiLoc.T("ui.notebook"), OpenNotebook);
+                        AddAction(UiLoc.T("ui.menu"), OpenMenu);
                     }
                     else
                     {
                         statusText.text = "点击返回话题";
                         talkAwaitingClickReturn = true;
                         talkIsPostInterview = true;
+                        AddStandardDialogueActions(includeSkip: true);
                         SetAdvanceEnabled(true);
                     }
-                    AddAction("笔记", OpenNotebook);
-                    AddAction("菜单", OpenMenu);
                 });
             }
             AddAction("返回调查", () =>
@@ -4090,406 +4047,7 @@ namespace StreetCat.UI
             });
         }
 
-        public void ShowInterview(InterviewSubject subject, bool returnToWritingAfter = false)
-        {
-            mode = Mode.Interview;
-            if (GameState.Instance != null)
-                GameState.Instance.Data.uiMode = subject == InterviewSubject.Lin ? "interview_lin" : "interview_dafu";
-            SetAdvanceEnabled(false);
-            SaveSystem.Autosave();
-            InterviewController.Instance.Begin(subject, returnToWritingAfter);
-
-            SetProp(null);
-            SetChrome(false, false, false);
-            SetInterviewChrome(true);
-            chapterChip.gameObject.SetActive(true);
-            objectiveText.gameObject.SetActive(true);
-            SetStageBackground(subject == InterviewSubject.Lin ? "咖啡馆_午后" : "保安亭_傍晚");
-            RefreshHeader();
-
-            interviewSubjectText.text = subject == InterviewSubject.Dafu
-                ? (returnToWritingAfter ? "补充采访　·　大福" : "喵语翻译器　·　采访大福")
-                : (returnToWritingAfter ? "补充采访　·　林女士" : "自由采访　·　林女士");
-            interviewInput.gameObject.SetActive(true);
-            interviewInput.text = "";
-            interviewInput.placeholder.GetComponent<Text>().text =
-                subject == InterviewSubject.Dafu ? "想问大福什么？" : "想问林女士什么？";
-
-            ClearButtons();
-            RefreshInterviewView();
-        }
-
-        void RefreshInterviewView()
-        {
-            if (mode != Mode.Interview)
-                mode = Mode.Interview;
-            SetInterviewChrome(true);
-            RefreshHeader();
-
-            interviewSubjectText.text = InterviewController.Instance.Subject == InterviewSubject.Dafu
-                ? "喵语翻译器　·　采访大福"
-                : "自由采访　·　林女士";
-
-            var sb = new StringBuilder();
-            FormatInterviewLog(sb);
-            interviewLogText.text = sb.ToString().TrimEnd();
-            Canvas.ForceUpdateCanvases();
-            if (interviewScroll != null)
-                interviewScroll.verticalNormalizedPosition = 0f;
-
-            var st = InterviewController.Instance.Stats;
-            interviewStatusText.text = st == null
-                ? ""
-                : $"{st.StatusText}　　信任 {st.trust}　压力 {st.stress}　注意力 {st.attention}"
-                  + (InterviewController.Instance.CanComplete() ? "　　可结束采访" : "");
-
-            ClearInterviewChromeButtons();
-            ApplyStageArt();
-            if (InterviewController.Instance.Subject == InterviewSubject.Dafu)
-                SetPortrait(VnArt.ResolvePortrait("大福", LineSpeaker.Character));
-            else
-                SetPortrait(VnArt.ResolvePortrait("林女士", LineSpeaker.Character));
-
-            AddInterviewAction("结束采访", TryEndInterview);
-            if (InterviewController.Instance.IsReinterviewFromWriting)
-                AddInterviewAction("返回写稿", () =>
-                {
-                    SetInterviewChrome(false);
-                    InterviewController.Instance.AbandonToWriting();
-                });
-            AddInterviewAction("回看", OpenBacklog);
-            AddInterviewAction("笔记", OpenNotebook);
-            AddInterviewAction("菜单", OpenMenu);
-
-            RefreshInterviewPresets();
-        }
-
-        void ClearInterviewPresets()
-        {
-            foreach (var go in interviewPresetSpawned)
-                if (go) Destroy(go);
-            interviewPresetSpawned.Clear();
-        }
-
-        void RefreshInterviewPresets()
-        {
-            ClearInterviewPresets();
-            if (interviewHintRoot == null || InterviewController.Instance == null)
-                return;
-
-            var subject = InterviewController.Instance.Subject;
-            if (subject == InterviewSubject.None)
-            {
-                interviewHintRoot.gameObject.SetActive(false);
-                return;
-            }
-
-            var presets = ReporterNotebook.Instance != null
-                ? ReporterNotebook.Instance.GetPresetAskQuestions(subject, 4)
-                : null;
-            if (presets == null || presets.Count == 0)
-            {
-                interviewHintRoot.gameObject.SetActive(false);
-                return;
-            }
-
-            interviewHintRoot.gameObject.SetActive(true);
-            int shown = Mathf.Min(4, presets.Count);
-            for (int i = 0; i < shown; i++)
-                SpawnInterviewPresetChip(presets[i]);
-        }
-
-        void SpawnInterviewPresetChip(string question)
-        {
-            if (interviewHintRoot == null || string.IsNullOrEmpty(question))
-                return;
-
-            string label = question.Length <= 14 ? question : question.Substring(0, 13) + "…";
-            var go = new GameObject("Preset", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-            go.transform.SetParent(interviewHintRoot, false);
-            go.GetComponent<Image>().color = new Color(0.14f, 0.13f, 0.12f, 0.98f);
-            go.GetComponent<Image>().raycastTarget = true;
-            var le = go.GetComponent<LayoutElement>();
-            le.minHeight = 30;
-            le.preferredHeight = 30;
-            le.minWidth = 72;
-            le.preferredWidth = Mathf.Clamp(22 + label.Length * 15, 96, 220);
-            le.flexibleWidth = 0;
-            string fill = question;
-            go.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                SfxController.Instance?.PlayUi();
-                FillInterviewInput(fill);
-            });
-            var tgo = new GameObject("L", typeof(RectTransform));
-            tgo.transform.SetParent(go.transform, false);
-            StretchFull(tgo.GetComponent<RectTransform>());
-            var tx = tgo.AddComponent<Text>();
-            tx.font = font;
-            tx.fontSize = 15;
-            tx.alignment = TextAnchor.MiddleCenter;
-            tx.color = VnTheme.TextMuted;
-            tx.text = label;
-            tx.raycastTarget = false;
-            interviewPresetSpawned.Add(go);
-        }
-
-        void FillInterviewInput(string question)
-        {
-            if (interviewInput == null || string.IsNullOrEmpty(question))
-                return;
-            if (!interviewInput.gameObject.activeInHierarchy)
-                return;
-            interviewInput.text = question;
-            interviewInput.ActivateInputField();
-            interviewInput.caretPosition = interviewInput.text.Length;
-            if (statusText) statusText.text = "已填入预设提问，可修改后发送";
-        }
-
-        void TryEndInterview()
-        {
-            if (!InterviewController.Instance.CanComplete())
-            {
-                var msg = "现在结束的话，似乎还有不少事情没有问清楚。\n\n" + InterviewController.Instance.MissingSummary();
-                interviewLogText.text = interviewLogText.text + "\n\n<color=#A8C0D4>" + msg.Replace("\n", "\n") + "</color>";
-                Canvas.ForceUpdateCanvases();
-                if (interviewScroll != null)
-                    interviewScroll.verticalNormalizedPosition = 0f;
-
-                ClearInterviewChromeButtons();
-                AddInterviewAction("继续采访", () => RefreshInterviewView());
-                AddInterviewAction("确认结束", () =>
-                {
-                    SetInterviewChrome(false);
-                    InterviewController.Instance.End(true);
-                }, true);
-                return;
-            }
-            SetInterviewChrome(false);
-            InterviewController.Instance.End(true);
-        }
-
-        public void ShowWriting()
-        {
-            mode = Mode.Writing;
-            if (GameState.Instance != null)
-                GameState.Instance.Data.uiMode = "writing";
-            SetAdvanceEnabled(false);
-            SetInvestigateChrome(false);
-            SetInterviewChrome(false);
-            inputField.gameObject.SetActive(false);
-            SetChrome(true, false, true);
-            stageHint.text = "写稿";
-            SetStageBackground("编辑部工位_上午");
-            RefreshHeader();
-            selectedMats.Clear();
-            EnsureCoreMaterials();
-            ShowWritingDirectionPick();
-        }
-
-        void EnsureCoreMaterials()
-        {
-            var gs = GameState.Instance;
-            foreach (var id in gs.Data.intel)
-                MaterialUnlockTable.TryUnlockFromIntel(id);
-            if (gs.HasIntel(IntelIds.DafuAppearTime) || gs.HasIntel(IntelIds.DafuRestSpot))
-                gs.UnlockMaterial(MaterialIds.M01);
-            if (gs.HasIntel(IntelIds.CommunityCare) || gs.HasIntel(IntelIds.DafuNoOwner))
-                gs.UnlockMaterial(MaterialIds.M14);
-        }
-
-        void ShowWritingDirectionPick()
-        {
-            RefreshHeader();
-            SetSpeaker("沈禾", LineSpeaker.Character, "认真");
-            var unlocked = GameState.Instance.Data.unlockedMaterials.Count;
-            var body = "选一个报道立意。素材决定你能写什么，立意决定你想讲什么。\n\n已解锁素材 " +
-                       unlocked + " 张。";
-            if (unlocked < 8)
-                body += "\n\n素材还不够成稿。如果采访里还有没问到的，可以回去补充。";
-            SetBody(body);
-            ClearButtons();
-            AddChoice("《大福今天也在上班》　从流浪猫到社区保安", () =>
-            {
-                pendingDir = WritingDirection.GuardCatToday;
-                ShowMaterialPick();
-            });
-            AddChoice("《救下一只猫以后》　一次没有以收养结束的救助", () =>
-            {
-                pendingDir = WritingDirection.RescueWithoutAdoption;
-                ShowMaterialPick();
-            });
-            AddReInterviewActions(unlocked < 8);
-            AddAction("笔记", OpenNotebook);
-        }
-
-        void ShowMaterialPick()
-        {
-            SetSpeaker("系统", LineSpeaker.System);
-            var unlocked = GameState.Instance.Data.unlockedMaterials.Count;
-            var sb = new StringBuilder();
-            sb.AppendLine($"选择 8～10 张素材（点选切换）。必须包含「回到槐安社区」。");
-            sb.AppendLine($"已选　{selectedMats.Count}　/　已解锁　{unlocked}");
-            sb.AppendLine();
-            if (unlocked < 8)
-                sb.AppendLine("已解锁素材不足 8 张，可返回采访补齐后再选。");
-            else if (selectedMats.Count < 8)
-                sb.AppendLine("至少选 8 张才能生成文章。素材不够时可返回采访补充。");
-            if (selectedMats.Count == 0)
-                sb.AppendLine("尚未选中素材。下方列表可滚动浏览。");
-            else
-            {
-                sb.AppendLine("已选中：");
-                foreach (var id in selectedMats)
-                {
-                    var m = MaterialCatalog.Get(id);
-                    sb.AppendLine("·　" + (m != null ? m.title : id));
-                }
-            }
-            SetBody(sb.ToString(), false);
-            statusText.text = "点素材名切换选中　·　列表可滚动";
-            ClearButtons();
-            foreach (var id in GameState.Instance.Data.unlockedMaterials)
-            {
-                var mid = id;
-                var m = MaterialCatalog.Get(mid);
-                var selected = selectedMats.Contains(mid);
-                var label = (selected ? "●　" : "○　") + (m != null ? m.title : mid)
-                    + (m != null ? "　[" + m.type + "]" : "");
-                AddChoice(label, () =>
-                {
-                    if (selectedMats.Contains(mid)) selectedMats.Remove(mid);
-                    else if (selectedMats.Count < 10) selectedMats.Add(mid);
-                    ShowMaterialPick();
-                });
-            }
-            AddAction("下一步", ShowPhrasing, true);
-            AddAction("返回立意", ShowWritingDirectionPick);
-            AddReInterviewActions(selectedMats.Count < 8 || unlocked < 8);
-            AddAction("笔记", OpenNotebook);
-        }
-
-        void ShowPhrasing()
-        {
-            SetSpeaker("系统", LineSpeaker.System);
-            SetBody("关键表述只在对应素材被选入时生效，将直接影响沈禾对事实严谨度的审核。\n\n"
-                + "01｜麻绳来源\n"
-                + "A. 疑似人为虐待，麻绳被故意勒上（推测写成事实）\n"
-                + "B. 无人目睹，无法确认是否人为伤害\n\n"
-                + "02｜康复后的去向\n"
-                + "A. 把大福扔回了外面（误导性措辞）\n"
-                + "B. 送回槐安社区，并确认有人继续照料");
-            ClearButtons();
-            AddChoice("麻绳｜A 故意勒伤（风险）", () => { phrasingA = 0; ShowPhrasingRelease(); });
-            AddChoice("麻绳｜B 无法确认（稳妥）", () => { phrasingA = 1; ShowPhrasingRelease(); });
-            AddAction("返回改选材", ShowMaterialPick);
-            AddReInterviewActions(false);
-        }
-
-        void ShowPhrasingRelease()
-        {
-            SetSpeaker("系统", LineSpeaker.System);
-            SetBody("再选康复后去向表述：\n\n"
-                + "A. 把大福扔回了外面（误导）\n"
-                + "B. 送回槐安社区，并确认有人继续照料（稳妥）");
-            ClearButtons();
-            AddChoice("放归｜A 扔回外面（风险）", () => { phrasingB = 0; GenerateArticle(); });
-            AddChoice("放归｜B 送回社区（稳妥）", () => { phrasingB = 1; GenerateArticle(); });
-            AddAction("返回上一步", ShowPhrasing);
-            AddAction("返回改选材", ShowMaterialPick);
-        }
-
-        void GenerateArticle()
-        {
-            if (!assembler.CanAssemble(pendingDir, selectedMats, out var err))
-            {
-                SetSpeaker("沈禾", LineSpeaker.Character, "认真");
-                SetBody("现在还不能成稿。\n\n" + err + "\n\n可以改选材，或返回采访补齐素材。");
-                statusText.text = err;
-                ClearButtons();
-                AddAction("返回改选材", ShowMaterialPick, true);
-                AddAction("重选立意", ShowWritingDirectionPick);
-                AddReInterviewActions(true);
-                AddAction("笔记", OpenNotebook);
-                return;
-            }
-            assembler.Assemble(pendingDir, selectedMats, phrasingA, phrasingB);
-            GameState.Instance.Data.writingDirection = (int)pendingDir;
-            GameState.Instance.Data.selectedMaterials = new List<string>(selectedMats);
-            GameState.Instance.Data.lastArticleTitle = assembler.Title;
-            GameState.Instance.Data.lastArticleBody = assembler.Body;
-            GameState.Instance.Data.lastReviewScore = assembler.Score;
-            SetStageBackground("沈禾办公室_上午");
-            BgmController.Instance?.PlayScriptLabel("编辑部日常_01（循环）");
-            SetSpeaker("沈禾", LineSpeaker.Character, assembler.CanPublish ? "淡淡认可" : "认真");
-            SetBody("稿件已提交。\n\n" + assembler.Body + "\n\n—— 沈禾审核 ——\n" + assembler.ReviewText);
-            statusText.text = assembler.CanPublish
-                ? $"审核通过　{assembler.Score}"
-                : $"审核退回　分支{assembler.ReviewBranch}";
-            ClearButtons();
-            if (assembler.CanPublish)
-                AddAction("确认发布", () => ChapterFlowController.Instance.OnArticlePublished(), true);
-            else
-            {
-                AddAction("返回写稿", ShowMaterialPick, true);
-                AddAction("查看记者笔记", OpenNotebook);
-                AddReInterviewActions(true);
-            }
-            AddAction("重选立意", ShowWritingDirectionPick);
-        }
-
-        /// <summary>
-        /// Offers re-interview jumps based on which interviews are unlocked.
-        /// When highlight is true (insufficient materials / failed assemble / can't publish), label is emphasized.
-        /// </summary>
-        void AddReInterviewActions(bool highlight)
-        {
-            var dafuDone = GameState.Instance.HasFlag(FlagIds.DafuInterviewDone);
-            var linDone = GameState.Instance.HasFlag(FlagIds.LinInterviewDone);
-            if (!dafuDone && !linDone)
-                return;
-
-            if (dafuDone && linDone)
-            {
-                AddAction(highlight ? "重新采访…" : "返回采访", ShowReInterviewMenu, highlight);
-                return;
-            }
-
-            if (dafuDone)
-            {
-                AddAction(highlight ? "重新采访大福" : "返回采访大福",
-                    () => ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Dafu),
-                    highlight);
-            }
-            if (linDone)
-            {
-                AddAction(highlight ? "重新采访林女士" : "返回采访林女士",
-                    () => ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Lin),
-                    highlight);
-            }
-        }
-
-        void ShowReInterviewMenu()
-        {
-            SetSpeaker("系统", LineSpeaker.System);
-            SetBody("写稿素材不够时，可以回去补充采访。已获得的情报与素材卡会保留。\n\n要重新采访谁？");
-            statusText.text = "补充采访";
-            ClearButtons();
-            if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
-                AddChoice("重新采访大福", () =>
-                    ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Dafu));
-            if (GameState.Instance.HasFlag(FlagIds.LinInterviewDone))
-                AddChoice("重新采访林女士", () =>
-                    ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Lin));
-            AddAction("返回写稿", () =>
-            {
-                if (selectedMats.Count > 0)
-                    ShowMaterialPick();
-                else
-                    ShowWritingDirectionPick();
-            }, true);
-            AddAction("笔记", OpenNotebook);
-        }
+        // Interview UI (Show/Refresh/presets/end) -> GameUI.Interview.cs
 
         public void ShowEpilogue()
         {
@@ -4498,6 +4056,8 @@ namespace StreetCat.UI
                 GameState.Instance.Data.uiMode = "epilogue";
             SetAdvanceEnabled(false);
             inputField.gameObject.SetActive(false);
+            HideWritingMaterialsBoard();
+            writingMatsActive = false;
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
@@ -4544,271 +4104,5 @@ namespace StreetCat.UI
             AddAction("第一章 完", () => ChapterFlowController.Instance.OnChapterComplete(), true);
         }
 
-        void OpenNotebook()
-        {
-            if (mode != Mode.Menu && mode != Mode.Backlog && mode != Mode.Notebook)
-            {
-                returnFromOverlay = mode;
-                savedWaitingForChoice = waitingForChoice;
-            }
-            mode = Mode.Notebook;
-            SetAdvanceEnabled(false);
-            if (inputField) inputField.gameObject.SetActive(false);
-            if (menuRoot) menuRoot.SetActive(false);
-            if (backlogRoot) backlogRoot.SetActive(false);
-            if (saveLoadRoot) saveLoadRoot.SetActive(false);
-
-            // Keep underlying investigate/interview chrome; notebook is a full overlay.
-            // Do not call SetInvestigateChrome from interview — it also hides interviewRoot.
-            if (returnFromOverlay == Mode.Investigate)
-            {
-                /* leave investigate chrome */
-            }
-            else if (returnFromOverlay == Mode.Interview)
-            {
-                /* leave interview chrome */
-            }
-            else
-            {
-                SetInvestigateChrome(false);
-                SetInterviewChrome(false);
-            }
-
-            ReporterNotebook.Instance?.RefreshFromState();
-            notebookTab = 0;
-            notebookSelectedTopicId = null;
-            if (notebookRoot != null)
-            {
-                notebookRoot.SetActive(true);
-                BringOverlayStackToFront();
-            }
-            RefreshNotebookPanel();
-        }
-
-        void CloseNotebook()
-        {
-            if (notebookRoot) notebookRoot.SetActive(false);
-            // Explicit exit so we never treat Notebook as the resume target.
-            if (returnFromOverlay == Mode.Notebook || returnFromOverlay == Mode.Menu || returnFromOverlay == Mode.Backlog)
-            {
-                var ui = GameState.Instance != null ? GameState.Instance.Data.uiMode : "";
-                if (ui == "investigate") returnFromOverlay = Mode.Investigate;
-                else if (!string.IsNullOrEmpty(ui) && ui.StartsWith("interview")) returnFromOverlay = Mode.Interview;
-                else if (ui == "writing") returnFromOverlay = Mode.Writing;
-                else returnFromOverlay = Mode.Dialogue;
-            }
-            ResumeOverlayReturn();
-        }
-
-        void ClearNotebookSpawned()
-        {
-            foreach (var go in notebookSpawned)
-                if (go) Destroy(go);
-            notebookSpawned.Clear();
-        }
-
-        void RefreshNotebookPanel()
-        {
-            if (notebookRoot == null || !notebookRoot.activeSelf) return;
-            var nb = ReporterNotebook.Instance;
-            if (nb == null)
-            {
-                if (notebookDetailText) notebookDetailText.text = "记者笔记尚未初始化。";
-                return;
-            }
-
-            ClearNotebookSpawned();
-
-            if (notebookTab == 0)
-            {
-                bool any = false;
-                foreach (var t in nb.VisibleTopics())
-                {
-                    any = true;
-                    if (string.IsNullOrEmpty(notebookSelectedTopicId))
-                        notebookSelectedTopicId = t.id;
-                    SpawnNotebookTopicButton(t);
-                }
-                if (!any)
-                {
-                    notebookSelectedTopicId = null;
-                    notebookDetailText.text =
-                        "还没有写入笔记。\n\n调查社区、与保安交谈，或开始自由采访后，采访主题会陆续出现在这里。";
-                    notebookInspireText.text = "✦ 暂无提问灵感";
-                }
-                else
-                {
-                    ShowNotebookTopicDetail(notebookSelectedTopicId);
-                }
-            }
-            else if (notebookTab == 1)
-            {
-                notebookSelectedTopicId = null;
-                var gaps = nb.PendingGaps();
-                var sb = new StringBuilder();
-                sb.AppendLine("【待确认】");
-                sb.AppendLine("大福无法解释、或仍需向人类核实的问题。");
-                sb.AppendLine();
-                if (gaps.Count == 0)
-                    sb.AppendLine("（当前没有待确认条目）");
-                else
-                {
-                    foreach (var g in gaps)
-                        sb.AppendLine("？ " + g);
-                }
-                notebookDetailText.text = sb.ToString();
-                notebookInspireText.text = "🔎 可向保安 / 林女士核实这些缺口";
-            }
-            else
-            {
-                var sb = new StringBuilder();
-                sb.AppendLine("【提问记录】");
-                sb.AppendLine("自由采访中已关联到笔记主题的问答摘要。");
-                sb.AppendLine();
-                var log = nb.QaLog;
-                if (log == null || log.Count == 0)
-                    sb.AppendLine("（还没有采访问答记录）");
-                else
-                {
-                    for (int i = log.Count - 1; i >= 0; i--)
-                    {
-                        var q = log[i];
-                        if (q == null) continue;
-                        var topic = nb.Topics.Find(x => x.id == q.topicId);
-                        var title = topic != null ? topic.title : "未归类";
-                        sb.AppendLine($"▸ {title}");
-                        sb.AppendLine("问：" + q.question);
-                        sb.AppendLine($"{q.speaker}：" + (string.IsNullOrEmpty(q.answerSummary) ? "……" : q.answerSummary));
-                        sb.AppendLine();
-                    }
-                }
-                notebookDetailText.text = sb.ToString();
-                notebookInspireText.text = "✦ 在「采访主题」页可使用提问灵感填入输入框";
-            }
-
-            Canvas.ForceUpdateCanvases();
-            if (notebookDetailScroll != null)
-                notebookDetailScroll.verticalNormalizedPosition = 1f;
-        }
-
-        void SpawnNotebookTopicButton(NotebookTopic topic)
-        {
-            var go = new GameObject(topic.id, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-            go.transform.SetParent(notebookTopicList, false);
-            bool selected = topic.id == notebookSelectedTopicId;
-            go.GetComponent<Image>().color = selected ? VnTheme.ButtonPrimary : VnTheme.Button;
-            go.GetComponent<LayoutElement>().preferredHeight = 52;
-            string id = topic.id;
-            go.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                notebookSelectedTopicId = id;
-                notebookTab = 0;
-                RefreshNotebookPanel();
-            });
-            var tg = new GameObject("T", typeof(RectTransform));
-            tg.transform.SetParent(go.transform, false);
-            StretchFull(tg.GetComponent<RectTransform>());
-            var tx = tg.AddComponent<Text>();
-            tx.font = font;
-            tx.fontSize = 17;
-            tx.alignment = TextAnchor.MiddleLeft;
-            tx.color = VnTheme.TextPrimary;
-            tx.text = $"  {ReporterNotebook.StatusMark(topic.status)}  {topic.title}";
-            tx.raycastTarget = false;
-            notebookSpawned.Add(go);
-        }
-
-        void ShowNotebookTopicDetail(string topicId)
-        {
-            var nb = ReporterNotebook.Instance;
-            var t = nb.Topics.Find(x => x.id == topicId);
-            if (t == null)
-            {
-                notebookDetailText.text = "";
-                return;
-            }
-
-            var sb = new StringBuilder();
-            sb.AppendLine($"{ReporterNotebook.StatusMark(t.status)}  {t.title}");
-            sb.AppendLine(ReporterNotebook.StatusLabel(t.status));
-            sb.AppendLine();
-            if (t.notes.Count == 0)
-                sb.AppendLine("（该主题尚无具体笔记）");
-            else
-            {
-                foreach (var n in t.notes)
-                    sb.AppendLine("· " + n.text);
-            }
-            var src = nb.SourcesLine(t);
-            if (!string.IsNullOrEmpty(src))
-            {
-                sb.AppendLine();
-                sb.AppendLine(src);
-            }
-
-            var qa = nb.QaForTopic(t.id);
-            if (qa.Count > 0)
-            {
-                sb.AppendLine();
-                sb.AppendLine("—— 相关提问 ——");
-                int show = Mathf.Min(4, qa.Count);
-                for (int i = qa.Count - show; i < qa.Count; i++)
-                {
-                    var q = qa[i];
-                    sb.AppendLine("问：" + q.question);
-                    if (!string.IsNullOrEmpty(q.answerSummary))
-                        sb.AppendLine($"{q.speaker}：" + q.answerSummary);
-                }
-            }
-
-            notebookDetailText.text = sb.ToString();
-
-            if (t.status == TopicStatus.Complete || string.IsNullOrEmpty(t.inspiration))
-                notebookInspireText.text = "● 主要事实已足够，可继续提问但不主动提示";
-            else if (t.inspirationIsInvestigate)
-                notebookInspireText.text = "🔎 " + t.inspiration;
-            else
-                notebookInspireText.text = "✦ 提问灵感（点击填入采访框）：" + t.inspiration;
-        }
-
-        void UseNotebookInspiration()
-        {
-            if (notebookTab != 0 || string.IsNullOrEmpty(notebookSelectedTopicId))
-                return;
-            var nb = ReporterNotebook.Instance;
-            if (nb == null) return;
-            var t = nb.Topics.Find(x => x.id == notebookSelectedTopicId);
-            if (t == null) return;
-
-            if (t.inspirationIsInvestigate || string.IsNullOrEmpty(nb.GetInspirationQuestion(t.id)))
-            {
-                statusText.text = t.inspirationIsInvestigate
-                    ? "这是调查提示，请先寻找其他信息来源。"
-                    : "当前没有可填入的采访问题。";
-                return;
-            }
-
-            var q = nb.GetInspirationQuestion(t.id);
-            bool inInterview = returnFromOverlay == Mode.Interview ||
-                               (GameState.Instance != null &&
-                                !string.IsNullOrEmpty(GameState.Instance.Data.uiMode) &&
-                                GameState.Instance.Data.uiMode.StartsWith("interview"));
-            if (inInterview && interviewInput != null)
-            {
-                CloseNotebook();
-                if (interviewInput.gameObject.activeInHierarchy)
-                {
-                    interviewInput.text = q;
-                    interviewInput.ActivateInputField();
-                    interviewInput.caretPosition = interviewInput.text.Length;
-                }
-                if (statusText) statusText.text = "已填入提问灵感，可修改后发送";
-            }
-            else
-            {
-                GUIUtility.systemCopyBuffer = q;
-                if (statusText) statusText.text = "提问灵感已复制，进入采访后可粘贴使用";
-            }
-        }
     }
 }
