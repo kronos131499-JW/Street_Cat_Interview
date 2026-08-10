@@ -230,8 +230,10 @@ namespace StreetCat.UI
         public static string ResolveShenheExpression(string speakerOrTag, string expression = null)
         {
             var tag = ExpressionTag(speakerOrTag, expression);
+            // 淡淡认可 / amused: no dedicated new-design asset yet (旧版短发
+            // ch_shenhe_amused). Use 平静 until a matching 认可立绘 is imported.
             if (tag.Contains("认可") || tag.Contains("笑") || tag.Contains("amused"))
-                return "ch_shenhe_amused";
+                return "ch_shenhe_default";
             if (tag.Contains("无奈") || tag.Contains("helpless"))
                 return "ch_shenhe_helpless";
             if (tag.Contains("认真") || tag.Contains("serious"))

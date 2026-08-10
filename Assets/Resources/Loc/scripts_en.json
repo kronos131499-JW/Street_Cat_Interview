@@ -256,186 +256,126 @@
     },
     {
       "key": "SC-03:3",
-      "text": "Post 1:",
+      "text": "Post 1: \"How to Feed Strays Responsibly\"",
       "speakerName": "System",
       "choices": []
     },
     {
       "key": "SC-03:4",
-      "text": "\"How to Feed Strays Responsibly\"",
+      "text": "Post 2: \"Adorable Tabby Looking for a Home\"",
       "speakerName": "System",
       "choices": []
     },
     {
       "key": "SC-03:5",
-      "text": "Post 2:",
+      "text": "Post 3: \"Our Community Guard Just Got a New Coworker\"",
       "speakerName": "System",
       "choices": []
     },
     {
       "key": "SC-03:6",
-      "text": "\"Adorable Tabby Looking for a Home\"",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:7",
-      "text": "Post 3:",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:8",
-      "text": "\"Our Community Guard Just Got a New Coworker\"",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:9",
       "text": "The third post sits centered on screen. Ling opens it.",
       "speakerName": "",
       "choices": []
     },
     {
-      "key": "SC-03:10",
+      "key": "SC-03:8",
       "text": "Photo: a plump orange cat perched on the parcel lockers by the gate.",
       "speakerName": "System",
       "choices": []
     },
     {
+      "key": "SC-03:9",
+      "text": "Meet our unofficial guard—Dafu.",
+      "speakerName": "System",
+      "choices": []
+    },
+    {
+      "key": "SC-03:10",
+      "text": "Shows up every afternoon. When Uncle Guard is on shift, so is he. Sometimes he even tags along on patrol. Pay is kibble and cans. Job duties: sleeping, sunbathing, and supervising the lockers.",
+      "speakerName": "System",
+      "choices": []
+    },
+    {
       "key": "SC-03:11",
-      "text": "Meet our unofficial guard—Dafu. Shows up every afternoon. When Uncle Guard is on shift, so is he. Sometimes he even tags along on patrol.",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:12",
-      "text": "Pay is kibble and cans. Job duties: sleeping, sunbathing, and supervising the lockers.",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:13",
       "text": "Don't let the chubby look fool you. When Dafu first showed up he was in rough shape—badly hurt—until a kind neighbor got him to a clinic.",
       "speakerName": "System",
       "choices": []
     },
     {
-      "key": "SC-03:14",
-      "text": "After treatment, Dafu came back. Now someone refreshes his water, someone feeds him, someone built a shelter—and the guard at the gate quietly gained a coworker.",
+      "key": "SC-03:12",
+      "text": "After treatment, Dafu came back. Now someone refreshes his water, someone feeds him, someone built a shelter—and the guard at the gate quietly gained a coworker. On nice days he sprawls on the lockers; at night he even goes out with a tabby. Living his best life.",
       "speakerName": "System",
       "choices": []
     },
     {
-      "key": "SC-03:15",
-      "text": "On nice days he sprawls on the lockers; at night he even goes out with a tabby. Living his best life.",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:16",
+      "key": "SC-03:13",
       "text": "This one looks promising.",
       "speakerName": "Ling",
       "choices": []
     },
     {
-      "key": "SC-03:17",
-      "text": "Badly hurt, rescued, then returned to the same community.",
+      "key": "SC-03:14",
+      "text": "Badly hurt, rescued, then returned to the same community. And a whole circle of people who've known him for a while.",
       "speakerName": "Ling",
       "choices": []
     },
     {
-      "key": "SC-03:18",
-      "text": "And a whole circle of people who've known him for a while.",
-      "speakerName": "Ling",
-      "choices": []
-    },
-    {
-      "key": "SC-03:19",
+      "key": "SC-03:16",
       "text": "I have a feeling what the cat remembers and what these people know won't match.",
       "speakerName": "Ling",
       "choices": []
     },
     {
-      "key": "SC-03:20",
+      "key": "SC-03:18",
       "text": "Interview subject found: \"Dafu\"",
       "speakerName": "System",
       "choices": []
     },
     {
-      "key": "SC-03:21",
-      "text": "Initial intel acquired",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:22",
-      "text": "Dafu usually appears in the community in the afternoon",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:23",
-      "text": "Was once seriously injured",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:24",
-      "text": "Returned to the community after recovery",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:25",
-      "text": "Currently cared for by several residents",
-      "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "SC-03:26",
+      "key": "SC-03:19",
       "text": "Reporter notebook updated — \"Dafu\"",
       "speakerName": "System",
       "choices": []
     },
     {
-      "key": "SC-03:27",
+      "key": "SC-03:20",
       "text": "Ling bookmarks the post and checks the location tag.",
       "speakerName": "",
       "choices": []
     },
     {
-      "key": "SC-03:28",
+      "key": "SC-03:21",
       "text": "Huai'an Community...",
       "speakerName": "Ling",
       "choices": []
     },
     {
-      "key": "SC-03:30",
+      "key": "SC-03:23",
       "text": "She picks up the meow translator from the desk and slips it into her bag.",
       "speakerName": "",
       "choices": []
     },
     {
-      "key": "SC-03:31",
+      "key": "SC-03:24",
       "text": "Alright.",
       "speakerName": "Ling",
       "choices": []
     },
     {
-      "key": "SC-03:32",
+      "key": "SC-03:25",
       "text": "Let's go see.",
       "speakerName": "Ling",
       "choices": []
     },
     {
-      "key": "SC-03:34",
+      "key": "SC-03:27",
       "text": "Location unlocked: \"Huai'an Community\"",
       "speakerName": "System",
       "choices": []
     },
     {
-      "key": "SC-03:35",
+      "key": "SC-03:28",
       "text": "Objective updated — \"Go to Huai'an Community and find Dafu\"",
       "speakerName": "System",
       "choices": []

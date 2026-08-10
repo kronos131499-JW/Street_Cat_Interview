@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using StreetCat.Core;
 using StreetCat.Data;
 using StreetCat.Investigation;
@@ -150,9 +149,11 @@ namespace StreetCat.UI
         readonly List<GameObject> spawnedButtons = new List<GameObject>();
         WritingDirection pendingDir = WritingDirection.GuardCatToday;
         readonly List<string> selectedMats = new List<string>();
-        int phrasingA;
-        int phrasingB;
         ArticleAssembler assembler = new ArticleAssembler();
+        Coroutine writingReviewCo;
+        Coroutine writingPolishCo;
+        string writingPolishKey;
+        bool writingAiPolishUsed;
         string lastInspectText;
         Font font;
         /// <summary>Title / menu typography (OS CJK when available).</summary>
@@ -299,7 +300,8 @@ namespace StreetCat.UI
                 // Letter-spacing mesh hack breaks Wrap — only apply to non-wrapping lines.
                 // Writing corkboard: keep tracking off (scrapbook cards + chrome stay crisp).
                 bool wraps = t.horizontalOverflow == HorizontalWrapMode.Wrap;
-                bool underWriting = writingMatsRoot != null && t.transform.IsChildOf(writingMatsRoot.transform);
+                bool underWriting = (writingMatsRoot != null && t.transform.IsChildOf(writingMatsRoot.transform))
+                    || (writingDeskRoot != null && t.transform.IsChildOf(writingDeskRoot.transform));
                 ApplyLetterSpacing(t, (wraps || underWriting) ? 0f : spacing);
             }
 
@@ -511,6 +513,9 @@ namespace StreetCat.UI
             propImage.enabled = false;
             propImage.gameObject.SetActive(false);
 
+            // SC-03 phone / social feed (above prop, under portrait + dialogue).
+            BuildSocialOverlay(canvasGo.transform);
+
             // Character portrait — upper-right of dialogue box (rests on dialogue top edge).
             // preserveAspect + fixed slot: sprites must share similar canvas aspect
             // (1024x1536). LayoutPortrait keeps on-screen height stable across swaps.
@@ -694,6 +699,7 @@ namespace StreetCat.UI
             BuildBacklogOverlay(canvasGo.transform);
             BuildNotebookOverlay(canvasGo.transform);
             BuildWritingMaterialsOverlay(canvasGo.transform);
+            BuildWritingDeskOverlay(canvasGo.transform);
             BuildSaveLoadOverlay(canvasGo.transform);
             BuildConfirmOverlay(canvasGo.transform);
             BuildSettingsOverlay(canvasGo.transform);
@@ -1844,7 +1850,11 @@ namespace StreetCat.UI
             spawnedButtons.Clear();
             ClearInvestigateSpawned();
             if (choiceHostImage != null)
+            {
+                // Empty ChoiceHost is still a large invisible raycast slab (blocks title / stage).
                 choiceHostImage.color = new Color(0, 0, 0, 0.001f);
+                choiceHostImage.gameObject.SetActive(false);
+            }
         }
 
         void ClearInvestigateSpawned()
@@ -2253,6 +2263,9 @@ namespace StreetCat.UI
             // Scene name is a brief toast (see RequestSceneTitleReveal), not persistent chrome.
             if (!showLocation || showTitle || mode == Mode.Investigate || mode == Mode.Interview)
                 HideSceneTitleImmediate();
+            // Title magazine has its own Settings entry — hide TopBar (回看/菜单) on main menu.
+            if (topBarImage != null)
+                topBarImage.gameObject.SetActive(!showTitle);
             chapterChip.gameObject.SetActive(!showTitle);
             objectiveText.gameObject.SetActive(!showTitle);
             if (interviewRoot != null && mode != Mode.Interview)
@@ -2260,10 +2273,11 @@ namespace StreetCat.UI
             if (investigateRoot != null && mode != Mode.Investigate)
                 investigateRoot.SetActive(false);
             if (buttonRoot != null)
-                buttonRoot.gameObject.SetActive(mode != Mode.Interview && mode != Mode.Investigate);
+                buttonRoot.gameObject.SetActive(mode != Mode.Interview && mode != Mode.Investigate && mode != Mode.Title);
             if (choiceRoot != null)
             {
-                bool showChoices = mode != Mode.Interview && mode != Mode.Investigate;
+                // Title magazine lives under ChoiceHost in canvas order — never leave the slab on.
+                bool showChoices = mode != Mode.Interview && mode != Mode.Investigate && mode != Mode.Title;
                 if (!showChoices && choiceHostImage != null)
                     choiceHostImage.gameObject.SetActive(false);
                 choiceRoot.parent?.gameObject.SetActive(showChoices);
@@ -2337,6 +2351,8 @@ namespace StreetCat.UI
             // Writing corkboard sits under menu/notebook; those overlays must stay on top.
             if (writingMatsRoot != null && writingMatsRoot.activeSelf)
                 writingMatsRoot.transform.SetAsLastSibling();
+            if (writingDeskRoot != null && writingDeskRoot.activeSelf)
+                writingDeskRoot.transform.SetAsLastSibling();
             if (menuRoot != null) menuRoot.transform.SetAsLastSibling();
             if (backlogRoot != null) backlogRoot.transform.SetAsLastSibling();
             if (notebookRoot != null) notebookRoot.transform.SetAsLastSibling();
@@ -2850,7 +2866,7 @@ namespace StreetCat.UI
                 typewriterCo = null;
             }
 
-            bool useTypewriter = mode == Mode.Dialogue || mode == Mode.Talk
+            bool useTypewriter = mode == Mode.Dialogue || mode == Mode.Talk || mode == Mode.Epilogue
                 || (mode == Mode.Investigate && !investigateHotspotsVisible);
             if (useTypewriter && typewriterFull.Length > 0)
             {
@@ -3016,7 +3032,8 @@ namespace StreetCat.UI
                 return;
             if (mode == Mode.Menu || mode == Mode.Backlog || mode == Mode.Notebook || mode == Mode.Title)
                 return;
-            if (mode != Mode.Dialogue && !(mode == Mode.Investigate && !investigateHotspotsVisible) && mode != Mode.Talk)
+            if (mode != Mode.Dialogue && !(mode == Mode.Investigate && !investigateHotspotsVisible)
+                && mode != Mode.Talk && mode != Mode.Epilogue)
                 return;
             if (inputField != null && inputField.gameObject.activeSelf && inputField.isFocused)
                 return;
@@ -3039,6 +3056,13 @@ namespace StreetCat.UI
             if (mode == Mode.Talk && talkQueue.Count > 0)
             {
                 AdvanceTalkBeatOrFinish();
+                return;
+            }
+
+            // Epilogue (SC-11) multi-beat narration
+            if (mode == Mode.Epilogue && epilogueQueue.Count > 0)
+            {
+                AdvanceEpilogueOrFinish();
                 return;
             }
 
@@ -3070,6 +3094,8 @@ namespace StreetCat.UI
             if (mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0)
                 return true;
             if (mode == Mode.Talk && (talkQueue.Count > 0 || talkAwaitingClickReturn))
+                return true;
+            if (mode == Mode.Epilogue && epilogueQueue.Count > 0)
                 return true;
             return false;
         }
@@ -3135,6 +3161,15 @@ namespace StreetCat.UI
                 return;
             }
 
+            // Epilogue: jump to last beat, then chapter-end button.
+            if (mode == Mode.Epilogue && epilogueQueue.Count > 0)
+            {
+                epilogueIndex = epilogueQueue.Count - 1;
+                ShowEpilogueBeat();
+                ShowEpilogueChapterEnd();
+                return;
+            }
+
             if (mode != Mode.Dialogue || !canClickAdvance)
                 return;
             SceneDirector.Instance?.SkipToBreak(RecordSkippedLine);
@@ -3143,11 +3178,13 @@ namespace StreetCat.UI
         void RecordSkippedLine(ScriptLine line)
         {
             if (line == null) return;
-            // Keep prop show/hide in sync when fast-forwarding past sticky cues.
+            // Keep prop / social show/hide in sync when fast-forwarding past sticky cues.
             if (!string.IsNullOrEmpty(line.prop))
                 SetProp(line.prop);
             else if (line.hideProp)
                 SetProp(null);
+            if (!string.IsNullOrEmpty(line.social))
+                ApplySocialCue(line.social, instant: true);
             if (DialogueHistory.Instance == null)
                 return;
             string speaker;
@@ -3182,13 +3219,14 @@ namespace StreetCat.UI
             bool inspectClick = mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0;
             bool talkBeats = mode == Mode.Talk && talkQueue.Count > 0;
             bool talkClick = mode == Mode.Talk && talkAwaitingClickReturn;
-            bool allowClick = (canClickAdvance || typewriterRunning || inspectClick || talkBeats || talkClick) && !hasChoices;
+            bool epilogueBeats = mode == Mode.Epilogue && epilogueQueue.Count > 0;
+            bool allowClick = (canClickAdvance || typewriterRunning || inspectClick || talkBeats || talkClick || epilogueBeats) && !hasChoices;
             if (dialogueClick != null)
                 dialogueClick.interactable = allowClick;
             if (advanceCatcher != null)
             {
                 bool showCatcher = allowClick &&
-                    (mode == Mode.Dialogue || inspectClick || talkBeats || talkClick);
+                    (mode == Mode.Dialogue || inspectClick || talkBeats || talkClick || epilogueBeats);
                 advanceCatcher.gameObject.SetActive(showCatcher);
                 var btn = advanceCatcher.GetComponent<Button>();
                 if (btn != null) btn.interactable = showCatcher;
@@ -3214,8 +3252,9 @@ namespace StreetCat.UI
             bool inspectClick = mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0;
             bool talkBeats = mode == Mode.Talk && talkQueue.Count > 0;
             bool talkClick = mode == Mode.Talk && talkAwaitingClickReturn;
-            bool show = !waitingForChoice && (canClickAdvance || typewriterRunning || inspectClick || talkBeats || talkClick)
-                && (mode == Mode.Dialogue || inspectClick || talkBeats || talkClick);
+            bool epilogueBeats = mode == Mode.Epilogue && epilogueQueue.Count > 0;
+            bool show = !waitingForChoice && (canClickAdvance || typewriterRunning || inspectClick || talkBeats || talkClick || epilogueBeats)
+                && (mode == Mode.Dialogue || inspectClick || talkBeats || talkClick || epilogueBeats);
             clickHintText.gameObject.SetActive(show);
             if (!show) return;
             if (typewriterRunning)
@@ -3228,6 +3267,8 @@ namespace StreetCat.UI
                 clickHintText.text = talkIndex >= talkQueue.Count - 1 ? UiLoc.T("ui.click_return_topics") : UiLoc.T("ui.click_continue");
             else if (talkClick)
                 clickHintText.text = UiLoc.T("ui.click_return_topics");
+            else if (epilogueBeats)
+                clickHintText.text = UiLoc.T("ui.click_continue");
             else
                 clickHintText.text = UiLoc.T("ui.click_ctrl_skip");
             // Static idle indicator only — do not pulse/restart on every advance click.
@@ -3245,24 +3286,44 @@ namespace StreetCat.UI
             HideSceneTitleImmediate();
             canClickAdvance = false;
             waitingForChoice = false;
-            inputField.gameObject.SetActive(false);
+            dialogueHidden = false;
+            writingMatsActive = false;
+            if (inputField) inputField.gameObject.SetActive(false);
+            // Full gameplay teardown — chapter-end / epilogue can leave raycast slabs above TitleRoot.
             if (menuRoot) menuRoot.SetActive(false);
             if (backlogRoot) backlogRoot.SetActive(false);
             if (saveLoadRoot) saveLoadRoot.SetActive(false);
             if (notebookRoot) notebookRoot.SetActive(false);
-            if (writingMatsRoot) writingMatsRoot.SetActive(false);
+            if (confirmRoot) confirmRoot.SetActive(false);
             if (settingsRoot) settingsRoot.SetActive(false);
+            HideWritingMaterialsBoard();
+            HideWritingDesk();
+            SetAdvanceEnabled(false);
+            if (advanceCatcher != null) advanceCatcher.gameObject.SetActive(false);
+            if (choiceHostImage != null) choiceHostImage.gameObject.SetActive(false);
+            if (sceneFadeCg != null)
+            {
+                sceneFadeCg.blocksRaycasts = false;
+                sceneFadeCg.interactable = false;
+            }
+            if (sceneFadeImage != null)
+                sceneFadeImage.raycastTarget = false;
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(false, true, false);
             ClearButtons();
             statusText.text = "";
+            // Raise magazine above leftover gameplay chrome; keep fade/settings stack on top when needed.
+            if (titleRoot != null)
+                titleRoot.transform.SetAsLastSibling();
+            BringOverlayStackToFront();
             // Drop script sticky so title always uses bgm_title, not last scene cue.
             BgmController.Instance?.ClearScriptSticky();
             ApplyAtmosphere();
             ApplyStageArt();
             SetPortrait(null);
             SetProp(null);
+            SocialHide(instant: true);
             if (titleTaglineCleared)
                 SetTitleTaglineMessage(false);
 
@@ -3347,16 +3408,24 @@ namespace StreetCat.UI
             else if (line.hideProp)
                 SetProp(null);
 
-            // Cue-only beat (bg / bgm / sfx / hideProp / bare jump): apply and auto-advance.
-            // Prop-show beats WAIT for click (visual cue the player must acknowledge).
+            // Social phone overlay (SC-03); sticky until social=hide.
+            bool socialHide = IsSocialHideCue(line.social);
+            bool socialShow = !string.IsNullOrEmpty(line.social) && !socialHide;
+            if (!string.IsNullOrEmpty(line.social))
+                ApplySocialCue(line.social);
+
+            // Cue-only beat (bg / bgm / sfx / hideProp / social hide / bare jump): apply and auto-advance.
+            // Prop-show / social-show beats WAIT for click (visual cue the player must acknowledge).
             bool cueOnly = string.IsNullOrEmpty(line.text)
                 && string.IsNullOrEmpty(line.prop)
+                && !socialShow
                 && (line.choices == null || line.choices.Count == 0)
                 && !line.openInvestigation && !line.openTalkMenu && !line.openWriting && !line.openInterview
                 && (!string.IsNullOrEmpty(line.background)
                     || !string.IsNullOrEmpty(line.bgm)
                     || !string.IsNullOrEmpty(line.sfx)
                     || line.hideProp
+                    || socialHide
                     || !string.IsNullOrEmpty(line.nextSceneId));
             if (cueOnly)
             {
@@ -3550,6 +3619,7 @@ namespace StreetCat.UI
             HideWritingMaterialsBoard();
             writingMatsActive = false;
             SetProp(null);
+            SocialHide(instant: true);
             SetChrome(false, false, false);
             SetInvestigateChrome(true);
             chapterChip.gameObject.SetActive(true);
@@ -3611,6 +3681,8 @@ namespace StreetCat.UI
 
         readonly List<InspectBeat> inspectQueue = new List<InspectBeat>();
         int inspectIndex;
+        readonly List<InspectBeat> epilogueQueue = new List<InspectBeat>();
+        int epilogueIndex;
         /// <summary>Playing the post-intel guard-appear cutscene (door SE → map).</summary>
         bool playingGuardAppear;
         /// <summary>Playing 【结束交谈】 wait-for-Dafu outro → SC-06.</summary>
@@ -4067,39 +4139,106 @@ namespace StreetCat.UI
             locationText.text = "几天后";
             stageHint.text = "后日谈";
             RefreshHeader();
+
             var dir = (WritingDirection)Mathf.Max(0, GameState.Instance.Data.writingDirection);
-            var sb = new StringBuilder();
-            sb.AppendLine("文章已发布：" + GameState.Instance.Data.lastArticleTitle);
-            sb.AppendLine();
-            sb.AppendLine("文章发布以后，有不少人第一次知道，大福以前受过那么严重的伤。");
-            sb.AppendLine("也有人讨论，救下一只流浪猫以后，是不是一定要把它带回家。");
-            sb.AppendLine("林女士没有再解释更多。救治和收养是两件事。");
-            sb.AppendLine();
-            sb.AppendLine("—— 几天后 ——");
-            sb.AppendLine();
+            epilogueQueue.Clear();
+            BuildEpilogueBeats(epilogueQueue, dir, GameState.Instance.Data.lastArticleTitle);
+            epilogueIndex = 0;
+            ShowEpilogueBeat();
+        }
+
+        static void BuildEpilogueBeats(List<InspectBeat> beats, WritingDirection dir, string articleTitle)
+        {
+            void AddSystem(string text, string background = null) =>
+                beats.Add(new InspectBeat { system = true, text = text, background = background });
+            void AddNarration(string text, string background = null) =>
+                beats.Add(new InspectBeat { narration = true, text = text, background = background });
+
+            AddSystem("文章已发布：" + (articleTitle ?? ""));
+            AddNarration("文章发布以后，有不少人第一次知道，大福以前受过那么严重的伤。");
+            AddNarration("也有人讨论，救下一只流浪猫以后，是不是一定要把它带回家。");
+            AddNarration("林女士没有再解释更多。救治和收养是两件事。");
+            AddSystem("—— 几天后 ——", "槐安社区_午后");
+
             if (dir == WritingDirection.GuardCatToday)
             {
-                sb.AppendLine("偶尔会有人来问，大福今天有没有上班。");
-                sb.AppendLine("但大福并不知道自己成了报道里的主角。它还是按照自己的时间出现。");
-                sb.AppendLine("下午四点多，大福又来了。和文章发布以前没什么不同。");
-                sb.AppendLine();
-                sb.AppendLine("大福今天也在上班。");
+                AddNarration("偶尔会有人来问，大福今天有没有上班。");
+                AddNarration("但大福并不知道自己成了报道里的主角。它还是按照自己的时间出现。");
+                AddNarration("下午四点多，大福又来了。");
+                AddNarration("和文章发布以前没什么不同。");
+                AddNarration("大福今天也在上班。");
             }
             else
             {
-                sb.AppendLine("还是有人问，林女士为什么没有把大福带回家。");
-                sb.AppendLine("也有人说，第一次知道一场救助并不一定要以收养结束。");
-                sb.AppendLine("林女士没有成为大福的主人。但大福还是活了下来，并且回到了熟悉的地方。");
-                sb.AppendLine();
-                sb.AppendLine("救下一只猫以后，故事并不会立刻结束。");
+                AddNarration("还是有人问，林女士为什么没有把大福带回家。");
+                AddNarration("也有人说，第一次知道一场救助并不一定要以收养结束。");
+                AddNarration("林女士没有成为大福的主人。");
+                AddNarration("但大福还是活了下来，并且回到了熟悉的地方。");
+                AddNarration("救下一只猫以后，故事并不会立刻结束。");
             }
-            sb.AppendLine();
-            sb.AppendLine("报道能记录的，只是它生活里很短的一段。");
-            sb.AppendLine("至于大福，它还有明天的饭要吃，还有熟悉的地方要去。");
-            sb.AppendLine("它的日子还在继续。");
-            SetSpeaker("", LineSpeaker.Narration);
-            SetBody(sb.ToString());
-            statusText.text = $"审核 {GameState.Instance.Data.lastReviewScore}　素材 {GameState.Instance.Data.selectedMaterials.Count}/{GameState.Instance.Data.unlockedMaterials.Count}";
+
+            AddNarration("报道能记录的，只是它生活里很短的一段。");
+            AddNarration("至于大福，它还有明天的饭要吃，还有熟悉的地方要去。");
+            AddNarration("它的日子还在继续。");
+        }
+
+        void ShowEpilogueBeat()
+        {
+            if (epilogueIndex < 0 || epilogueIndex >= epilogueQueue.Count)
+            {
+                ShowEpilogueChapterEnd();
+                return;
+            }
+
+            var beat = epilogueQueue[epilogueIndex];
+            if (!string.IsNullOrEmpty(beat.background))
+                SetStageBackground(beat.background);
+
+            string bodyKind;
+            if (beat.system)
+            {
+                SetSpeaker("系统", LineSpeaker.System);
+                bodyKind = "system";
+            }
+            else
+            {
+                SetSpeaker("", LineSpeaker.Narration);
+                bodyKind = "narration";
+            }
+
+            SetBody(beat.text, true, bodyKind);
+            statusText.text = $"后日谈　{epilogueIndex + 1}/{epilogueQueue.Count}";
+            ClearButtons();
+            AddStandardDialogueActions(includeSkip: true);
+            SetAdvanceEnabled(true);
+        }
+
+        void AdvanceEpilogueOrFinish()
+        {
+            if (epilogueQueue.Count == 0)
+            {
+                ShowEpilogueChapterEnd();
+                return;
+            }
+            if (epilogueIndex >= epilogueQueue.Count - 1)
+            {
+                ShowEpilogueChapterEnd();
+                return;
+            }
+            epilogueIndex++;
+            ShowEpilogueBeat();
+        }
+
+        void ShowEpilogueChapterEnd()
+        {
+            epilogueQueue.Clear();
+            epilogueIndex = 0;
+            SetAdvanceEnabled(false);
+            if (GameState.Instance != null)
+            {
+                statusText.text =
+                    $"审核 {GameState.Instance.Data.lastReviewScore}　素材 {GameState.Instance.Data.selectedMaterials.Count}/{GameState.Instance.Data.unlockedMaterials.Count}";
+            }
             ClearButtons();
             AddAction("第一章 完", () => ChapterFlowController.Instance.OnChapterComplete(), true);
         }

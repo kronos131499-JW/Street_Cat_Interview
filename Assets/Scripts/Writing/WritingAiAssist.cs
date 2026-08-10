@@ -24,18 +24,16 @@ namespace StreetCat.Writing
     {
         public string CoachTip;
         public readonly List<string> SuggestedMaterialIds = new List<string>();
-        /// <summary>Template / assembler draft from suggested (or current) selection. Safe phrasing defaults.</summary>
+        /// <summary>Template / assembler draft from suggested (or current) selection.</summary>
         public string DraftArticle;
         /// <summary>How the focused unlocked card may read in the article (direction-aware).</summary>
         public string FocusedCardWording;
-        /// <summary>Recommended phrasing: 1 = careful / pass-friendly, 0 = risky.</summary>
-        public int SuggestedPhrasingA = 1;
-        public int SuggestedPhrasingB = 1;
-        public string PhrasingTip;
         /// <summary>"rule" or "rule+llm-ready" — never invents intel.</summary>
         public string ProviderNote = "rule";
         public bool CanAssembleWithSuggestion;
         public string AssembleError;
+        /// <summary>True when draft was built from the player's current selection (not AI re-pick).</summary>
+        public bool DraftFromPlayerSelection;
     }
 
     /// <summary>

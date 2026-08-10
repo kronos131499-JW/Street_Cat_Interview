@@ -1,5 +1,6 @@
+using System.Collections.Generic;
+using StreetCat.Core;
 using StreetCat.Data;
-using StreetCat.UI;
 using StreetCat.Writing;
 using UnityEditor;
 using UnityEngine;
@@ -7,8 +8,7 @@ using UnityEngine;
 namespace StreetCat.Editor
 {
     /// <summary>
-    /// Dev assist: dump rule-based writing suggestions while Play Mode is on the corkboard.
-    /// Offline by default. Optional LLM polish uses the same PlayerPrefs key as interview.
+    /// Dev-only dump of rule-based writing suggestions (no in-game corkboard button).
     /// </summary>
     public sealed class WritingAiAssistEditorWindow : EditorWindow
     {
@@ -25,21 +25,20 @@ namespace StreetCat.Editor
 
         void OnGUI()
         {
-            EditorGUILayout.LabelField("写稿 / 素材卡 AI 辅助", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("写稿 / 素材卡 AI 辅助（仅编辑器）", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "运行时默认用规则模板（无 API）。\n"
-                + "可选润色：StreetCat/LLM 粘贴 Key 后，Play 里点「AI 建议」可用润色。\n"
-                + "接口与采访提示同模式：IWritingAiAssist ↔ IInterviewHintProvider。",
+                "素材卡界面已不显示「AI 建议」。此窗口仅供开发调试规则模板。\n"
+                + "接口：IWritingAiAssist（默认 RuleBased / Llm stub）。",
                 MessageType.Info);
 
             using (new EditorGUI.DisabledScope(!Application.isPlaying))
             {
-                if (GUILayout.Button("刷新建议（需 Play + 已进写稿）", GUILayout.Height(28)))
+                if (GUILayout.Button("刷新建议（需 Play）", GUILayout.Height(28)))
                     DumpSuggestion();
             }
 
             if (!Application.isPlaying)
-                EditorGUILayout.HelpBox("进入 Play，并用「街角专访/测试跳转/写稿桌 / 素材板」打开素材板后再刷新。", MessageType.Warning);
+                EditorGUILayout.HelpBox("进入 Play 后再刷新。", MessageType.Warning);
 
             scroll = EditorGUILayout.BeginScrollView(scroll);
             EditorGUILayout.TextArea(lastDump, GUILayout.ExpandHeight(true));
@@ -48,29 +47,28 @@ namespace StreetCat.Editor
 
         void DumpSuggestion()
         {
-            var ui = Object.FindObjectOfType<GameUI>();
-            if (ui == null)
+            var gs = GameState.Instance;
+            var dir = WritingDirection.GuardCatToday;
+            IReadOnlyList<string> selected = System.Array.Empty<string>();
+            if (gs != null)
             {
-                lastDump = "未找到 GameUI。";
-                return;
+                dir = (WritingDirection)Mathf.Max(0, gs.Data.writingDirection);
+                if (gs.Data.selectedMaterials != null && gs.Data.selectedMaterials.Count > 0)
+                    selected = gs.Data.selectedMaterials;
             }
 
-            var bundle = ui.DebugPeekWritingAssist();
+            var bundle = WritingAiAssistService.Suggest(
+                WritingAiAssistService.BuildContext(dir, selected, null, 0));
             if (bundle == null)
             {
                 lastDump = "Suggest 返回空。";
                 return;
             }
 
-            var dir = WritingDirection.GuardCatToday;
-            if (StreetCat.Core.GameState.Instance != null)
-                dir = (WritingDirection)Mathf.Max(0, StreetCat.Core.GameState.Instance.Data.writingDirection);
-
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("Provider: " + (bundle.ProviderNote ?? "rule"));
             sb.AppendLine("Direction: " + dir);
             sb.AppendLine("Coach: " + (bundle.CoachTip ?? ""));
-            sb.AppendLine("Phrasing: " + (bundle.PhrasingTip ?? ""));
             sb.AppendLine("Suggested: " + string.Join(", ", bundle.SuggestedMaterialIds));
             sb.AppendLine("CanAssemble: " + bundle.CanAssembleWithSuggestion
                           + (string.IsNullOrEmpty(bundle.AssembleError) ? "" : " (" + bundle.AssembleError + ")"));

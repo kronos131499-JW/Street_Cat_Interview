@@ -14,6 +14,8 @@ namespace StreetCat.Interview
         public InterviewReply LastReply;
         public string LastPlayerQuestion;
         public IReadOnlyCollection<string> AskedIntents;
+        /// <summary>Normalized questions already sent — chips matching these are replaced.</summary>
+        public IReadOnlyCollection<string> AskedQuestions;
         public bool CanComplete;
         public bool IsOpening;
     }
@@ -60,6 +62,7 @@ namespace StreetCat.Interview
             ctx.LastReply = ic.LastReply;
             ctx.LastPlayerQuestion = ic.LastPlayerQuestion;
             ctx.AskedIntents = ic.AskedIntents;
+            ctx.AskedQuestions = ic.AskedQuestions;
             ctx.CanComplete = ic.CanComplete();
             ctx.IsOpening = string.IsNullOrEmpty(ic.LastPlayerQuestion) && ic.LastReply == null;
             return ctx;

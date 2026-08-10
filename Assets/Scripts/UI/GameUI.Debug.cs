@@ -150,6 +150,7 @@ namespace StreetCat.UI
             SetDebugJumpPanelVisible(false);
             SetDialogueHidden(false);
             HideWritingMaterialsBoard();
+            HideWritingDesk();
             writingMatsActive = false;
 
             // Mid-inspect / mid-talk UI queues live on GameUI; clear so the next mode isn't stuck.
@@ -165,6 +166,9 @@ namespace StreetCat.UI
 
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
+            SocialHide(instant: true);
+            if (choiceHostImage != null) choiceHostImage.gameObject.SetActive(false);
+            if (advanceCatcher != null) advanceCatcher.gameObject.SetActive(false);
         }
 
         public void DebugOpenNotebook()

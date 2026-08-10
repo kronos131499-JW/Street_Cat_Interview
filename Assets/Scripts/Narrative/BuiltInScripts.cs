@@ -54,6 +54,16 @@ namespace StreetCat.Narrative
         static ScriptLine PropHide() =>
             new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, hideProp = true };
 
+        /// <summary>【演出】social phone overlay cue; empty text waits for click (except hide).</summary>
+        static ScriptLine Social(string cue) =>
+            new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, social = cue };
+
+        static ScriptLine SocialSys(string text, string cue) =>
+            new ScriptLine { speakerName = "系统", text = text, speaker = LineSpeaker.System, social = cue };
+
+        static ScriptLine SocialHide() =>
+            new ScriptLine { speakerName = "", text = "", speaker = LineSpeaker.Narration, social = "hide" };
+
         static ScriptScene Sc01()
         {
             var s = new ScriptScene { id = SceneIds.SC01, title = "周五下班前", backgroundLabel = "编辑部_傍晚" };
@@ -146,25 +156,23 @@ namespace StreetCat.Narrative
             var s = new ScriptScene { id = SceneIds.SC03, title = "保安猫大福", backgroundLabel = "编辑部_工位_傍晚" };
             // Keep SC-02 沈禾办公室 BGM (sticky); do not switch to 编辑部日常_01.
             s.lines.Add(N("小凌回到工位，打开本地社交媒体，开始寻找适合采访的流浪猫。"));
-            s.lines.Add(Sys("进入“选题搜索”"));
+            s.lines.Add(SocialSys("进入“选题搜索”", "enter"));
             s.lines.Add(N("她快速划过几条流浪猫相关帖子。"));
-            s.lines.Add(Sys("帖子一："));
-            s.lines.Add(Sys("“如何科学投喂流浪猫”"));
-            s.lines.Add(Sys("帖子二："));
-            s.lines.Add(Sys("“超可爱狸花猫找领养”"));
-            s.lines.Add(Sys("帖子三："));
-            s.lines.Add(Sys("“我们小区保安最近多了个同事”"));
+            s.lines.Add(SocialSys("帖子一：“如何科学投喂流浪猫”", "post1"));
+            s.lines.Add(SocialSys("帖子二：“超可爱狸花猫找领养”", "post2"));
+            s.lines.Add(SocialSys("帖子三：“我们小区保安最近多了个同事”", "post3"));
             s.lines.Add(N("第三条帖子停在屏幕中央，被小凌点开。"));
+            s.lines.Add(Social("detail"));
             s.lines.Add(Sys("配图：一只胖橘猫端坐在社区门口的快递柜上。"));
-            s.lines.Add(Sys("给大家介绍一下我们小区的编外保安——大福。每天下午出现，保安叔叔上班它也上班，偶尔还会跟着巡逻。"));
-            s.lines.Add(Sys("工资是猫粮和罐头，工作内容主要包括睡觉、晒太阳以及监督快递柜。"));
+            s.lines.Add(Sys("给大家介绍一下我们小区的编外保安——大福。"));
+            s.lines.Add(Sys("每天下午出现，保安叔叔上班它也上班，偶尔还会跟着巡逻。工资是猫粮和罐头，工作内容主要包括睡觉、晒太阳以及监督快递柜。"));
             s.lines.Add(Sys("别看它现在这么胖，大福刚来这里的时候其实特别惨，当时受了很严重的伤，后来被小区里的好心人送去医院救了回来。"));
-            s.lines.Add(Sys("治好以后，大福又回到了我们小区。现在有人给它换水，有人喂饭，有人给它搭窝，门口保安叔叔更是默认多了个同事。"));
-            s.lines.Add(Sys("天气好的时候它就趴在快递柜上，到了晚上还会和一只狸花猫一起出去玩，可幸福了。"));
+            s.lines.Add(Sys("治好以后，大福又回到了我们小区。现在有人给它换水，有人喂饭，有人给它搭窝，门口保安叔叔更是默认多了个同事。天气好的时候它就趴在快递柜上，到了晚上还会和一只狸花猫一起出去玩，可幸福了。"));
             s.lines.Add(L("小凌", "这个好像还不错。", "思考"));
-            s.lines.Add(L("小凌", "受过重伤，被人救回来，最后又回到原来的小区。", "思考"));
-            s.lines.Add(L("小凌", "而且现在还有一群长期认识它的人。", "思考"));
+            s.lines.Add(L("小凌", "受过重伤，被人救回来，最后又回到原来的小区。而且现在还有一群长期认识它的人。", "思考"));
+            s.lines.Add(N("")); // 【停顿】
             s.lines.Add(L("小凌", "我感觉，猫自己记得的，和这些人知道的，应该会很不一样。", "思考"));
+            s.lines.Add(SocialHide());
             s.lines.Add(new ScriptLine
             {
                 speaker = LineSpeaker.System,

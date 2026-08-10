@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using StreetCat.Core;
 using StreetCat.Data;
+using StreetCat.Loc;
 using StreetCat.Notebook;
 using UnityEngine;
 
@@ -30,6 +31,9 @@ namespace StreetCat.Interview
         public InterviewReply LastReply => lastReply;
         public string LastPlayerQuestion => lastPlayerQuestion;
         public IReadOnlyCollection<string> AskedIntents => engine?.AskedIntents;
+        public IReadOnlyCollection<string> AskedQuestions => engine?.AskedQuestions;
+        /// <summary>Material card ids unlocked by the most recent answered question.</summary>
+        public IReadOnlyList<string> LastExtractedMaterials { get; private set; } = Array.Empty<string>();
 
         public event Action<InterviewReply> OnReply;
         public event Action OnEnded;
@@ -46,6 +50,7 @@ namespace StreetCat.Interview
             returnToWritingAfterEnd = returnToWritingAfter;
             log.Clear();
             gainedThisInterview.Clear();
+            LastExtractedMaterials = Array.Empty<string>();
             boundaryHit = false;
             lastReply = null;
             lastPlayerQuestion = null;
@@ -73,9 +78,7 @@ namespace StreetCat.Interview
             var reply = engine.Process(question);
             lastReply = reply;
 
-            if (!deferSpeakerLines)
-                AppendSpeakerReply(reply);
-
+            var matsBefore = SnapshotUnlockedMaterials();
             foreach (var id in reply.unlockedIntel)
             {
                 if (GameState.Instance.GrantIntel(id))
@@ -85,19 +88,25 @@ namespace StreetCat.Interview
                 }
             }
 
+            LastExtractedMaterials = DiffNewMaterials(matsBefore);
+            InterviewMaterialExtractor.ApplyExtraction(subject, reply, LastExtractedMaterials, log);
+
             if (reply.cognitiveBoundary)
             {
                 boundaryHit = true;
                 GameState.Instance.Data.dafuCognitiveBoundaryHit = true;
             }
 
-            ReporterNotebook.Instance?.RecordInterviewExchange(subject, question, reply);
+            // Notebook Q&A + speaker lines are recorded in AppendSpeakerReply so deferred
+            // LLM answers replace rule templates with the lines actually shown.
+            if (!deferSpeakerLines)
+            {
+                AppendSpeakerReply(reply);
+                if (reply.shouldEnd)
+                    End(false);
+            }
 
             OnReply?.Invoke(reply);
-
-            if (reply.shouldEnd)
-                End(false);
-
             return reply;
         }
 
@@ -116,12 +125,28 @@ namespace StreetCat.Interview
 
             var lines = overrideLines ?? reply.replyLines;
             var prefix = subject == InterviewSubject.Dafu ? "大福：" : "林女士：";
-            if (lines == null) return;
-            foreach (var line in lines)
+            if (lines != null)
             {
-                if (!string.IsNullOrWhiteSpace(line))
-                    log.Add(prefix + line.Trim());
+                foreach (var line in lines)
+                {
+                    if (!string.IsNullOrWhiteSpace(line))
+                        log.Add(prefix + line.Trim());
+                }
             }
+
+            // Persist the same question + reply lines the player just saw (not intel templates).
+            if (!string.IsNullOrWhiteSpace(lastPlayerQuestion))
+                ReporterNotebook.Instance?.RecordInterviewExchange(subject, lastPlayerQuestion, reply, lines);
+        }
+
+        /// <summary>
+        /// After a deferred (LLM) reply is appended, end the interview if the rule engine said so.
+        /// Must run after <see cref="AppendSpeakerReply"/> so subject/log are still valid.
+        /// </summary>
+        public void EndIfReplyCompleted(InterviewReply reply)
+        {
+            if (reply != null && reply.shouldEnd && subject != InterviewSubject.None)
+                End(false);
         }
 
         /// <summary>
@@ -371,21 +396,80 @@ namespace StreetCat.Interview
             return false;
         }
 
+        /// <summary>
+        /// Only lists completion gaps that are still unmet for the current subject —
+        /// not the full static checklist (which felt mismatched after a solid interview).
+        /// </summary>
         public string MissingSummary()
         {
+            var missing = CollectMissingDirections();
             var sb = new StringBuilder();
-            sb.AppendLine("仍可能缺少的关键方向：");
+            if (missing.Count == 0)
+            {
+                sb.Append(UiLoc.T("ui.interview.missing_none", "关键方向已齐，可以结束采访。"));
+                return sb.ToString();
+            }
+
+            sb.AppendLine(UiLoc.T("ui.interview.missing_header", "按你目前采到的内容，还缺这些关键方向："));
+            foreach (var line in missing)
+                sb.AppendLine("- " + line);
+            return sb.ToString().TrimEnd();
+        }
+
+        List<string> CollectMissingDirections()
+        {
+            var list = new List<string>();
+            var gs = GameState.Instance;
+            if (gs == null) return list;
+            var set = new HashSet<string>(gs.Data.intel);
+
             if (subject == InterviewSubject.Dafu)
             {
-                sb.AppendLine("- 以前是否怕人 / 脖子旧伤 / 送食物的人 / 被带走 / 醒来后束缚消失 / 被送回社区");
-                sb.AppendLine("- 至少一次认知边界（手术、费用、收养等）");
+                if (!set.Contains(IntelIds.PastAfraid))
+                    list.Add(UiLoc.T("ui.interview.miss.past_afraid", "以前是否怕人、为什么靠近保安亭"));
+                bool neck = set.Contains(IntelIds.NeckObject)
+                            || set.Contains(IntelIds.NeckPain)
+                            || set.Contains(IntelIds.NeckObjectTight)
+                            || set.Contains(IntelIds.NeckLongTermPain);
+                if (!neck)
+                    list.Add(UiLoc.T("ui.interview.miss.neck", "脖子旧伤 / 勒住的东西"));
+                if (!set.Contains(IntelIds.RepeatedFeeding))
+                    list.Add(UiLoc.T("ui.interview.miss.feeding", "多次投喂或送吃的人"));
+                if (!set.Contains(IntelIds.TakenAway))
+                    list.Add(UiLoc.T("ui.interview.miss.taken", "被装进笼子带走"));
+                if (!set.Contains(IntelIds.ObjectGone) && !set.Contains(IntelIds.Sleep))
+                    list.Add(UiLoc.T("ui.interview.miss.object_gone", "醒来后束缚消失或睡去那段"));
+                if (!set.Contains(IntelIds.ReturnedDafu))
+                    list.Add(UiLoc.T("ui.interview.miss.returned", "被送回社区"));
+                bool boundary = boundaryHit || gs.Data.dafuCognitiveBoundaryHit;
+                if (!boundary)
+                    list.Add(UiLoc.T("ui.interview.miss.boundary", "至少一次认知边界（手术、费用、收养等人类概念）"));
             }
-            else
+            else if (subject == InterviewSubject.Lin)
             {
-                sb.AppendLine("- 麻绳伤势 / 四晚投喂 / 抓捕送医 / 猫瘟 / 费用 / 四只猫与放归 / 社区照料");
-                sb.AppendLine("- 与大福证词的交叉验证");
+                void Need(string id, string key, string fallback)
+                {
+                    if (!set.Contains(id))
+                        list.Add(UiLoc.T(key, fallback));
+                }
+
+                Need(IntelIds.RopeEmbedded, "ui.interview.miss.rope", "麻绳勒进肉里的伤势");
+                Need(IntelIds.FeedFourDays, "ui.interview.miss.feed4", "连续几天投喂");
+                Need(IntelIds.CaptureSuccess, "ui.interview.miss.capture", "抓捕送医");
+                Need(IntelIds.PanleukopeniaDay3, "ui.interview.miss.panleuk", "猫瘟 / 住院经过");
+                Need(IntelIds.TotalCost, "ui.interview.miss.cost", "治疗费用");
+                Need(IntelIds.FourCatsHome, "ui.interview.miss.four_cats", "家里已有四只猫、无法再收");
+                Need(IntelIds.ReturnOriginalArea, "ui.interview.miss.release", "为何放归原社区");
+                Need(IntelIds.CommunityCare, "ui.interview.miss.community", "社区后续照料");
+                if (crossChecks < 2)
+                {
+                    list.Add(string.Format(
+                        UiLoc.T("ui.interview.miss.cross", "与大福证词交叉验证（还需约 {0} 处重合）"),
+                        Math.Max(1, 2 - crossChecks)));
+                }
             }
-            return sb.ToString();
+
+            return list;
         }
 
         public void End(bool confirmed)
@@ -441,6 +525,30 @@ namespace StreetCat.Interview
             lastReply = null;
             lastPlayerQuestion = null;
             ChapterFlowController.Instance.ReturnToWritingFromReinterview();
+        }
+
+        static HashSet<string> SnapshotUnlockedMaterials()
+        {
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            var gs = GameState.Instance;
+            if (gs?.Data?.unlockedMaterials == null) return set;
+            foreach (var id in gs.Data.unlockedMaterials)
+                if (!string.IsNullOrEmpty(id)) set.Add(id);
+            return set;
+        }
+
+        static IReadOnlyList<string> DiffNewMaterials(HashSet<string> before)
+        {
+            var gs = GameState.Instance;
+            if (gs?.Data?.unlockedMaterials == null) return Array.Empty<string>();
+            var list = new List<string>();
+            foreach (var id in gs.Data.unlockedMaterials)
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+                if (before != null && before.Contains(id)) continue;
+                list.Add(id);
+            }
+            return list.Count == 0 ? Array.Empty<string>() : list;
         }
     }
 }

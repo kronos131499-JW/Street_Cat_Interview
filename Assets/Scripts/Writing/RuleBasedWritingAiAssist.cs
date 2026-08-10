@@ -9,28 +9,27 @@ namespace StreetCat.Writing
     /// <summary>
     /// Offline writing assist from unlocked materials + article assemble rules.
     /// Does not invent facts or unlock cards — only ranks / templates what the player already has.
+    /// Gate: paragraphs 01–04 each have ≥1 card (no forced M13/M07/…).
     /// </summary>
     public sealed class RuleBasedWritingAiAssist : IWritingAiAssist
     {
-        const int TargetSelect = 9;
-        const int MinSelect = 8;
+        const int TargetSelect = 8;
         const int MaxSelect = 10;
 
         static readonly string[] GuardPriority =
         {
-            MaterialIds.M13, MaterialIds.M07, MaterialIds.M08,
             MaterialIds.M01, MaterialIds.M14, MaterialIds.M15,
             MaterialIds.M03, MaterialIds.M05, MaterialIds.M16, MaterialIds.M02,
-            MaterialIds.M06, MaterialIds.M04, MaterialIds.M12, MaterialIds.M11,
-            MaterialIds.M09, MaterialIds.M10
+            MaterialIds.M06, MaterialIds.M07, MaterialIds.M08, MaterialIds.M04,
+            MaterialIds.M09, MaterialIds.M10,
+            MaterialIds.M13, MaterialIds.M12, MaterialIds.M11
         };
 
         static readonly string[] RescuePriority =
         {
-            MaterialIds.M13, MaterialIds.M07, MaterialIds.M08,
-            MaterialIds.M06, MaterialIds.M05, MaterialIds.M09, MaterialIds.M10,
-            MaterialIds.M12, MaterialIds.M11, MaterialIds.M04,
-            MaterialIds.M03, MaterialIds.M16, MaterialIds.M02,
+            MaterialIds.M05, MaterialIds.M03, MaterialIds.M02, MaterialIds.M16,
+            MaterialIds.M06, MaterialIds.M07, MaterialIds.M08, MaterialIds.M09, MaterialIds.M10, MaterialIds.M04,
+            MaterialIds.M12, MaterialIds.M11, MaterialIds.M13,
             MaterialIds.M14, MaterialIds.M01, MaterialIds.M15
         };
 
@@ -43,15 +42,27 @@ namespace StreetCat.Writing
             BuildSuggestedSelection(ctx.Direction, unlocked, bundle.SuggestedMaterialIds);
 
             var assembler = new ArticleAssembler();
-            var useIds = bundle.SuggestedMaterialIds.Count >= MinSelect
-                ? bundle.SuggestedMaterialIds
-                : PreferFilledSelection(ctx.SelectedMaterialIds, bundle.SuggestedMaterialIds, unlocked);
+            var playerIds = FilterUnlocked(ctx.SelectedMaterialIds, unlocked);
+            if (playerIds.Count > MaxSelect)
+                playerIds = playerIds.GetRange(0, MaxSelect);
+
+            List<string> useIds;
+            if (assembler.CanAssemble(ctx.Direction, playerIds, out _))
+            {
+                useIds = playerIds;
+                bundle.DraftFromPlayerSelection = true;
+            }
+            else
+            {
+                useIds = PreferFilledSelection(playerIds, bundle.SuggestedMaterialIds, unlocked);
+                bundle.DraftFromPlayerSelection = false;
+            }
 
             bundle.CanAssembleWithSuggestion = assembler.CanAssemble(ctx.Direction, useIds, out var err);
             bundle.AssembleError = err;
             if (bundle.CanAssembleWithSuggestion)
             {
-                assembler.Assemble(ctx.Direction, useIds, 1, 1);
+                assembler.Assemble(ctx.Direction, useIds);
                 bundle.DraftArticle = assembler.Body;
             }
             else
@@ -60,35 +71,53 @@ namespace StreetCat.Writing
             }
 
             bundle.FocusedCardWording = BuildFocusedWording(ctx.FocusMaterialId, ctx.Direction, unlocked);
-            bundle.SuggestedPhrasingA = 1;
-            bundle.SuggestedPhrasingB = 1;
-            bundle.PhrasingTip = T("ui.writing.ai.phrasing_tip",
-                "关键表述建议选「无法确认」与「送回社区」——把推测写成事实会被退回。");
-            bundle.CoachTip = BuildCoachTip(ctx, unlocked, bundle);
+            bundle.CoachTip = BuildCoachTip(ctx, bundle, playerIds);
             return bundle;
         }
 
+        static List<string> FilterUnlocked(IReadOnlyList<string> ids, HashSet<string> unlocked)
+        {
+            var list = new List<string>();
+            if (ids == null) return list;
+            foreach (var id in ids)
+            {
+                if (string.IsNullOrEmpty(id) || !unlocked.Contains(id) || list.Contains(id)) continue;
+                list.Add(id);
+            }
+            return list;
+        }
+
+        /// <summary>Cover paragraphs 01–04 first, then fill toward TargetSelect.</summary>
         static void BuildSuggestedSelection(WritingDirection dir, HashSet<string> unlocked, List<string> outIds)
         {
             outIds.Clear();
             var priority = dir == WritingDirection.RescueWithoutAdoption ? RescuePriority : GuardPriority;
+            var assembler = new ArticleAssembler();
+
             foreach (var id in priority)
             {
-                if (outIds.Count >= TargetSelect) break;
-                if (!unlocked.Contains(id)) continue;
-                if (outIds.Contains(id)) continue;
+                if (outIds.Count >= MaxSelect) break;
+                if (!unlocked.Contains(id) || outIds.Contains(id)) continue;
                 outIds.Add(id);
+                if (assembler.CanAssemble(dir, outIds, out _) && outIds.Count >= 4)
+                    break;
             }
 
-            // If still short, append any remaining unlocked cards (catalog order).
-            if (outIds.Count < MinSelect)
+            if (outIds.Count < TargetSelect)
             {
-                foreach (var m in MaterialCatalog.All)
+                foreach (var id in priority)
                 {
-                    if (outIds.Count >= MinSelect) break;
-                    if (m == null || !unlocked.Contains(m.id) || outIds.Contains(m.id)) continue;
-                    outIds.Add(m.id);
+                    if (outIds.Count >= TargetSelect) break;
+                    if (!unlocked.Contains(id) || outIds.Contains(id)) continue;
+                    outIds.Add(id);
                 }
+            }
+
+            foreach (var m in MaterialCatalog.All)
+            {
+                if (outIds.Count >= TargetSelect) break;
+                if (m == null || !unlocked.Contains(m.id) || outIds.Contains(m.id)) continue;
+                outIds.Add(m.id);
             }
 
             while (outIds.Count > MaxSelect)
@@ -100,34 +129,48 @@ namespace StreetCat.Writing
             List<string> suggested,
             HashSet<string> unlocked)
         {
-            if (selected != null && selected.Count >= MinSelect)
-                return new List<string>(selected);
-            var list = new List<string>(suggested);
-            if (selected == null) return list;
-            foreach (var id in selected)
+            var list = new List<string>();
+            if (selected != null)
             {
-                if (list.Count >= MaxSelect) break;
-                if (string.IsNullOrEmpty(id) || !unlocked.Contains(id) || list.Contains(id)) continue;
-                list.Add(id);
+                foreach (var id in selected)
+                {
+                    if (list.Count >= MaxSelect) break;
+                    if (string.IsNullOrEmpty(id) || !unlocked.Contains(id) || list.Contains(id)) continue;
+                    list.Add(id);
+                }
+            }
+            if (suggested != null)
+            {
+                foreach (var id in suggested)
+                {
+                    if (list.Count >= MaxSelect) break;
+                    if (string.IsNullOrEmpty(id) || !unlocked.Contains(id) || list.Contains(id)) continue;
+                    list.Add(id);
+                }
             }
             return list;
         }
 
-        static string BuildCoachTip(WritingAssistContext ctx, HashSet<string> unlocked, WritingAssistBundle bundle)
+        static string BuildCoachTip(WritingAssistContext ctx, WritingAssistBundle bundle, List<string> playerIds)
         {
-            if (unlocked.Count < MinSelect)
+            var assembler = new ArticleAssembler();
+            if (assembler.CanAssemble(ctx.Direction, playerIds, out _))
             {
                 return string.Format(
-                    T("ui.writing.ai.tip_need_unlock", "已解锁 {0} 张，成稿至少需要 8 张。建议返回采访补齐治疗/放归相关情报。"),
-                    unlocked.Count);
+                    T("ui.writing.ai.tip_from_selection",
+                        "已按你当前选中的 {0} 张素材生成草稿（四段均有覆盖）。成稿不强制指定某张卡。"),
+                    playerIds?.Count ?? 0);
             }
 
-            if (!unlocked.Contains(MaterialIds.M13))
-                return T("ui.writing.ai.tip_need_m13", "还没有「回到槐安社区」。放归事实没核实前，很难过审。");
-
-            if (!unlocked.Contains(MaterialIds.M07) || !unlocked.Contains(MaterialIds.M08))
-                return T("ui.writing.ai.tip_need_treatment",
-                    "治疗过程还不完整（抓捕送医 / 术后猫瘟）。建议优先补访林女士，再按建议选材。");
+            ArticleAssembler.CountParagraphCoverage(playerIds, out int p1, out int p2, out int p3, out int p4);
+            int covered = (p1 > 0 ? 1 : 0) + (p2 > 0 ? 1 : 0) + (p3 > 0 ? 1 : 0) + (p4 > 0 ? 1 : 0);
+            if (covered < 4)
+            {
+                return string.Format(
+                    T("ui.writing.ai.tip_need_paras",
+                        "成稿只需段落 01～04 各有一张素材即可（已覆盖 {0}/4）。下方建议选材可帮你补齐缺口。"),
+                    covered);
+            }
 
             if (!bundle.CanAssembleWithSuggestion)
             {

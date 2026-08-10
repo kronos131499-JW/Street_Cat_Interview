@@ -41,6 +41,12 @@ namespace StreetCat.Narrative
         public string prop;
         /// <summary>When true, clear the sticky center prop. Props stay visible until this or a mode change.</summary>
         public bool hideProp;
+        /// <summary>
+        /// Optional social / phone overlay cue (SC-03 选题搜索).
+        /// Values: enter | post1 | post2 | post3 | detail | hide.
+        /// Sticky until hide; show cues wait for click when text is empty (like prop).
+        /// </summary>
+        public string social;
         public string setFlag;
         public string grantIntel;
         public string noteLine;

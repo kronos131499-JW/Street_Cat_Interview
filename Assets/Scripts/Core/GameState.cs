@@ -26,6 +26,7 @@ namespace StreetCat.Core
         public int notebookFormat;
         public List<HistoryLineSave> historyLines = new List<HistoryLineSave>();
         public int writingDirection = -1;
+        /// <summary>Legacy save fields; phrasing step removed — unused.</summary>
         public int phrasingChoiceA = -1;
         public int phrasingChoiceB = -1;
         public int lastReviewScore;

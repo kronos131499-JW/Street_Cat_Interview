@@ -558,13 +558,24 @@ namespace StreetCat.Notebook
             Persist();
         }
 
-        /// <summary>Associate a free-interview exchange with the matching notebook topic.</summary>
-        public void RecordInterviewExchange(InterviewSubject subject, string question, InterviewReply reply)
+        /// <summary>
+        /// Store a free-interview Q&amp;A verbatim (player question + spoken reply lines).
+        /// Prefer <paramref name="spokenLines"/> (what was shown); do not invent from intel templates.
+        /// </summary>
+        public void RecordInterviewExchange(
+            InterviewSubject subject,
+            string question,
+            InterviewReply reply,
+            IList<string> spokenLines = null)
         {
-            if (reply == null || string.IsNullOrWhiteSpace(question)) return;
-            string topicId = TopicIdFromIntent(subject, reply.intent);
-            if (string.IsNullOrEmpty(topicId))
-                topicId = TopicIdFromIntel(reply.unlockedIntel);
+            if (string.IsNullOrWhiteSpace(question)) return;
+            string topicId = null;
+            if (reply != null)
+            {
+                topicId = TopicIdFromIntent(subject, reply.intent);
+                if (string.IsNullOrEmpty(topicId))
+                    topicId = TopicIdFromIntel(reply.unlockedIntel);
+            }
 
             if (!string.IsNullOrEmpty(topicId))
             {
@@ -573,37 +584,35 @@ namespace StreetCat.Notebook
                     SetStatusMin(topicId, TopicStatus.New);
             }
 
+            var lines = spokenLines ?? reply?.replyLines;
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(reply.behavior))
-                sb.Append(reply.behavior);
-            if (reply.replyLines != null)
+            if (lines != null)
             {
-                foreach (var line in reply.replyLines)
+                foreach (var line in lines)
                 {
                     if (string.IsNullOrWhiteSpace(line)) continue;
-                    if (sb.Length > 0) sb.Append(' ');
+                    if (sb.Length > 0) sb.Append('\n');
                     sb.Append(line.Trim());
                 }
             }
-            string summary = sb.ToString();
-            if (summary.Length > 120)
-                summary = summary.Substring(0, 117) + "…";
+            string answer = sb.ToString();
 
             var entry = new NotebookQaEntry
             {
                 topicId = topicId ?? "",
                 question = question.Trim(),
-                answerSummary = summary,
+                answerSummary = answer,
                 speaker = subject == InterviewSubject.Dafu ? "大福" : "林女士"
             };
 
-            // Dedupe identical consecutive Q
+            // Dedupe identical consecutive Q (e.g. refresh of the same turn's answer text)
             if (QaLog.Count > 0)
             {
                 var last = QaLog[QaLog.Count - 1];
                 if (last.question == entry.question && last.topicId == entry.topicId)
                 {
                     last.answerSummary = entry.answerSummary;
+                    last.speaker = entry.speaker;
                     Persist();
                     RefreshFromState();
                     return;
@@ -614,7 +623,7 @@ namespace StreetCat.Notebook
             if (QaLog.Count > 40)
                 QaLog.RemoveAt(0);
 
-            if (!string.IsNullOrEmpty(reply.newQuestion))
+            if (reply != null && !string.IsNullOrEmpty(reply.newQuestion))
                 AddGap(reply.newQuestion);
 
             RefreshFromState();
@@ -768,16 +777,7 @@ namespace StreetCat.Notebook
                 TryAdd(GetInspirationQuestion(t.id));
             }
 
-            // Pass 3: any remaining incomplete even if intent was asked (different phrasing).
-            if (list.Count < max)
-            {
-                foreach (var t in VisibleTopics())
-                {
-                    if (list.Count >= max) break;
-                    if (t.status == TopicStatus.Complete) continue;
-                    TryAdd(GetInspirationQuestion(t.id));
-                }
-            }
+            // Do not re-offer topics whose intent was already asked — callers supply fresh fallbacks.
 
             if (includeFallbacks && list.Count < 2)
             {

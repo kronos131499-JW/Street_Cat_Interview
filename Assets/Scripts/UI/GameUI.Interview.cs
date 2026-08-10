@@ -472,7 +472,10 @@ namespace StreetCat.UI
             }
 
             if (llmReady && reply != null)
+            {
                 ic.AppendSpeakerReply(reply);
+                ic.EndIfReplyCompleted(reply);
+            }
             DialogueHistory.Instance?.Add("小凌", q, "interview");
             RecordInterviewReplyHistory(who, reply, reply?.replyLines);
             RefreshInterviewView();
@@ -602,6 +605,7 @@ namespace StreetCat.UI
             if (reply != null)
                 reply.replyLines = lines != null ? new List<string>(lines) : new List<string>();
             ic?.AppendSpeakerReply(reply, lines);
+            ic?.EndIfReplyCompleted(reply);
             RecordInterviewReplyHistory(who, reply, lines);
             RefreshInterviewView();
             interviewLlmCo = null;
@@ -658,6 +662,10 @@ namespace StreetCat.UI
                 {
                     sb.Append("<color=#8B4A2A>").Append(EscapeRich(line)).Append("</color>\n");
                 }
+                else if (line.StartsWith("【素材】"))
+                {
+                    sb.Append("<color=#2F6B4F>").Append(EscapeRich(line)).Append("</color>\n");
+                }
                 else
                 {
                     sb.AppendLine(EscapeRich(line));
@@ -713,10 +721,11 @@ namespace StreetCat.UI
             if (ic == null) return;
 
             // Free interview shows only the subject — no interviewer/companion CG.
-            if (ic.Subject == InterviewSubject.Dafu)
-                SetPortrait(VnArt.ResolvePortrait("大福", LineSpeaker.Character));
-            else
-                SetPortrait(VnArt.ResolvePortrait("林女士", LineSpeaker.Character));
+            // Expression from rule/LLM picker (offline rules by default); updates when reply lands.
+            var who = ic.Subject == InterviewSubject.Dafu ? "大福" : "林女士";
+            var expression = InterviewPortraitService.PickExpression(
+                InterviewPortraitService.BuildContext(ic));
+            SetPortrait(VnArt.ResolvePortrait(who, LineSpeaker.Character, expression));
             SetInterviewCompanionPortrait(null);
         }
 

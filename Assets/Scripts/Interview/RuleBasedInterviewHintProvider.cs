@@ -8,7 +8,8 @@ namespace StreetCat.Interview
 {
     /// <summary>
     /// Contextual free-interview hints from trust / pressure / focus, last reply,
-    /// remaining notebook topics, and asked intents. No network.
+    /// remaining notebook topics, and asked intents/questions. No network.
+    /// Asked chips are replaced with fresh alternatives.
     /// </summary>
     public sealed class RuleBasedInterviewHintProvider : IInterviewHintProvider
     {
@@ -110,51 +111,97 @@ namespace StreetCat.Interview
 
         static void BuildAskChips(InterviewHintContext ctx, List<string> chips)
         {
-            void TryAdd(string q)
+            void TryAdd(string q, string chipIntent = null)
             {
                 if (chips.Count >= MaxChips) return;
                 if (string.IsNullOrWhiteSpace(q)) return;
                 q = q.Trim();
-                if (LooksLikeLastQuestion(ctx.LastPlayerQuestion, q)) return;
                 if (chips.Contains(q)) return;
+                if (IsAlreadyAsked(ctx, q, chipIntent)) return;
                 chips.Add(q);
             }
 
-            // 1) Immediate follow-up from last reply / Lin story beat.
-            TryAdd(FollowUpChip(ctx));
+            // 1) Immediate follow-up from last reply / story beat.
+            var follow = FollowUpChip(ctx);
+            if (!string.IsNullOrEmpty(follow))
+                TryAdd(follow, IntentForFollowUp(ctx));
 
-            // 2) Soft rapport when meters are tense.
+            // 2) Soft rapport when meters are tense (once).
             if (ctx.Stats != null && (ctx.Stats.stress >= 45 || ctx.Stats.trust < 40))
-                TryAdd(SoftRapportChip(ctx.Subject));
+                TryAdd(SoftRapportChip(ctx.Subject), "soft");
 
             // 3) Sensory rephrase after cognitive boundary (Dafu).
             if (ctx.LastReply != null && ctx.LastReply.cognitiveBoundary
                 && ctx.Subject == InterviewSubject.Dafu)
             {
-                TryAdd(T("ui.interview.chip.dafu_sensory_pain", "勒着你的东西是什么感觉？你还记得吗？"));
-                TryAdd(T("ui.interview.chip.dafu_sensory_place", "那个很亮、味道很重的地方，后来怎样了？"));
+                TryAdd(T("ui.interview.chip.dafu_sensory_pain", "勒着你的东西是什么感觉？你还记得吗？"), "neck");
+                TryAdd(T("ui.interview.chip.dafu_sensory_place", "那个很亮、味道很重的地方，后来怎样了？"), "strange_place");
             }
 
             // 4) Notebook-driven incomplete topics (subject-filtered), preferring Open.
             var nb = ReporterNotebook.Instance;
             if (nb != null)
             {
-                foreach (var q in nb.GetContextualAskQuestions(ctx.Subject, ctx.AskedIntents, MaxChips + 2))
-                    TryAdd(q);
+                foreach (var q in nb.GetContextualAskQuestions(ctx.Subject, ctx.AskedIntents, MaxChips + 4))
+                    TryAdd(q, GuessIntent(ctx.Subject, q));
             }
 
             // 5) Evidence-aware nudges from owned intel gaps.
-            TryAdd(EvidenceChip(ctx));
+            TryAdd(EvidenceChip(ctx), null);
 
-            // 6) Static fallbacks.
-            if (chips.Count < 2)
+            // 6) Expanded fallbacks — skip any whose intent/text was already asked.
+            foreach (var pair in FallbackChips(ctx.Subject))
+                TryAdd(pair.Item1, pair.Item2);
+
+            // 7) Last-resort openers (non-sticky intents) so the row never goes empty mid-interview.
+            if (chips.Count == 0)
             {
-                foreach (var q in FallbackChips(ctx.Subject))
-                    TryAdd(q);
+                if (ctx.Subject == InterviewSubject.Lin)
+                {
+                    TryAdd(T("ui.interview.chip.lin_open1", "关于大福，您还记得哪个细节最清楚？"), "generic");
+                    TryAdd(T("ui.interview.chip.lin_open2", "如果重新来过，您还会做同样的选择吗？"), "generic");
+                }
+                else
+                {
+                    TryAdd(T("ui.interview.chip.dafu_open1", "你现在最想做什么？"), "generic");
+                    TryAdd(T("ui.interview.chip.dafu_open2", "还有什么想让我知道的吗？"), "generic");
+                }
             }
 
             while (chips.Count > MaxChips)
                 chips.RemoveAt(chips.Count - 1);
+        }
+
+        static bool IsAlreadyAsked(InterviewHintContext ctx, string candidate, string chipIntent)
+        {
+            if (LooksLikeLastQuestion(ctx.LastPlayerQuestion, candidate))
+                return true;
+
+            var norm = InterviewRuleEngine.NormalizeQuestion(candidate);
+            if (!string.IsNullOrEmpty(norm) && ctx.AskedQuestions != null)
+            {
+                foreach (var a in ctx.AskedQuestions)
+                {
+                    if (string.IsNullOrEmpty(a)) continue;
+                    if (string.Equals(a, norm, StringComparison.Ordinal)) return true;
+                    if (a.Length >= 6 && norm.IndexOf(a, StringComparison.Ordinal) >= 0) return true;
+                    if (norm.Length >= 6 && a.IndexOf(norm, StringComparison.Ordinal) >= 0) return true;
+                }
+            }
+
+            var intent = chipIntent;
+            if (string.IsNullOrEmpty(intent))
+                intent = GuessIntent(ctx.Subject, candidate);
+            if (!string.IsNullOrEmpty(intent) && !IsNonSticky(intent) && HasAsked(ctx.AskedIntents, intent))
+                return true;
+
+            return false;
+        }
+
+        static bool IsNonSticky(string intent)
+        {
+            return intent == "generic" || intent == "greeting" || intent == "followup"
+                   || intent == "too_broad" || intent == "oob" || intent == "hostile" || intent == "soft";
         }
 
         static string FollowUpChip(InterviewHintContext ctx)
@@ -164,7 +211,6 @@ namespace StreetCat.Interview
 
             if (ctx.Subject == InterviewSubject.Lin)
             {
-                // Story-beat chain: after a beat, suggest the natural next ask.
                 switch (intent)
                 {
                     case "discovery":
@@ -208,6 +254,41 @@ namespace StreetCat.Interview
             return null;
         }
 
+        static string IntentForFollowUp(InterviewHintContext ctx)
+        {
+            if (ctx?.LastReply == null) return null;
+            var intent = ctx.LastReply.intent ?? "";
+            if (ctx.Subject == InterviewSubject.Lin)
+            {
+                switch (intent)
+                {
+                    case "discovery":
+                    case "too_broad": return "feeding";
+                    case "feeding": return "capture";
+                    case "capture": return "injury";
+                    case "injury": return "hospital";
+                    case "hospital": return "cost";
+                    case "cost": return "hesitate";
+                    case "hesitate": return "release";
+                    case "release":
+                    case "release_accuse": return "community";
+                }
+            }
+            else
+            {
+                switch (intent)
+                {
+                    case "daily": return "past_fear";
+                    case "past_fear": return "neck";
+                    case "neck": return "woman";
+                    case "woman": return "capture";
+                    case "capture":
+                    case "strange_place": return "return";
+                }
+            }
+            return null;
+        }
+
         static string SoftRapportChip(InterviewSubject subject)
         {
             if (subject == InterviewSubject.Lin)
@@ -242,20 +323,69 @@ namespace StreetCat.Interview
             return null;
         }
 
-        static IEnumerable<string> FallbackChips(InterviewSubject subject)
+        static IEnumerable<(string, string)> FallbackChips(InterviewSubject subject)
         {
             if (subject == InterviewSubject.Lin)
             {
-                yield return T("ui.interview.chip.lin_fb1", "您是怎么注意到大福的？");
-                yield return T("ui.interview.chip.lin_fb2", "为什么连续几天给它送吃的？");
-                yield return T("ui.interview.chip.lin_fb3", "为什么又把它送回社区？");
+                yield return (T("ui.interview.chip.lin_fb1", "您是怎么注意到大福的？"), "discovery");
+                yield return (T("ui.interview.chip.lin_fb2", "为什么连续几天给它送吃的？"), "feeding");
+                yield return (T("ui.interview.chip.lin_fb4", "送到医院以后怎么样？"), "hospital");
+                yield return (T("ui.interview.chip.lin_fb5", "治疗大概花了多少？"), "cost");
+                yield return (T("ui.interview.chip.lin_fb6", "您有没有犹豫过？"), "hesitate");
+                yield return (T("ui.interview.chip.lin_fb3", "为什么又把它送回社区？"), "release");
+                yield return (T("ui.interview.chip.lin_fb7", "家里还有别的猫要照顾吗？"), "home");
+                yield return (T("ui.interview.chip.lin_fb8", "放归以后社区有人照看吗？"), "community");
             }
             else
             {
-                yield return T("ui.interview.chip.dafu_fb1", "你平时一般什么时候会来这里？");
-                yield return T("ui.interview.chip.dafu_fb2", "你脖子以前是不是受过伤？");
-                yield return T("ui.interview.chip.dafu_fb3", "有没有人经常来找你？");
+                yield return (T("ui.interview.chip.dafu_fb1", "你平时一般什么时候会来这里？"), "daily");
+                yield return (T("ui.interview.chip.dafu_fb4", "你以前也会来保安亭这边吗？"), "past_fear");
+                yield return (T("ui.interview.chip.dafu_fb2", "你脖子以前是不是受过伤？"), "neck");
+                yield return (T("ui.interview.chip.dafu_fb3", "有没有人经常来找你？"), "woman");
+                yield return (T("ui.interview.chip.dafu_fb5", "后来有人把你装进笼子带走了吗？"), "capture");
+                yield return (T("ui.interview.chip.dafu_fb6", "那个很亮的地方，你还记得吗？"), "strange_place");
+                yield return (T("ui.interview.chip.dafu_fb7", "是谁把你带回这里的？"), "return");
+                yield return (T("ui.interview.chip.dafu_fb8", "今天有吃的吗？"), "hungry");
             }
+        }
+
+        /// <summary>Lightweight intent guess so chip text can be filtered against AskedIntents.</summary>
+        public static string GuessIntent(InterviewSubject subject, string q)
+        {
+            if (string.IsNullOrEmpty(q)) return null;
+            if (subject == InterviewSubject.Lin)
+            {
+                if (Contains(q, "犹豫")) return "hesitate";
+                if (Contains(q, "花了", "费用", "多少")) return "cost";
+                if (Contains(q, "医院", "手术", "医生", "恢复")) return "hospital";
+                if (Contains(q, "伤", "脖子", "麻绳")) return "injury";
+                if (Contains(q, "笼子", "抓", "送去", "送医")) return "capture";
+                if (Contains(q, "连续", "投喂", "罐头", "几天", "送吃")) return "feeding";
+                if (Contains(q, "送回", "放归", "收养", "为什么又")) return "release";
+                if (Contains(q, "社区", "照看")) return "community";
+                if (Contains(q, "家里", "四只", "孩子")) return "home";
+                if (Contains(q, "注意", "发现", "第一次")) return "discovery";
+            }
+            else
+            {
+                if (Contains(q, "饿", "吃的吗", "猫粮")) return "hungry";
+                if (Contains(q, "带回", "送回", "谁把你")) return "return";
+                if (Contains(q, "亮", "味道", "醒来")) return "strange_place";
+                if (Contains(q, "笼子", "带走", "抓走")) return "capture";
+                if (Contains(q, "女人", "送吃", "喂", "找你")) return "woman";
+                if (Contains(q, "脖子", "伤", "勒", "疼")) return "neck";
+                if (Contains(q, "怕人", "以前", "保安亭")) return "past_fear";
+                if (Contains(q, "几点", "平时", "生活", "快递")) return "daily";
+            }
+            return null;
+        }
+
+        static bool Contains(string q, params string[] keys)
+        {
+            foreach (var k in keys)
+                if (q.IndexOf(k, StringComparison.Ordinal) >= 0)
+                    return true;
+            return false;
         }
 
         static bool HasAsked(IReadOnlyCollection<string> asked, string intent)
@@ -270,8 +400,8 @@ namespace StreetCat.Interview
         static bool LooksLikeLastQuestion(string last, string candidate)
         {
             if (string.IsNullOrEmpty(last) || string.IsNullOrEmpty(candidate)) return false;
-            var a = last.Trim();
-            var b = candidate.Trim();
+            var a = InterviewRuleEngine.NormalizeQuestion(last);
+            var b = InterviewRuleEngine.NormalizeQuestion(candidate);
             if (a == b) return true;
             if (a.Length >= 6 && b.IndexOf(a, StringComparison.Ordinal) >= 0) return true;
             if (b.Length >= 6 && a.IndexOf(b, StringComparison.Ordinal) >= 0) return true;

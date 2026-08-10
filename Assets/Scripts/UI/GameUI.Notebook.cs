@@ -594,7 +594,7 @@ namespace StreetCat.UI
             {
                 notebookSelectedTopicId = null;
                 var sb = new StringBuilder();
-                sb.AppendLine(UiLoc.T("ui.notebook.qa_intro", "自由采访中已关联到笔记主题的问答摘要。"));
+                sb.AppendLine(UiLoc.T("ui.notebook.qa_intro", "自由采访中的原问原答记录（与当场台词一致）。"));
                 sb.AppendLine();
                 var log = nb.QaLog;
                 if (log == null || log.Count == 0)
@@ -609,7 +609,7 @@ namespace StreetCat.UI
                         var title = topic != null ? topic.title : UiLoc.T("ui.notebook.uncategorized", "未归类");
                         sb.AppendLine("> " + title);
                         sb.AppendLine(UiLoc.T("ui.notebook.qa_q", "问：") + q.question);
-                        sb.AppendLine(q.speaker + "：" + (string.IsNullOrEmpty(q.answerSummary) ? "……" : q.answerSummary));
+                        AppendQaAnswerLines(sb, q.speaker, q.answerSummary);
                         sb.AppendLine();
                     }
                 }
@@ -747,8 +747,7 @@ namespace StreetCat.UI
                 {
                     var q = qa[i];
                     sb.AppendLine("> " + UiLoc.T("ui.notebook.qa_q", "问：") + q.question);
-                    if (!string.IsNullOrEmpty(q.answerSummary))
-                        sb.AppendLine("  " + q.speaker + "：" + q.answerSummary);
+                    AppendQaAnswerLines(sb, q.speaker, q.answerSummary, indent: "  ");
                 }
             }
 
@@ -783,6 +782,34 @@ namespace StreetCat.UI
             }
 
             SetNotebookInspiration(t.inspiration, true);
+        }
+
+        static void AppendQaAnswerLines(StringBuilder sb, string speaker, string answer, string indent = "")
+        {
+            if (sb == null) return;
+            if (string.IsNullOrEmpty(answer))
+            {
+                sb.AppendLine(indent + (speaker ?? "") + "：……");
+                return;
+            }
+
+            var parts = answer.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+            bool first = true;
+            foreach (var part in parts)
+            {
+                if (string.IsNullOrWhiteSpace(part)) continue;
+                if (first)
+                {
+                    sb.AppendLine(indent + (speaker ?? "") + "：" + part.Trim());
+                    first = false;
+                }
+                else
+                {
+                    sb.AppendLine(indent + part.Trim());
+                }
+            }
+            if (first)
+                sb.AppendLine(indent + (speaker ?? "") + "：……");
         }
 
         void SetNotebookPageContent(string title, string status, string body, string source)

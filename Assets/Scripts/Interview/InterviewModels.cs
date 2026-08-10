@@ -61,9 +61,12 @@ namespace StreetCat.Interview
     public abstract class InterviewRuleEngine
     {
         protected readonly HashSet<string> askedIntents = new HashSet<string>();
+        protected readonly HashSet<string> askedQuestions = new HashSet<string>(StringComparer.Ordinal);
         protected readonly InterviewerStats stats = new InterviewerStats();
         public InterviewerStats Stats => stats;
         public IReadOnlyCollection<string> AskedIntents => askedIntents;
+        /// <summary>Normalized player questions already sent this interview (for chip dedupe).</summary>
+        public IReadOnlyCollection<string> AskedQuestions => askedQuestions;
 
         public abstract InterviewSubject Subject { get; }
 
@@ -122,6 +125,10 @@ namespace StreetCat.Interview
             // BuildReply may remap followup → concrete topic (Lin); use final intent for stickiness.
             var finalIntent = reply.intent ?? intent;
 
+            var normQ = NormalizeQuestion(input);
+            if (!string.IsNullOrEmpty(normQ))
+                askedQuestions.Add(normQ);
+
             if (!IsNonStickyIntent(finalIntent)
                 && askedIntents.Contains(finalIntent)
                 && !reply.cognitiveBoundary)
@@ -173,6 +180,14 @@ namespace StreetCat.Interview
         protected bool IsHostile(string input)
         {
             return ContainsAny(input, "去死", "混蛋", "垃圾", "蠢", "滚", "打死", "扔掉你");
+        }
+
+        public static string NormalizeQuestion(string q)
+        {
+            if (string.IsNullOrWhiteSpace(q)) return "";
+            var t = q.Trim();
+            t = t.TrimEnd('。', '！', '!', '?', '？', '~', '～', '…', '.', ',', '，', '、');
+            return t;
         }
     }
 }

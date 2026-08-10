@@ -1,9 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using StreetCat.Core;
 using StreetCat.Data;
-using StreetCat.Interview;
 using StreetCat.Loc;
 using StreetCat.Narrative;
 using StreetCat.Writing;
@@ -48,7 +45,6 @@ namespace StreetCat.UI
 
         GameObject writingMatsRoot;
         GameObject writingPreviewRoot;
-        GameObject writingAssistRoot;
         Text writingTapeTitle;
         Text writingSelectedCountText;
         Transform writingProgressDots;
@@ -61,16 +57,8 @@ namespace StreetCat.UI
         Text writingDetailBody;
         Image writingDetailTagBg;
         Text writingPreviewBody;
-        Text writingAssistBody;
-        Text writingAssistTitle;
         Text writingStatusHint;
-        Button writingPreviewBtn;
         Button writingGoBtn;
-        Button writingAssistBtn;
-        Button writingAssistApplyBtn;
-        Button writingAssistPolishBtn;
-        Button writingAssistConfirmBtn;
-        Button writingAssistCancelConfirmBtn;
         Button writingReInterviewBtn;
         readonly List<GameObject> writingSpawned = new List<GameObject>();
         readonly List<Image> writingDotImages = new List<Image>();
@@ -78,11 +66,9 @@ namespace StreetCat.UI
         int writingFocusParagraph;
         string writingFocusMatId;
         bool writingMatsActive;
-        WritingAssistBundle writingAssistPending;
-        bool writingAssistAwaitConfirm;
-        Coroutine writingAssistPolishCo;
         const int WritingMaxSelect = 10;
-        const int WritingMinSelect = 8;
+        /// <summary>Soft floor for UI hints; real gate is four paragraphs each covered (see ArticleAssembler.CanAssemble).</summary>
+        const int WritingMinSelect = 4;
 
         void BuildWritingMaterialsOverlay(Transform parent)
         {
@@ -357,16 +343,9 @@ namespace StreetCat.UI
                 Vector2.zero, Vector2.zero);
 
             // Bottom-right actions
-            writingPreviewBtn = SpawnWritingActionButton(cork.transform, "PreviewBtn",
-                UiLoc.T("ui.writing.preview", "预览文章"), WmTeal, new Vector2(0.62f, 0.025f), new Vector2(0.78f, 0.11f),
-                OnWritingPreviewArticle);
-            var previewTag = writingPreviewBtn.gameObject.AddComponent<LocTag>();
-            previewTag.key = "ui.writing.preview";
-            previewTag.target = writingPreviewBtn.GetComponentInChildren<Text>();
-
             writingGoBtn = SpawnWritingActionButton(cork.transform, "GoWriteBtn",
-                UiLoc.T("ui.writing.go_write", "前往写稿"), WmOrange, new Vector2(0.80f, 0.025f), new Vector2(0.97f, 0.11f),
-                OnWritingGoToPhrasing);
+                UiLoc.T("ui.writing.go_write", "前往写稿"), WmOrange, new Vector2(0.72f, 0.025f), new Vector2(0.97f, 0.11f),
+                OnWritingGoToDesk);
             var goTag = writingGoBtn.gameObject.AddComponent<LocTag>();
             goTag.key = "ui.writing.go_write";
             goTag.target = writingGoBtn.GetComponentInChildren<Text>();
@@ -391,22 +370,16 @@ namespace StreetCat.UI
             riTag.key = "ui.writing.reinterview";
             riTag.target = writingReInterviewBtn.GetComponentInChildren<Text>();
 
-            writingAssistBtn = SpawnWritingActionButton(cork.transform, "AiAssistBtn",
-                UiLoc.T("ui.writing.ai_assist", "AI 建议"), new Color(0.22f, 0.36f, 0.42f, 0.95f),
-                new Vector2(0.41f, 0.025f), new Vector2(0.60f, 0.10f), OnWritingOpenAiAssist);
-            var aiTag = writingAssistBtn.gameObject.AddComponent<LocTag>();
-            aiTag.key = "ui.writing.ai_assist";
-            aiTag.target = writingAssistBtn.GetComponentInChildren<Text>();
-
+            // ArticlePreview overlay kept in code but unwired — players edit on the writing desk.
             BuildWritingPreviewPanel(cork.transform);
-            BuildWritingAssistPanel(cork.transform);
 
             writingMatsRoot.SetActive(false);
         }
 
         void ApplyWritingFonts()
         {
-            if (writingMatsRoot == null || font == null) return;
+            if (font == null) return;
+            if (writingMatsRoot == null && writingDeskRoot == null) return;
             float scale = GameSettings.FontSizeScale;
             void Chrome(Text t, int baseSize, bool bold = false, bool wrap = false)
             {
@@ -457,19 +430,6 @@ namespace StreetCat.UI
                 writingPreviewBody.alignByGeometry = false;
                 ApplyLetterSpacing(writingPreviewBody, 0f);
             }
-            Chrome(writingAssistTitle, 22, true);
-            if (writingAssistBody != null)
-            {
-                writingAssistBody.font = font;
-                writingAssistBody.fontSize = Mathf.RoundToInt(18f * scale);
-                writingAssistBody.lineSpacing = 1.35f;
-                writingAssistBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-                writingAssistBody.verticalOverflow = VerticalWrapMode.Overflow;
-                writingAssistBody.resizeTextForBestFit = false;
-                writingAssistBody.alignByGeometry = false;
-                ApplyLetterSpacing(writingAssistBody, 0f);
-            }
-
             // Paragraph strip + action buttons built once at overlay create time.
             if (writingParagraphList != null)
             {
@@ -493,8 +453,50 @@ namespace StreetCat.UI
                 }
             }
 
+            if (writingDeskRoot != null)
+            {
+                Chrome(wdHeadline, 32, true, wrap: true);
+                Chrome(wdKicker, 14);
+                Chrome(wdDate, 14);
+                Chrome(wdMatsCount, 16, true);
+                Chrome(wdMatsList, 13, wrap: true);
+                Chrome(wdMatsHint, 13);
+                Chrome(wdSourcesLine, 14, wrap: true);
+                Chrome(wdStatusLines, 13, wrap: true);
+                Chrome(wdDirGuardTx, 16, true, wrap: true);
+                Chrome(wdDirRescueTx, 16, true, wrap: true);
+                if (wdDraftBody != null)
+                {
+                    wdDraftBody.font = font;
+                    wdDraftBody.fontSize = Mathf.RoundToInt(18f * scale);
+                    wdDraftBody.lineSpacing = 1.15f;
+                    wdDraftBody.horizontalOverflow = HorizontalWrapMode.Wrap;
+                    wdDraftBody.verticalOverflow = VerticalWrapMode.Overflow;
+                    ApplyLetterSpacing(wdDraftBody, 0f);
+                }
+                if (wdDraftCharCount != null)
+                {
+                    wdDraftCharCount.font = font;
+                    wdDraftCharCount.fontSize = Mathf.RoundToInt(13f * scale);
+                    ApplyLetterSpacing(wdDraftCharCount, 0f);
+                }
+                if (wdDraftInput != null && wdDraftInput.placeholder is Text ph)
+                {
+                    ph.font = font;
+                    ph.fontSize = Mathf.RoundToInt(18f * scale);
+                }
+                foreach (var btn in writingDeskRoot.GetComponentsInChildren<Button>(true))
+                {
+                    var label = btn != null ? btn.GetComponentInChildren<Text>(true) : null;
+                    if (label != null && label.name == "T")
+                        Chrome(label, 15, true);
+                }
+            }
+
             if (writingMatsActive)
                 RefreshWritingMaterialsBoard();
+            if (writingDeskActive)
+                RefreshWritingDesk();
         }
 
         void BuildWritingPreviewPanel(Transform cork)
@@ -565,334 +567,6 @@ namespace StreetCat.UI
             closeTag.target = close.GetComponentInChildren<Text>();
 
             writingPreviewRoot.SetActive(false);
-        }
-
-        void BuildWritingAssistPanel(Transform cork)
-        {
-            writingAssistRoot = new GameObject("WritingAiAssist", typeof(RectTransform));
-            writingAssistRoot.transform.SetParent(cork, false);
-            StretchFull(writingAssistRoot.GetComponent<RectTransform>());
-
-            var dim = CreateImage(writingAssistRoot.transform, "Dim", new Color(0.05f, 0.04f, 0.03f, 0.72f));
-            StretchFull(dim.rectTransform);
-            dim.raycastTarget = true;
-
-            var paper = CreateImage(writingAssistRoot.transform, "Paper", WmPaper);
-            Stretch(paper.rectTransform, new Vector2(0.14f, 0.08f), new Vector2(0.86f, 0.92f),
-                Vector2.zero, Vector2.zero);
-
-            writingAssistTitle = CreateUiText(paper.transform, "Title", 22, TextAnchor.MiddleCenter,
-                WmInk, Vector2.zero, Vector2.zero);
-            Stretch(writingAssistTitle.rectTransform, new Vector2(0.06f, 0.90f), new Vector2(0.94f, 0.98f),
-                Vector2.zero, Vector2.zero);
-            writingAssistTitle.fontStyle = FontStyle.Bold;
-            writingAssistTitle.text = UiLoc.T("ui.writing.ai_title", "AI 建议");
-            var titleTag = writingAssistTitle.gameObject.AddComponent<LocTag>();
-            titleTag.key = "ui.writing.ai_title";
-            titleTag.target = writingAssistTitle;
-
-            var host = new GameObject("BodyHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
-            host.transform.SetParent(paper.transform, false);
-            Stretch(host.GetComponent<RectTransform>(), new Vector2(0.06f, 0.18f), new Vector2(0.94f, 0.88f),
-                Vector2.zero, Vector2.zero);
-            host.GetComponent<Image>().color = new Color(1, 1, 1, 0.001f);
-            var scroll = host.GetComponent<ScrollRect>();
-            scroll.horizontal = false;
-
-            var vp = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
-            vp.transform.SetParent(host.transform, false);
-            StretchFull(vp.GetComponent<RectTransform>());
-            vp.GetComponent<Image>().color = new Color(1, 1, 1, 0.01f);
-
-            var content = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
-            content.transform.SetParent(vp.transform, false);
-            var crt = content.GetComponent<RectTransform>();
-            crt.anchorMin = new Vector2(0, 1);
-            crt.anchorMax = new Vector2(1, 1);
-            crt.pivot = new Vector2(0.5f, 1);
-            crt.sizeDelta = Vector2.zero;
-            content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            writingAssistBody = content.AddComponent<Text>();
-            writingAssistBody.font = font;
-            writingAssistBody.fontSize = 18;
-            writingAssistBody.color = WmInk;
-            writingAssistBody.alignment = TextAnchor.UpperLeft;
-            writingAssistBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-            writingAssistBody.verticalOverflow = VerticalWrapMode.Overflow;
-            writingAssistBody.lineSpacing = 1.35f;
-            writingAssistBody.resizeTextForBestFit = false;
-            writingAssistBody.alignByGeometry = false;
-            writingAssistBody.raycastTarget = false;
-            scroll.viewport = vp.GetComponent<RectTransform>();
-            scroll.content = crt;
-
-            writingAssistApplyBtn = SpawnWritingActionButton(paper.transform, "ApplySelection",
-                UiLoc.T("ui.writing.ai_apply", "应用选材"), WmOrange,
-                new Vector2(0.06f, 0.03f), new Vector2(0.30f, 0.14f), OnWritingAssistApplyClicked);
-            var applyTag = writingAssistApplyBtn.gameObject.AddComponent<LocTag>();
-            applyTag.key = "ui.writing.ai_apply";
-            applyTag.target = writingAssistApplyBtn.GetComponentInChildren<Text>();
-
-            writingAssistPolishBtn = SpawnWritingActionButton(paper.transform, "PolishDraft",
-                UiLoc.T("ui.writing.ai_polish", "润色草稿"), WmTeal,
-                new Vector2(0.32f, 0.03f), new Vector2(0.56f, 0.14f), OnWritingAssistPolishClicked);
-            var polishTag = writingAssistPolishBtn.gameObject.AddComponent<LocTag>();
-            polishTag.key = "ui.writing.ai_polish";
-            polishTag.target = writingAssistPolishBtn.GetComponentInChildren<Text>();
-
-            writingAssistConfirmBtn = SpawnWritingActionButton(paper.transform, "ConfirmReplace",
-                UiLoc.T("ui.writing.ai_confirm", "确认替换"), WmOrange,
-                new Vector2(0.06f, 0.03f), new Vector2(0.30f, 0.14f), OnWritingAssistConfirmReplace);
-            var confTag = writingAssistConfirmBtn.gameObject.AddComponent<LocTag>();
-            confTag.key = "ui.writing.ai_confirm";
-            confTag.target = writingAssistConfirmBtn.GetComponentInChildren<Text>();
-
-            writingAssistCancelConfirmBtn = SpawnWritingActionButton(paper.transform, "CancelConfirm",
-                UiLoc.T("ui.writing.ai_cancel_confirm", "取消"), new Color(0.35f, 0.30f, 0.26f, 0.95f),
-                new Vector2(0.32f, 0.03f), new Vector2(0.56f, 0.14f), OnWritingAssistCancelConfirm);
-            var cancelTag = writingAssistCancelConfirmBtn.gameObject.AddComponent<LocTag>();
-            cancelTag.key = "ui.writing.ai_cancel_confirm";
-            cancelTag.target = writingAssistCancelConfirmBtn.GetComponentInChildren<Text>();
-
-            var close = SpawnWritingActionButton(paper.transform, "CloseAssist",
-                UiLoc.T("ui.writing.ai_close", "关闭"), new Color(0.28f, 0.24f, 0.20f, 0.92f),
-                new Vector2(0.70f, 0.03f), new Vector2(0.94f, 0.14f), CloseWritingAssistPanel);
-            var closeTag = close.gameObject.AddComponent<LocTag>();
-            closeTag.key = "ui.writing.ai_close";
-            closeTag.target = close.GetComponentInChildren<Text>();
-
-            writingAssistRoot.SetActive(false);
-            writingAssistAwaitConfirm = false;
-            SetWritingAssistConfirmMode(false);
-        }
-
-        void SetWritingAssistConfirmMode(bool confirm)
-        {
-            writingAssistAwaitConfirm = confirm;
-            if (writingAssistApplyBtn != null)
-                writingAssistApplyBtn.gameObject.SetActive(!confirm);
-            if (writingAssistPolishBtn != null)
-                writingAssistPolishBtn.gameObject.SetActive(!confirm);
-            if (writingAssistConfirmBtn != null)
-                writingAssistConfirmBtn.gameObject.SetActive(confirm);
-            if (writingAssistCancelConfirmBtn != null)
-                writingAssistCancelConfirmBtn.gameObject.SetActive(confirm);
-        }
-
-        void OnWritingOpenAiAssist()
-        {
-            if (writingAssistRoot == null || writingAssistBody == null) return;
-            if (writingPreviewRoot != null) writingPreviewRoot.SetActive(false);
-
-            var ctx = WritingAiAssistService.BuildContext(
-                pendingDir, selectedMats, writingFocusMatId, writingFocusParagraph);
-            writingAssistPending = WritingAiAssistService.Suggest(ctx);
-            writingAssistBody.text = FormatWritingAssistBody(writingAssistPending);
-            if (writingAssistTitle != null)
-                writingAssistTitle.text = UiLoc.T("ui.writing.ai_title", "AI 建议");
-
-            bool llmReady = LlmClient.Instance != null && LlmClient.Instance.IsConfigured;
-            if (writingAssistPolishBtn != null)
-            {
-                writingAssistPolishBtn.interactable = llmReady
-                    && writingAssistPending != null
-                    && !string.IsNullOrEmpty(writingAssistPending.DraftArticle);
-                var label = writingAssistPolishBtn.GetComponentInChildren<Text>();
-                if (label != null)
-                {
-                    label.text = llmReady
-                        ? UiLoc.T("ui.writing.ai_polish", "润色草稿")
-                        : UiLoc.T("ui.writing.ai_polish_locked", "润色（需 API）");
-                }
-            }
-
-            SetWritingAssistConfirmMode(false);
-            writingAssistRoot.SetActive(true);
-            writingAssistRoot.transform.SetAsLastSibling();
-        }
-
-        string FormatWritingAssistBody(WritingAssistBundle bundle)
-        {
-            if (bundle == null) return "";
-            var sb = new StringBuilder();
-            sb.AppendLine(UiLoc.T("ui.writing.ai_section_tip", "【建议】"));
-            sb.AppendLine(bundle.CoachTip ?? "");
-            sb.AppendLine();
-            sb.AppendLine(UiLoc.T("ui.writing.ai_section_select", "【建议选材】"));
-            if (bundle.SuggestedMaterialIds == null || bundle.SuggestedMaterialIds.Count == 0)
-                sb.AppendLine(UiLoc.T("ui.writing.ai_select_empty", "（暂无可用素材）"));
-            else
-            {
-                foreach (var id in bundle.SuggestedMaterialIds)
-                {
-                    var m = MaterialCatalog.Get(id);
-                    sb.AppendLine(m != null ? ("· " + id + "  " + m.title) : ("· " + id));
-                }
-            }
-            sb.AppendLine();
-            sb.AppendLine(UiLoc.T("ui.writing.ai_section_phrasing", "【表述建议】"));
-            sb.AppendLine(bundle.PhrasingTip ?? "");
-            sb.AppendLine();
-            sb.AppendLine(UiLoc.T("ui.writing.ai_section_focus", "【当前素材写法】"));
-            sb.AppendLine(bundle.FocusedCardWording ?? "");
-            sb.AppendLine();
-            sb.AppendLine(UiLoc.T("ui.writing.ai_section_draft", "【草稿预览】"));
-            sb.AppendLine(bundle.DraftArticle ?? "");
-            if (!string.IsNullOrEmpty(bundle.ProviderNote) && bundle.ProviderNote.IndexOf("llm") >= 0)
-            {
-                sb.AppendLine();
-                sb.AppendLine(UiLoc.T("ui.writing.ai_llm_ready_note",
-                    "（已配置 API Key：可点「润色草稿」仅改写表达，不会新增事实。）"));
-            }
-            else
-            {
-                sb.AppendLine();
-                sb.AppendLine(UiLoc.T("ui.writing.ai_rule_note",
-                    "（当前为规则模板建议，离线可用。真实 LLM 润色需配置 STREETCAT_LLM_API_KEY。）"));
-            }
-            return sb.ToString();
-        }
-
-        void OnWritingAssistApplyClicked()
-        {
-            if (writingAssistPending == null || writingAssistPending.SuggestedMaterialIds.Count == 0)
-            {
-                if (writingStatusHint != null)
-                    writingStatusHint.text = UiLoc.T("ui.writing.ai_select_empty", "（暂无可用素材）");
-                return;
-            }
-
-            if (selectedMats.Count > 0 && !SelectionEquals(selectedMats, writingAssistPending.SuggestedMaterialIds))
-            {
-                SetWritingAssistConfirmMode(true);
-                if (writingAssistBody != null)
-                {
-                    writingAssistBody.text = string.Format(
-                        UiLoc.T("ui.writing.ai_confirm_body",
-                            "将用建议选材（{0} 张）替换你当前已选的 {1} 张素材。\n\n确认后可继续改选；不会自动提交审核。\n\n建议：{2}"),
-                        writingAssistPending.SuggestedMaterialIds.Count,
-                        selectedMats.Count,
-                        string.Join(", ", writingAssistPending.SuggestedMaterialIds));
-                }
-                return;
-            }
-
-            ApplyWritingAssistSelection();
-        }
-
-        void OnWritingAssistConfirmReplace() => ApplyWritingAssistSelection();
-
-        void OnWritingAssistCancelConfirm()
-        {
-            SetWritingAssistConfirmMode(false);
-            if (writingAssistPending != null && writingAssistBody != null)
-                writingAssistBody.text = FormatWritingAssistBody(writingAssistPending);
-        }
-
-        void ApplyWritingAssistSelection()
-        {
-            if (writingAssistPending == null) return;
-            selectedMats.Clear();
-            foreach (var id in writingAssistPending.SuggestedMaterialIds)
-            {
-                if (selectedMats.Count >= WritingMaxSelect) break;
-                if (string.IsNullOrEmpty(id)) continue;
-                if (GameState.Instance == null || !GameState.Instance.Data.unlockedMaterials.Contains(id))
-                    continue;
-                if (!selectedMats.Contains(id))
-                    selectedMats.Add(id);
-            }
-
-            // Safe phrasing defaults (player can still change on the phrasing screens).
-            phrasingA = writingAssistPending.SuggestedPhrasingA;
-            phrasingB = writingAssistPending.SuggestedPhrasingB;
-
-            SetWritingAssistConfirmMode(false);
-            CloseWritingAssistPanel();
-            RefreshWritingMaterialsBoard();
-            if (writingStatusHint != null)
-                writingStatusHint.text = UiLoc.T("ui.writing.ai_applied", "已应用建议选材，可继续改选或预览。");
-        }
-
-        void OnWritingAssistPolishClicked()
-        {
-            if (writingAssistPending == null || string.IsNullOrEmpty(writingAssistPending.DraftArticle))
-                return;
-            var llm = LlmClient.Instance;
-            if (llm == null || !llm.IsConfigured)
-            {
-                if (writingAssistBody != null)
-                    writingAssistBody.text = FormatWritingAssistBody(writingAssistPending) + "\n\n"
-                        + UiLoc.T("ui.writing.ai_polish_need_key",
-                            "未配置 API Key。菜单：StreetCat/LLM/Paste API Key，或环境变量 STREETCAT_LLM_API_KEY。");
-                return;
-            }
-
-            if (writingAssistPolishCo != null)
-                StopCoroutine(writingAssistPolishCo);
-            writingAssistPolishCo = StartCoroutine(WritingAssistPolishCo());
-        }
-
-        IEnumerator WritingAssistPolishCo()
-        {
-            if (writingAssistBody != null)
-                writingAssistBody.text = UiLoc.T("ui.writing.ai_polishing", "正在润色草稿…");
-            if (writingAssistPolishBtn != null) writingAssistPolishBtn.interactable = false;
-
-            string polished = null;
-            yield return LlmWritingAiAssistStub.PolishDraftCoroutine(
-                writingAssistPending?.DraftArticle,
-                text => polished = text);
-
-            if (writingAssistPolishBtn != null)
-                writingAssistPolishBtn.interactable = LlmClient.Instance != null && LlmClient.Instance.IsConfigured;
-
-            if (!string.IsNullOrEmpty(polished) && writingAssistPending != null)
-            {
-                writingAssistPending.DraftArticle = polished;
-                if (writingAssistBody != null)
-                    writingAssistBody.text = FormatWritingAssistBody(writingAssistPending) + "\n\n"
-                        + UiLoc.T("ui.writing.ai_polish_done", "（已润色：仅改写表达，请核对后自行决定是否采用选材。）");
-            }
-            else if (writingAssistPending != null && writingAssistBody != null)
-            {
-                var err = LlmClient.Instance != null ? LlmClient.Instance.LastError : null;
-                writingAssistBody.text = FormatWritingAssistBody(writingAssistPending) + "\n\n"
-                    + UiLoc.T("ui.writing.ai_polish_fail", "润色未成功，仍保留规则草稿。")
-                    + (string.IsNullOrEmpty(err) ? "" : "\n" + err);
-            }
-
-            writingAssistPolishCo = null;
-        }
-
-        void CloseWritingAssistPanel()
-        {
-            if (writingAssistPolishCo != null)
-            {
-                StopCoroutine(writingAssistPolishCo);
-                writingAssistPolishCo = null;
-            }
-            writingAssistAwaitConfirm = false;
-            SetWritingAssistConfirmMode(false);
-            if (writingAssistRoot != null) writingAssistRoot.SetActive(false);
-        }
-
-        static bool SelectionEquals(List<string> a, List<string> b)
-        {
-            if (a == null || b == null) return a == b;
-            if (a.Count != b.Count) return false;
-            var set = new HashSet<string>(a);
-            foreach (var id in b)
-                if (!set.Contains(id)) return false;
-            return true;
-        }
-
-        /// <summary>Editor / debug: peek assist for current corkboard state.</summary>
-        public WritingAssistBundle DebugPeekWritingAssist()
-        {
-            var ctx = WritingAiAssistService.BuildContext(
-                pendingDir, selectedMats, writingFocusMatId, writingFocusParagraph);
-            return WritingAiAssistService.Suggest(ctx);
         }
 
         Button SpawnWritingActionButton(Transform parent, string name, string label, Color bg,
@@ -1015,7 +689,6 @@ namespace StreetCat.UI
             if (advanceCatcher != null) advanceCatcher.gameObject.SetActive(false);
             ClearButtons();
             if (writingPreviewRoot) writingPreviewRoot.SetActive(false);
-            CloseWritingAssistPanel();
             writingMatsRoot.SetActive(true);
             writingMatsRoot.transform.SetAsLastSibling();
             BringOverlayStackToFront();
@@ -1027,7 +700,6 @@ namespace StreetCat.UI
         {
             if (writingMatsRoot != null) writingMatsRoot.SetActive(false);
             if (writingPreviewRoot != null) writingPreviewRoot.SetActive(false);
-            CloseWritingAssistPanel();
         }
 
         void RefreshWritingMatsLocalizedChrome()
@@ -1077,15 +749,21 @@ namespace StreetCat.UI
 
             if (writingStatusHint != null)
             {
-                int unlocked = gs.Data.unlockedMaterials.Count;
-                if (unlocked < WritingMinSelect)
-                    writingStatusHint.text = UiLoc.T("ui.writing.hint_need_unlock", "已解锁素材不足 8 张，可返回采访补齐。");
-                else if (selected < WritingMinSelect)
-                    writingStatusHint.text = UiLoc.T("ui.writing.hint_need_select", "至少选 8 张才能成稿。必须包含「回到槐安社区」。");
-                else if (!selectedMats.Contains(MaterialIds.M13))
-                    writingStatusHint.text = UiLoc.T("ui.writing.hint_need_m13", "必须包含素材「回到槐安社区」。");
+                var assembler = new ArticleAssembler();
+                if (assembler.CanAssemble(pendingDir, selectedMats, out _))
+                {
+                    writingStatusHint.text = UiLoc.T("ui.writing.hint_ready",
+                        "四段都有素材了。可以前往写稿——成稿会按你选的卡生成。");
+                }
                 else
-                    writingStatusHint.text = UiLoc.T("ui.writing.hint_ready", "选材就绪。可预览文章，或前往写稿选关键表述。");
+                {
+                    ArticleAssembler.CountParagraphCoverage(selectedMats, out int p1, out int p2, out int p3, out int p4);
+                    int covered = (p1 > 0 ? 1 : 0) + (p2 > 0 ? 1 : 0) + (p3 > 0 ? 1 : 0) + (p4 > 0 ? 1 : 0);
+                    writingStatusHint.text = string.Format(
+                        UiLoc.T("ui.writing.hint_need_paras",
+                            "成稿只需段落 01～04 各有至少一张素材（不强制指定某张卡）。已覆盖 {0}/4 段。"),
+                        covered);
+                }
             }
 
             if (writingReInterviewBtn != null)
@@ -1408,33 +1086,13 @@ namespace StreetCat.UI
 
         void OnWritingPreviewArticle()
         {
-            if (writingPreviewRoot == null || writingPreviewBody == null) return;
-            if (!assembler.CanAssemble(pendingDir, selectedMats, out var err))
-            {
-                writingPreviewRoot.SetActive(true);
-                writingPreviewBody.text = UiLoc.T("ui.writing.preview_blocked", "现在还不能预览成稿。")
-                    + "\n\n" + err;
-                writingPreviewRoot.transform.SetAsLastSibling();
-                return;
-            }
-
-            // Preview uses safe phrasing defaults (does not commit choices).
-            assembler.Assemble(pendingDir, selectedMats, 1, 1);
-            writingPreviewBody.text = assembler.Body
-                + "\n\n—— "
-                + UiLoc.T("ui.writing.preview_note", "（预览使用稳妥表述；正式写稿时仍可调整关键措辞）");
-            writingPreviewRoot.SetActive(true);
-            writingPreviewRoot.transform.SetAsLastSibling();
+            // Preview button removed from player UI; desk is the editable 成稿 surface.
         }
 
-        void OnWritingGoToPhrasing()
+        void OnWritingGoToDesk()
         {
-            writingMatsActive = false;
-            HideWritingMaterialsBoard();
-            if (dialoguePanel != null) dialoguePanel.gameObject.SetActive(true);
-            if (buttonRoot != null) buttonRoot.gameObject.SetActive(true);
-            SetChrome(true, false, true);
-            ShowPhrasing();
+            // Newspaper desk — direction + materials summary + live draft + submit.
+            ShowWritingDesk();
         }
 
         static Color ColorForMaterialType(MaterialType type, int visualIndex)
@@ -1508,6 +1166,7 @@ namespace StreetCat.UI
             SetInterviewChrome(false);
             inputField.gameObject.SetActive(false);
             HideWritingMaterialsBoard();
+            HideWritingDesk();
             writingMatsActive = false;
             SetChrome(true, false, true);
             stageHint.text = "写稿";
@@ -1535,6 +1194,7 @@ namespace StreetCat.UI
         {
             writingMatsActive = false;
             HideWritingMaterialsBoard();
+            HideWritingDesk();
             if (dialoguePanel != null && mode == Mode.Writing)
                 dialoguePanel.gameObject.SetActive(true);
             if (buttonRoot != null && mode == Mode.Writing)
@@ -1572,45 +1232,16 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             if (inputField) inputField.gameObject.SetActive(false);
+            HideWritingDesk();
             ShowWritingMaterialsBoard();
-        }
-
-        void ShowPhrasing()
-        {
-            writingMatsActive = false;
-            HideWritingMaterialsBoard();
-            SetSpeaker("系统", LineSpeaker.System);
-            SetBody("关键表述只在对应素材被选入时生效，将直接影响沈禾对事实严谨度的审核。\n\n"
-                + "01｜麻绳来源\n"
-                + "A. 疑似人为虐待，麻绳被故意勒上（推测写成事实）\n"
-                + "B. 无人目睹，无法确认是否人为伤害\n\n"
-                + "02｜康复后的去向\n"
-                + "A. 把大福扔回了外面（误导性措辞）\n"
-                + "B. 送回槐安社区，并确认有人继续照料");
-            ClearButtons();
-            AddChoice("麻绳｜A 故意勒伤（风险）", () => { phrasingA = 0; ShowPhrasingRelease(); });
-            AddChoice("麻绳｜B 无法确认（稳妥）", () => { phrasingA = 1; ShowPhrasingRelease(); });
-            AddAction("返回改选材", ShowMaterialPick);
-            AddReInterviewActions(false);
-        }
-
-        void ShowPhrasingRelease()
-        {
-            HideWritingMaterialsBoard();
-            SetSpeaker("系统", LineSpeaker.System);
-            SetBody("再选康复后去向表述：\n\n"
-                + "A. 把大福扔回了外面（误导）\n"
-                + "B. 送回槐安社区，并确认有人继续照料（稳妥）");
-            ClearButtons();
-            AddChoice("放归｜A 扔回外面（风险）", () => { phrasingB = 0; GenerateArticle(); });
-            AddChoice("放归｜B 送回社区（稳妥）", () => { phrasingB = 1; GenerateArticle(); });
-            AddAction("返回上一步", ShowPhrasing);
-            AddAction("返回改选材", ShowMaterialPick);
         }
 
         void GenerateArticle()
         {
             HideWritingMaterialsBoard();
+            // Preserve player edits from the desk input before tearing the overlay down.
+            SyncWritingDeskDraftToAssembler();
+            HideWritingDesk();
             if (!assembler.CanAssemble(pendingDir, selectedMats, out var err))
             {
                 SetSpeaker("沈禾", LineSpeaker.Character, "认真");
@@ -1623,21 +1254,54 @@ namespace StreetCat.UI
                 AddAction("笔记", OpenNotebook);
                 return;
             }
-            assembler.Assemble(pendingDir, selectedMats, phrasingA, phrasingB);
+
+            if (writingPolishCo != null)
+            {
+                StopCoroutine(writingPolishCo);
+                writingPolishCo = null;
+            }
+
+            // Keep edited/polished body — only Assemble when body is empty.
+            if (string.IsNullOrWhiteSpace(assembler.Body))
+                assembler.Assemble(pendingDir, selectedMats);
+
             GameState.Instance.Data.writingDirection = (int)pendingDir;
             GameState.Instance.Data.selectedMaterials = new List<string>(selectedMats);
             GameState.Instance.Data.lastArticleTitle = assembler.Title;
             GameState.Instance.Data.lastArticleBody = assembler.Body;
-            GameState.Instance.Data.lastReviewScore = assembler.Score;
+
             SetStageBackground("沈禾办公室_上午");
             BgmController.Instance?.PlayScriptLabel("编辑部日常_01（循环）");
+            SetSpeaker("沈禾", LineSpeaker.Character, "认真");
+            // Body already edited on the desk — do not re-dump the full article here.
+            SetBody("稿件已提交。正在送审…");
+            statusText.text = "审核中…";
+            ClearButtons();
+            writingMatsActive = false;
+
+            if (writingReviewCo != null)
+                StopCoroutine(writingReviewCo);
+            // Expand/polish is desk-button only — review never auto-expands.
+            writingReviewCo = StartCoroutine(GenerateArticleReviewCo());
+        }
+
+        System.Collections.IEnumerator GenerateArticleReviewCo()
+        {
+            yield return ArticleReviewAi.ReviewCoroutine(
+                assembler, pendingDir, selectedMats, null, skipExpand: true);
+
+            GameState.Instance.Data.lastReviewScore = assembler.Score;
+            GameState.Instance.Data.lastArticleBody = assembler.Body;
+            GameState.Instance.Data.lastArticleTitle = assembler.Title;
+
             SetSpeaker("沈禾", LineSpeaker.Character, assembler.CanPublish ? "淡淡认可" : "认真");
-            SetBody("稿件已提交。\n\n" + assembler.Body + "\n\n—— 沈禾审核 ——\n" + assembler.ReviewText);
+            // Review / score only — full article stays on the writing desk.
+            SetBody("—— 沈禾审核 ——\n" + assembler.ReviewText
+                    + "\n\n评分　" + assembler.Score);
             statusText.text = assembler.CanPublish
                 ? $"审核通过　{assembler.Score}"
                 : $"审核退回　分支{assembler.ReviewBranch}";
             ClearButtons();
-            writingMatsActive = false;
             if (assembler.CanPublish)
                 AddAction("确认发布", () => ChapterFlowController.Instance.OnArticlePublished(), true);
             else
@@ -1647,6 +1311,7 @@ namespace StreetCat.UI
                 AddReInterviewActions(true);
             }
             AddAction("重选立意", ShowWritingDirectionPick);
+            writingReviewCo = null;
         }
 
         /// <summary>
@@ -1707,7 +1372,9 @@ namespace StreetCat.UI
 
         void ResumeWritingMode()
         {
-            if (writingMatsActive)
+            if (writingDeskActive)
+                ShowWritingDesk();
+            else if (writingMatsActive)
                 ShowMaterialPick();
             else
                 ShowWritingDirectionPick();

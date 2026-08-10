@@ -169,6 +169,7 @@ namespace StreetCat.Loc
                 sfx = src.sfx,
                 prop = src.prop,
                 hideProp = src.hideProp,
+                social = src.social,
                 setFlag = src.setFlag,
                 grantIntel = src.grantIntel,
                 noteLine = src.noteLine,

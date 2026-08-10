@@ -110,41 +110,65 @@ namespace StreetCat.Writing
         public string Body { get; private set; }
         public int Score { get; private set; }
         public string ReviewText { get; private set; }
-        /// <summary>A=pass, B=theme, C=missing facts, D=speculation, E=dumping wording, F=source mix.</summary>
+        /// <summary>A=pass, B=theme mismatch (soft heuristic). Legacy D/E phrasing branches unused.</summary>
         public string ReviewBranch { get; private set; } = "A";
 
         public bool CanAssemble(WritingDirection dir, List<string> selected, out string error)
         {
             error = null;
-            if (selected == null || selected.Count < 8 || selected.Count > 10)
+            if (selected == null || selected.Count == 0)
             {
-                error = "请选择 8～10 张素材卡。";
+                error = "请先为四个段落各选至少一张素材卡。";
                 return false;
             }
-            if (!selected.Contains(MaterialIds.M13))
+            if (selected.Count > 10)
             {
-                error = "必须包含素材「回到槐安社区」。";
+                error = "素材卡最多选择 10 张。";
                 return false;
             }
 
-            int a = 0, b = 0, c = 0, d = 0;
+            // Soft requirement only: paragraphs 01–04 each need ≥1 card.
+            CountParagraphCoverage(selected, out int p1, out int p2, out int p3, out int p4);
+            if (p1 < 1) { error = "段落 01「现在的大福」还没有素材。"; return false; }
+            if (p2 < 1) { error = "段落 02「受伤与救助」还没有素材。"; return false; }
+            if (p3 < 1) { error = "段落 03「治疗与抉择」还没有素材。"; return false; }
+            if (p4 < 1) { error = "段落 04「回到社区」还没有素材。"; return false; }
+            return true;
+        }
+
+        /// <summary>
+        /// Paragraph buckets used by the corkboard UI:
+        /// 01 present life / after return · 02 past injury · 03 rescue/treatment · 04 release.
+        /// </summary>
+        public static void CountParagraphCoverage(List<string> selected, out int p1, out int p2, out int p3, out int p4)
+        {
+            p1 = p2 = p3 = p4 = 0;
+            if (selected == null) return;
             foreach (var id in selected)
             {
                 var m = MaterialCatalog.Get(id);
                 if (m == null) continue;
-                if (m.stage == ArticleStage.A_PresentLife || m.stage == ArticleStage.E_AfterReturn) a++;
-                if (m.stage == ArticleStage.B_PastInjury) b++;
-                if (m.stage == ArticleStage.C_RescueTreatment) c++;
-                if (m.stage == ArticleStage.D_Release) d++;
+                switch (m.stage)
+                {
+                    case ArticleStage.A_PresentLife:
+                    case ArticleStage.E_AfterReturn:
+                        p1++;
+                        break;
+                    case ArticleStage.B_PastInjury:
+                        p2++;
+                        break;
+                    case ArticleStage.C_RescueTreatment:
+                        p3++;
+                        break;
+                    case ArticleStage.D_Release:
+                        p4++;
+                        break;
+                }
             }
-            if (a < 1) { error = "至少需要 1 张「现在的生活」相关素材。"; return false; }
-            if (b < 1) { error = "至少需要 1 张「过去与伤势」相关素材。"; return false; }
-            if (c < 2) { error = "至少需要 2 张「救助与治疗」相关素材。"; return false; }
-            if (d < 1) { error = "至少需要 1 张「未收养与放归」相关素材。"; return false; }
-            return true;
         }
 
-        public void Assemble(WritingDirection dir, List<string> selected, int phrasingA, int phrasingB)
+        /// <summary>Build article from direction + selected materials, then apply offline rule review.</summary>
+        public void Assemble(WritingDirection dir, List<string> selected)
         {
             Title = dir == WritingDirection.GuardCatToday ? "《大福今天也在上班》" : "《救下一只猫以后》";
             var sb = new StringBuilder();
@@ -153,48 +177,138 @@ namespace StreetCat.Writing
 
             if (dir == WritingDirection.GuardCatToday)
             {
-                sb.AppendLine("【现在的大福】");
-                AppendStage(sb, selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
-                sb.AppendLine();
-                sb.AppendLine("【过去】");
-                AppendStage(sb, selected, dir, ArticleStage.B_PastInjury);
-                sb.AppendLine();
-                sb.AppendLine("【救助】");
-                AppendStage(sb, selected, dir, ArticleStage.C_RescueTreatment);
-                sb.AppendLine();
-                sb.AppendLine("【放归之后】");
-                AppendStage(sb, selected, dir, ArticleStage.D_Release);
-                AppendStage(sb, selected, dir, ArticleStage.E_AfterReturn);
+                AppendNamedStage(sb, "【现在的大福】", selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
+                AppendNamedStage(sb, "【过去】", selected, dir, ArticleStage.B_PastInjury);
+                AppendNamedStage(sb, "【救助】", selected, dir, ArticleStage.C_RescueTreatment);
+                AppendNamedStage(sb, "【放归之后】", selected, dir, ArticleStage.D_Release, ArticleStage.E_AfterReturn);
             }
             else
             {
-                sb.AppendLine("【发现】");
-                AppendStage(sb, selected, dir, ArticleStage.B_PastInjury);
-                sb.AppendLine();
-                sb.AppendLine("【接近与治疗】");
-                AppendStage(sb, selected, dir, ArticleStage.C_RescueTreatment);
-                sb.AppendLine();
-                sb.AppendLine("【为什么没有收养】");
-                AppendStage(sb, selected, dir, ArticleStage.D_Release);
-                sb.AppendLine();
-                sb.AppendLine("【回到社区】");
-                AppendStage(sb, selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
+                AppendNamedStage(sb, "【发现】", selected, dir, ArticleStage.B_PastInjury);
+                AppendNamedStage(sb, "【接近与治疗】", selected, dir, ArticleStage.C_RescueTreatment);
+                AppendNamedStage(sb, "【为什么没有收养】", selected, dir, ArticleStage.D_Release);
+                AppendNamedStage(sb, "【回到社区】", selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
             }
 
-            // phrasingA: 0 = 推测写成事实(退回D), 1 = 无法确认(通过)
-            // phrasingB: 0 = 扔回外面(退回E), 1 = 送回社区(通过)
-            if (phrasingA == 0)
-                sb.AppendLine("\n（表述）大福疑似遭到人为虐待，一根麻绳被故意勒在它的脖子上。");
-            else
-                sb.AppendLine("\n（表述）没人看到麻绳是如何套上大福脖子的，目前无法确认是否存在人为伤害。");
-
-            if (phrasingB == 0)
-                sb.AppendLine("（表述）治疗结束后，林女士最终还是把大福扔回了外面。");
-            else
-                sb.AppendLine("（表述）大福康复后，林女士将它送回原本活动的槐安社区；当时社区已有固定投喂点，也有人继续照料。");
-
             Body = sb.ToString();
-            ScoreAndReview(dir, selected, phrasingA, phrasingB);
+            ApplyRuleReview(dir, selected);
+        }
+
+        /// <summary>Overwrite review fields (AI or rule). Does not change Title/Body.</summary>
+        public void ApplyReview(int score, string branch, string reviewText)
+        {
+            Score = Mathf.Clamp(score, 0, 100);
+            ReviewBranch = string.IsNullOrWhiteSpace(branch) ? "A" : branch.Trim();
+            ReviewText = reviewText ?? "";
+        }
+
+        /// <summary>Replace body after AI / offline expansion (keeps Title).</summary>
+        public void ReplaceBody(string body)
+        {
+            Body = body ?? "";
+        }
+
+        /// <summary>
+        /// Offline fallback: stricter than a rubber stamp — reject thin / mismatched picks.
+        /// Pass bar is Score ≥ 70 with branch A.
+        /// </summary>
+        public void ApplyRuleReview(WritingDirection dir, List<string> selected)
+        {
+            int present = 0, injury = 0, rescueFocus = 0, release = 0;
+            int count = selected?.Count ?? 0;
+            if (selected != null)
+            {
+                foreach (var id in selected)
+                {
+                    var m = MaterialCatalog.Get(id);
+                    if (m == null) continue;
+                    if (m.stage == ArticleStage.A_PresentLife || m.stage == ArticleStage.E_AfterReturn) present++;
+                    if (m.stage == ArticleStage.B_PastInjury) injury++;
+                    if (m.stage == ArticleStage.C_RescueTreatment) rescueFocus++;
+                    if (m.stage == ArticleStage.D_Release) release++;
+                }
+            }
+
+            int chars = ArticleDraftAi.CountContentChars(Body);
+
+            if (count < 5)
+            {
+                ApplyReview(45, "C", BuildRejectReview("选材过少",
+                    "就这几张卡撑不起一篇特稿。读者读完只会觉得「知道有只猫」，不知道发生过什么。",
+                    "每个段落再补材料，尤其是治疗过程与放归理由。"));
+                return;
+            }
+
+            if (chars < 800)
+            {
+                ApplyReview(48, "C", BuildRejectReview("篇幅与展开不足",
+                    "稿子太薄。关键节点一笔带过，没有把现场、过程、后果写清楚。",
+                    "按四个段落把已选素材展开写满，总篇幅至少接近一千字。"));
+                return;
+            }
+
+            if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus + 1 && release < 1)
+            {
+                ApplyReview(52, "B", BuildRejectReview("选材与立意不匹配",
+                    "你选的是救助线，却几乎没写出「为什么没收养 / 如何放归」。",
+                    "补放归与限制类素材，或改成立意「大福今天也在上班」。"));
+                return;
+            }
+
+            if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus + 2)
+            {
+                ApplyReview(52, "B", BuildRejectReview("选材与立意不匹配",
+                    "大半篇幅都在写现在怎么上班、怎么晒太阳，救助主线被挤没了。",
+                    "调整写作方向或重选更匹配的素材。"));
+                return;
+            }
+
+            if (dir == WritingDirection.GuardCatToday && rescueFocus >= present + 2 && present < 1)
+            {
+                ApplyReview(52, "B", BuildRejectReview("选材与立意不匹配",
+                    "标题写日常变化，正文却几乎只有救助账本，读者看不到「今天的大福」。",
+                    "补现在的生活/社区照料类素材，或改救助立意。"));
+                return;
+            }
+
+            if (injury < 1 || rescueFocus < 1)
+            {
+                ApplyReview(50, "C", BuildRejectReview("关键事实链断裂",
+                    "伤势与救助至少各要站住。缺一块，读者会在逻辑上跳戏。",
+                    "回去补访或改选对应段落素材。"));
+                return;
+            }
+
+            int score = 78;
+            if (selected != null)
+            {
+                if (selected.Contains(MaterialIds.M12)) score += 4;
+                if (selected.Contains(MaterialIds.M16)) score += 3;
+                if (chars >= ArticleDraftAi.TargetMinChars) score += 4;
+                if (count >= 7) score += 3;
+            }
+            score = Mathf.Clamp(score, 70, 100);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("审核结果——通过");
+            sb.AppendLine();
+            sb.AppendLine("沈禾：看完了。可以发。");
+            sb.AppendLine("结构站住了，事实也没有乱推。不确定的地方没有硬写成结论。");
+            sb.AppendLine("记者不是负责把故事写得更传奇，是负责别把故事写错。");
+            sb.AppendLine("就这样，发吧。");
+            ApplyReview(score, "A", sb.ToString());
+        }
+
+        void AppendNamedStage(StringBuilder sb, string heading, List<string> selected, WritingDirection dir,
+            params ArticleStage[] stages)
+        {
+            int before = sb.Length;
+            var chunk = new StringBuilder();
+            AppendStage(chunk, selected, dir, stages);
+            if (chunk.Length == 0) return;
+            sb.AppendLine(heading);
+            sb.Append(chunk);
+            if (sb.Length > before) sb.AppendLine();
         }
 
         void AppendStage(StringBuilder sb, List<string> selected, WritingDirection dir, params ArticleStage[] stages)
@@ -215,85 +329,6 @@ namespace StreetCat.Writing
             }
         }
 
-        void ScoreAndReview(WritingDirection dir, List<string> selected, int phrasingA, int phrasingB)
-        {
-            // Priority (SC-10 script): fact/misleading first, then missing info / theme drift.
-            if (phrasingA == 0)
-            {
-                ReviewBranch = "D";
-                Score = 48;
-                ReviewText = BuildRejectReview("将推测写成事实",
-                    "「有人故意用麻绳勒伤它」——没人看到麻绳怎么套上去，不能把猜测换成句号。",
-                    "将未确认信息恢复为「无法确认」或删除无依据的因果判断。");
-                return;
-            }
-
-            if (phrasingB == 0)
-            {
-                ReviewBranch = "E";
-                Score = 50;
-                ReviewText = BuildRejectReview("放归措辞误导",
-                    "「把大福扔回了外面」已经替读者下了结论。事实是送回原活动区域，且确认过有人继续投喂。",
-                    "修改对「放归」的误导性措辞，保持与已确认事实一致。");
-                return;
-            }
-
-            // 重要治疗 / 放归事实断层
-            if (!selected.Contains(MaterialIds.M07) || !selected.Contains(MaterialIds.M08))
-            {
-                ReviewBranch = "C";
-                Score = 55;
-                ReviewText = BuildRejectReview("重要事实不足",
-                    "大福从脖子受伤直接跳到回社区，中间怎么治疗几乎没交代。已经问到的补进素材；没问到的回去补访。",
-                    "补充关键事实；若对应素材尚未解锁，可返回采访阶段继续核实。");
-                return;
-            }
-
-            int present = 0, rescueFocus = 0;
-            foreach (var id in selected)
-            {
-                var m = MaterialCatalog.Get(id);
-                if (m == null) continue;
-                if (m.stage == ArticleStage.A_PresentLife || m.stage == ArticleStage.E_AfterReturn) present++;
-                if (m.stage == ArticleStage.C_RescueTreatment || m.stage == ArticleStage.D_Release) rescueFocus++;
-            }
-
-            if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus)
-            {
-                ReviewBranch = "B";
-                Score = 58;
-                ReviewText = BuildRejectReview("选材与立意不匹配",
-                    "你选的是「救下一只猫以后」，但大半篇幅都在写大福现在怎么上班、怎么晒太阳。先想清楚要写变化还是写这场救助。",
-                    "调整写作方向或重新选择更匹配的素材。");
-                return;
-            }
-
-            if (dir == WritingDirection.GuardCatToday && rescueFocus >= present + 2 && !selected.Contains(MaterialIds.M01))
-            {
-                ReviewBranch = "B";
-                Score = 58;
-                ReviewText = BuildRejectReview("选材与立意不匹配",
-                    "标题写的是大福的日常变化，但选材几乎都在讲救助与放归。想清楚你到底要写哪一条线。",
-                    "调整写作方向或重新选择更匹配的素材。");
-                return;
-            }
-
-            ReviewBranch = "A";
-            Score = 88;
-            if (selected.Contains(MaterialIds.M12)) Score += 4;
-            if (selected.Contains(MaterialIds.M16)) Score += 3;
-            Score = Mathf.Clamp(Score, 60, 100);
-            var sb = new StringBuilder();
-            sb.AppendLine("审核结果——通过");
-            sb.AppendLine();
-            sb.AppendLine("沈禾：看完了。可以发。");
-            sb.AppendLine("大福记得的部分，你按它的感受写；治疗和放归，你也找到了能确认的人。");
-            sb.AppendLine("该说不知道的地方，没有替它编答案。");
-            sb.AppendLine("记者不是负责把故事写得更传奇，是负责别把故事写错。");
-            sb.AppendLine("就这样，发吧。");
-            ReviewText = sb.ToString();
-        }
-
         static string BuildRejectReview(string title, string detail, string advice)
         {
             var sb = new StringBuilder();
@@ -306,6 +341,6 @@ namespace StreetCat.Writing
             return sb.ToString();
         }
 
-        public bool CanPublish => ReviewBranch == "A" && Score >= 60;
+        public bool CanPublish => ReviewBranch == "A" && Score >= 70;
     }
 }

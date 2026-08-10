@@ -38,13 +38,15 @@ namespace StreetCat.Writing
             }
 
             var style =
-                "你是《街角专访》的写稿助手。只润色记者成稿的文笔，禁止新增事实、人名、数字或因果。"
-                + "保留原有段落标题与「（表述）」行。只输出润色后的全文。";
+                "你是《街角专访》的写稿助手。在不新增事实、人名、数字或因果的前提下，把特稿写得更充实："
+                + "总字数（不计空白）尽量达到 " + ArticleDraftAi.TargetMinChars + " 字以上；"
+                + "保留小标题；补场景过渡与叙述节奏，但每句都必须能从原稿事实推出。"
+                + "只输出成稿全文。";
             var facts = new StringBuilder();
             facts.AppendLine("【权威台词/事实】");
             facts.AppendLine(draft.Trim());
             facts.AppendLine();
-            facts.AppendLine("只改写表达，禁止新增信息。只输出润色后的报道全文。");
+            facts.AppendLine("在事实边界内扩写至充实特稿。只输出全文。");
 
             string polished = null;
             yield return llm.RephraseCoroutine(style, facts.ToString(), "", text => polished = text);
