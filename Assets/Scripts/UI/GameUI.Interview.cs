@@ -10,6 +10,7 @@ using StreetCat.Narrative;
 using StreetCat.Notebook;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -44,15 +45,15 @@ namespace StreetCat.UI
         Image[] interviewTrustSegs;
         Image[] interviewStressSegs;
         Image[] interviewFocusSegs;
-        Text interviewTrustLabel;
-        Text interviewStressLabel;
-        Text interviewFocusLabel;
-        Text interviewTrustValue;
-        Text interviewStressValue;
-        Text interviewFocusValue;
-        Text interviewMeterCaption;
+        TextMeshProUGUI interviewTrustLabel;
+        TextMeshProUGUI interviewStressLabel;
+        TextMeshProUGUI interviewFocusLabel;
+        TextMeshProUGUI interviewTrustValue;
+        TextMeshProUGUI interviewStressValue;
+        TextMeshProUGUI interviewFocusValue;
+        TextMeshProUGUI interviewMeterCaption;
         Image interviewSendBtnImage;
-        Text interviewCoachTipText;
+        TextMeshProUGUI interviewCoachTipText;
 
         void BuildInterviewOverlay(Transform parent)
         {
@@ -139,7 +140,7 @@ namespace StreetCat.UI
         }
 
         Image[] BuildMeterRow(Transform parent, string name, int row, Color fill,
-            out Text labelTx, out Text valueTx)
+            out TextMeshProUGUI labelTx, out TextMeshProUGUI valueTx)
         {
             float top = 0.92f - row * 0.26f;
             float bot = top - 0.22f;
@@ -159,18 +160,18 @@ namespace StreetCat.UI
                 Vector2.zero, Vector2.zero);
             Stretch(labelTx.rectTransform, new Vector2(0.07f, 0.42f), new Vector2(0.58f, 1f),
                 Vector2.zero, Vector2.zero);
-            labelTx.fontStyle = FontStyle.Bold;
-            labelTx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            labelTx.verticalOverflow = VerticalWrapMode.Overflow;
+            labelTx.fontStyle = FontStyles.Bold;
+            labelTx.enableWordWrapping = false;
+            labelTx.overflowMode = TextOverflowModes.Overflow;
             labelTx.raycastTarget = false;
 
             valueTx = CreateUiText(rowGo.transform, "Value", 14, TextAnchor.MiddleRight, fill,
                 Vector2.zero, Vector2.zero);
             Stretch(valueTx.rectTransform, new Vector2(0.58f, 0.42f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
-            valueTx.fontStyle = FontStyle.Bold;
-            valueTx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            valueTx.verticalOverflow = VerticalWrapMode.Overflow;
+            valueTx.fontStyle = FontStyles.Bold;
+            valueTx.enableWordWrapping = false;
+            valueTx.overflowMode = TextOverflowModes.Overflow;
             valueTx.raycastTarget = false;
             valueTx.text = "—";
 
@@ -253,8 +254,8 @@ namespace StreetCat.UI
             Stretch(interviewCoachTipText.rectTransform, new Vector2(0.04f, 0.78f), new Vector2(0.96f, 0.90f),
                 Vector2.zero, Vector2.zero);
             interviewCoachTipText.text = "";
-            interviewCoachTipText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            interviewCoachTipText.verticalOverflow = VerticalWrapMode.Truncate;
+            interviewCoachTipText.enableWordWrapping = true;
+            interviewCoachTipText.overflowMode = TextOverflowModes.Truncate;
             interviewCoachTipText.raycastTarget = false;
 
             var shadow = CreateImage(stack.transform, "PaperShadow", IvPaperShadow);
@@ -300,7 +301,7 @@ namespace StreetCat.UI
             var tagLabel = CreateUiText(tag.transform, "T", 16, TextAnchor.MiddleCenter, Color.white,
                 Vector2.zero, Vector2.zero);
             StretchFull(tagLabel.rectTransform);
-            tagLabel.fontStyle = FontStyle.Bold;
+            tagLabel.fontStyle = FontStyles.Bold;
             tagLabel.text = UiLoc.T("ui.interview.subject_tag", "受访者");
             interviewSubjectText = tagLabel;
 
@@ -330,16 +331,16 @@ namespace StreetCat.UI
             crt.sizeDelta = Vector2.zero;
             content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            interviewLogText = content.AddComponent<Text>();
+            interviewLogText = content.AddComponent<TextMeshProUGUI>();
             interviewLogText.font = font;
             interviewLogText.fontSize = 22;
             interviewLogText.color = IvInk;
-            interviewLogText.alignment = TextAnchor.UpperLeft;
-            interviewLogText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            interviewLogText.verticalOverflow = VerticalWrapMode.Overflow;
-            interviewLogText.lineSpacing = 1.2f;
+            interviewLogText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            interviewLogText.enableWordWrapping = true;
+            interviewLogText.overflowMode = TextOverflowModes.Overflow;
+            interviewLogText.lineSpacing = 20f;
             interviewLogText.raycastTarget = false;
-            interviewLogText.supportRichText = true;
+            interviewLogText.richText = true;
             ApplyLetterSpacing(interviewLogText, 0f);
 
             interviewScroll.viewport = viewport.rectTransform;
@@ -352,7 +353,7 @@ namespace StreetCat.UI
             iirt.pivot = new Vector2(1f, 0f);
             iirt.anchoredPosition = new Vector2(-64f, 18f);
             iirt.sizeDelta = new Vector2(360f, 40f);
-            interviewInput.lineType = InputField.LineType.SingleLine;
+            interviewInput.lineType = TMP_InputField.LineType.SingleLine;
             interviewInput.GetComponent<Image>().color = IvInputBg;
             if (interviewInput.textComponent != null)
             {
@@ -360,7 +361,7 @@ namespace StreetCat.UI
                 interviewInput.textComponent.fontSize = 18;
                 ApplyLetterSpacing(interviewInput.textComponent, 0f);
             }
-            if (interviewInput.placeholder is Text ph)
+            if (interviewInput.placeholder is TextMeshProUGUI ph)
             {
                 ph.color = new Color(0.45f, 0.42f, 0.38f, 0.65f);
                 ph.fontSize = 17;
@@ -457,10 +458,10 @@ namespace StreetCat.UI
             var tgo = new GameObject("L", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             StretchFull(tgo.GetComponent<RectTransform>());
-            var tx = tgo.AddComponent<Text>();
+            var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
             tx.fontSize = 15;
-            tx.alignment = TextAnchor.MiddleCenter;
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             tx.color = primary ? Color.white : IvInk;
             tx.text = label;
             tx.raycastTarget = false;
@@ -753,7 +754,7 @@ namespace StreetCat.UI
             }
         }
 
-        static void SetMeterValueText(Text valueTx, int? value0to100)
+        static void SetMeterValueText(TextMeshProUGUI valueTx, int? value0to100)
         {
             if (valueTx == null) return;
             valueTx.text = value0to100.HasValue
@@ -875,7 +876,7 @@ namespace StreetCat.UI
 
             interviewInput.gameObject.SetActive(true);
             interviewInput.text = "";
-            if (interviewInput.placeholder is Text ph)
+            if (interviewInput.placeholder is TextMeshProUGUI ph)
             {
                 ph.text = UiLoc.T("ui.interview.input_placeholder", "输入你的问题...");
             }
@@ -1036,15 +1037,15 @@ namespace StreetCat.UI
             tgo.transform.SetParent(go.transform, false);
             Stretch(tgo.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(1f, 1f),
                 new Vector2(42f, 4f), new Vector2(-10f, -4f));
-            var tx = tgo.AddComponent<Text>();
+            var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
             tx.fontSize = 15;
-            tx.alignment = TextAnchor.MiddleLeft;
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
             tx.color = IvInk;
             tx.text = label;
             tx.raycastTarget = false;
-            tx.horizontalOverflow = HorizontalWrapMode.Wrap;
-            tx.verticalOverflow = VerticalWrapMode.Truncate;
+            tx.enableWordWrapping = true;
+            tx.overflowMode = TextOverflowModes.Truncate;
             ApplyLetterSpacing(tx, 0f);
             interviewPresetSpawned.Add(go);
         }
@@ -1097,8 +1098,8 @@ namespace StreetCat.UI
             {
                 interviewLogText.font = font;
                 interviewLogText.fontSize = Mathf.RoundToInt(20f * scale);
-                interviewLogText.alignment = TextAnchor.UpperLeft;
-                interviewLogText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                interviewLogText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+                interviewLogText.enableWordWrapping = true;
                 interviewLogText.color = IvInk;
                 ApplyLetterSpacing(interviewLogText, 0f);
             }
@@ -1120,6 +1121,8 @@ namespace StreetCat.UI
             ApplyMeterValueFont(interviewFocusValue, scale);
             if (interviewInput != null)
             {
+                interviewInput.fontAsset = font;
+                interviewInput.pointSize = Mathf.RoundToInt(17f * scale);
                 if (interviewInput.textComponent != null)
                 {
                     interviewInput.textComponent.font = font;
@@ -1127,7 +1130,7 @@ namespace StreetCat.UI
                     interviewInput.textComponent.color = IvInk;
                     ApplyLetterSpacing(interviewInput.textComponent, 0f);
                 }
-                if (interviewInput.placeholder is Text ph)
+                if (interviewInput.placeholder is TextMeshProUGUI ph)
                 {
                     ph.font = font;
                     ph.fontSize = Mathf.RoundToInt(16f * scale);
@@ -1136,25 +1139,25 @@ namespace StreetCat.UI
             }
         }
 
-        void ApplyMeterLabelFont(Text tx, float scale)
+        void ApplyMeterLabelFont(TextMeshProUGUI tx, float scale)
         {
             if (tx == null) return;
             tx.font = font;
             tx.fontSize = Mathf.RoundToInt(14f * scale);
             tx.color = IvInk;
-            tx.fontStyle = FontStyle.Bold;
-            tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            tx.verticalOverflow = VerticalWrapMode.Overflow;
+            tx.fontStyle = FontStyles.Bold;
+            tx.enableWordWrapping = false;
+            tx.overflowMode = TextOverflowModes.Overflow;
         }
 
-        void ApplyMeterValueFont(Text tx, float scale)
+        void ApplyMeterValueFont(TextMeshProUGUI tx, float scale)
         {
             if (tx == null) return;
             tx.font = font;
             tx.fontSize = Mathf.RoundToInt(14f * scale);
-            tx.fontStyle = FontStyle.Bold;
-            tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            tx.verticalOverflow = VerticalWrapMode.Overflow;
+            tx.fontStyle = FontStyles.Bold;
+            tx.enableWordWrapping = false;
+            tx.overflowMode = TextOverflowModes.Overflow;
         }
     }
 }

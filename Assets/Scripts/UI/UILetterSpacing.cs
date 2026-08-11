@@ -5,9 +5,9 @@ using UnityEngine.UI;
 namespace StreetCat.UI
 {
     /// <summary>
-    /// Extra horizontal spacing between glyphs for Unity UI <see cref="Text"/>.
-    /// Only safe on single-line / Overflow text — wrapping texts must disable this
-    /// (mesh offsets happen after Unity's wrap pass and push glyphs outside the box).
+    /// Legacy letter-spacing mesh hack for Unity UI <see cref="Text"/>.
+    /// Runtime GameUI now uses TextMeshPro <c>characterSpacing</c> via <see cref="VnText.ApplyLetterSpacing"/>.
+    /// Kept for any remaining editor-only / non-migrated Text components.
     /// </summary>
     [RequireComponent(typeof(Text))]
     public class UILetterSpacing : BaseMeshEffect

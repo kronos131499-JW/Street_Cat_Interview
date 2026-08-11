@@ -109,3 +109,7 @@ InitTestScene*.unity*
 /local_secrets/
 *.local.key
 STREETCAT_LLM_API_KEY*
+
+# Docs/art local Node tooling (xlsx image builders)
+/Docs/art/node_modules/
+/Docs/art/package-lock.json

@@ -7,6 +7,7 @@ using StreetCat.Loc;
 using StreetCat.Writing;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -25,25 +26,25 @@ namespace StreetCat.UI
         static readonly Color WdRule = new Color(0.55f, 0.50f, 0.44f, 0.45f);
 
         GameObject writingDeskRoot;
-        Text wdHeadline;
-        Text wdKicker;
-        Text wdDate;
-        Text wdDraftBody;
-        InputField wdDraftInput;
-        Text wdDraftCharCount;
-        Text wdMatsList;
-        Text wdMatsCount;
-        Text wdMatsHint;
-        Text wdSourcesLine;
-        Text wdStatusLines;
+        TextMeshProUGUI wdHeadline;
+        TextMeshProUGUI wdKicker;
+        TextMeshProUGUI wdDate;
+        TextMeshProUGUI wdDraftBody;
+        TMP_InputField wdDraftInput;
+        TextMeshProUGUI wdDraftCharCount;
+        TextMeshProUGUI wdMatsList;
+        TextMeshProUGUI wdMatsCount;
+        TextMeshProUGUI wdMatsHint;
+        TextMeshProUGUI wdSourcesLine;
+        TextMeshProUGUI wdStatusLines;
         Image wdDirGuardBg;
         Image wdDirRescueBg;
-        Text wdDirGuardTx;
-        Text wdDirRescueTx;
+        TextMeshProUGUI wdDirGuardTx;
+        TextMeshProUGUI wdDirRescueTx;
         Button wdSubmitBtn;
-        Text wdSubmitLabel;
+        TextMeshProUGUI wdSubmitLabel;
         Button wdPolishBtn;
-        Text wdPolishLabel;
+        TextMeshProUGUI wdPolishLabel;
         ScrollRect wdDraftScroll;
         bool writingDeskActive;
 
@@ -85,15 +86,15 @@ namespace StreetCat.UI
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(wdHeadline.rectTransform, new Vector2(0f, 0.84f), new Vector2(1f, 0.94f),
                 Vector2.zero, Vector2.zero);
-            wdHeadline.fontStyle = FontStyle.Bold;
-            wdHeadline.horizontalOverflow = HorizontalWrapMode.Wrap;
-            wdHeadline.verticalOverflow = VerticalWrapMode.Truncate;
+            wdHeadline.fontStyle = FontStyles.Bold;
+            wdHeadline.enableWordWrapping = true;
+            wdHeadline.overflowMode = TextOverflowModes.Truncate;
 
             var draftLabel = CreateUiText(left.transform, "DraftLabel", 15, TextAnchor.MiddleLeft,
                 WdNavy, Vector2.zero, Vector2.zero);
             Stretch(draftLabel.rectTransform, new Vector2(0f, 0.795f), new Vector2(0.62f, 0.84f),
                 Vector2.zero, Vector2.zero);
-            draftLabel.fontStyle = FontStyle.Bold;
+            draftLabel.fontStyle = FontStyles.Bold;
             draftLabel.text = UiLoc.T("ui.writing.desk.draft_label", "成稿正文（可编辑）");
             TagLoc(draftLabel, "ui.writing.desk.draft_label");
 
@@ -102,8 +103,8 @@ namespace StreetCat.UI
             Stretch(wdDraftCharCount.rectTransform, new Vector2(0.62f, 0.795f), new Vector2(1f, 0.84f),
                 Vector2.zero, Vector2.zero);
 
-            // Draft scroll row: ScrollRect + InputField content, Scrollbar OUTSIDE viewport
-            // (never covered by InputField). Matches backlog ScrollRect pattern for sizing.
+            // Draft scroll row: ScrollRect + TMP_InputField content, Scrollbar OUTSIDE viewport
+            // (never covered by TMP_InputField). Matches backlog ScrollRect pattern for sizing.
             const float draftScrollbarW = 16f;
             var draftRow = new GameObject("DraftRow", typeof(RectTransform));
             draftRow.transform.SetParent(left.transform, false);
@@ -146,7 +147,7 @@ namespace StreetCat.UI
             crt.anchoredPosition = Vector2.zero;
             crt.sizeDelta = Vector2.zero;
 
-            // InputField IS the scroll content child (same size as Content).
+            // TMP_InputField IS the scroll content child (same size as Content).
             var inputGo = new GameObject("DraftInput", typeof(RectTransform), typeof(Image));
             inputGo.transform.SetParent(content.transform, false);
             var inputRt = inputGo.GetComponent<RectTransform>();
@@ -158,50 +159,57 @@ namespace StreetCat.UI
             // Text: top-stretch width, height = preferred (NOT vertical stretch). Vertical stretch
             // made preferredHeight unreliable vs viewport and left content unscrollable.
             const float draftPad = 8f;
+            var textAreaGo = new GameObject("Text Area", typeof(RectTransform), typeof(RectMask2D));
+            textAreaGo.transform.SetParent(inputGo.transform, false);
+            StretchFull(textAreaGo.GetComponent<RectTransform>());
+
             var textGo = new GameObject("Text", typeof(RectTransform));
-            textGo.transform.SetParent(inputGo.transform, false);
+            textGo.transform.SetParent(textAreaGo.transform, false);
             var textRt = textGo.GetComponent<RectTransform>();
             textRt.anchorMin = new Vector2(0f, 1f);
             textRt.anchorMax = new Vector2(1f, 1f);
             textRt.pivot = new Vector2(0.5f, 1f);
             textRt.anchoredPosition = new Vector2(0f, -draftPad);
             textRt.sizeDelta = new Vector2(-(draftPad * 2f), 40f);
-            wdDraftBody = textGo.AddComponent<Text>();
+            wdDraftBody = textGo.AddComponent<TextMeshProUGUI>();
             wdDraftBody.font = font;
             wdDraftBody.fontSize = 18;
             wdDraftBody.color = WdInk;
-            wdDraftBody.alignment = TextAnchor.UpperLeft;
-            wdDraftBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-            wdDraftBody.verticalOverflow = VerticalWrapMode.Overflow;
-            wdDraftBody.lineSpacing = 1.15f;
-            wdDraftBody.supportRichText = false;
+            wdDraftBody.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            wdDraftBody.enableWordWrapping = true;
+            wdDraftBody.overflowMode = TextOverflowModes.Overflow;
+            wdDraftBody.lineSpacing = 15f;
+            wdDraftBody.richText = false;
             wdDraftBody.raycastTarget = false;
 
             var phGo = new GameObject("Placeholder", typeof(RectTransform));
-            phGo.transform.SetParent(inputGo.transform, false);
+            phGo.transform.SetParent(textAreaGo.transform, false);
             var phRt = phGo.GetComponent<RectTransform>();
             phRt.anchorMin = new Vector2(0f, 1f);
             phRt.anchorMax = new Vector2(1f, 1f);
             phRt.pivot = new Vector2(0.5f, 1f);
             phRt.anchoredPosition = new Vector2(0f, -draftPad);
             phRt.sizeDelta = new Vector2(-(draftPad * 2f), 40f);
-            var ph = phGo.AddComponent<Text>();
+            var ph = phGo.AddComponent<TextMeshProUGUI>();
             ph.font = font;
             ph.fontSize = 18;
             ph.color = new Color(WdMuted.r, WdMuted.g, WdMuted.b, 0.55f);
-            ph.alignment = TextAnchor.UpperLeft;
-            ph.horizontalOverflow = HorizontalWrapMode.Wrap;
-            ph.verticalOverflow = VerticalWrapMode.Overflow;
+            ph.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            ph.enableWordWrapping = true;
+            ph.overflowMode = TextOverflowModes.Overflow;
             ph.raycastTarget = false;
             ph.text = UiLoc.T("ui.writing.desk.draft_placeholder", "成稿正文将显示在这里，可直接编辑…");
 
             var deskInput = inputGo.AddComponent<WritingDeskDraftInputField>();
             deskInput.scrollRect = wdDraftScroll;
             wdDraftInput = deskInput;
+            wdDraftInput.textViewport = textAreaGo.GetComponent<RectTransform>();
             wdDraftInput.textComponent = wdDraftBody;
             wdDraftInput.placeholder = ph;
-            wdDraftInput.lineType = InputField.LineType.MultiLineNewline;
-            wdDraftInput.contentType = InputField.ContentType.Standard;
+            wdDraftInput.fontAsset = font;
+            wdDraftInput.pointSize = 18;
+            wdDraftInput.lineType = TMP_InputField.LineType.MultiLineNewline;
+            wdDraftInput.contentType = TMP_InputField.ContentType.Standard;
             wdDraftInput.interactable = true;
             wdDraftInput.customCaretColor = true;
             wdDraftInput.caretColor = new Color(WdInk.r, WdInk.g, WdInk.b, 1f);
@@ -210,7 +218,7 @@ namespace StreetCat.UI
             wdDraftInput.selectionColor = new Color(0.90f, 0.55f, 0.22f, 0.40f);
             wdDraftInput.onValueChanged.AddListener(_ => OnWritingDeskDraftEdited());
 
-            // Scrollbar sibling of DraftHost — outside InputField hierarchy so drag always hits.
+            // Scrollbar sibling of DraftHost — outside TMP_InputField hierarchy so drag always hits.
             var sbGo = new GameObject("DraftScrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
             sbGo.transform.SetParent(draftRow.transform, false);
             var sbrt = sbGo.GetComponent<RectTransform>();
@@ -255,7 +263,7 @@ namespace StreetCat.UI
                 WdNavy, Vector2.zero, Vector2.zero);
             Stretch(srcLabel.rectTransform, new Vector2(0f, 0.06f), new Vector2(1f, 0.11f),
                 Vector2.zero, Vector2.zero);
-            srcLabel.fontStyle = FontStyle.Bold;
+            srcLabel.fontStyle = FontStyles.Bold;
             srcLabel.text = UiLoc.T("ui.writing.desk.sources", "信息来源");
             TagLoc(srcLabel, "ui.writing.desk.sources");
 
@@ -263,7 +271,7 @@ namespace StreetCat.UI
                 WdMuted, Vector2.zero, Vector2.zero);
             Stretch(wdSourcesLine.rectTransform, new Vector2(0f, 0.01f), new Vector2(1f, 0.06f),
                 Vector2.zero, Vector2.zero);
-            wdSourcesLine.horizontalOverflow = HorizontalWrapMode.Wrap;
+            wdSourcesLine.enableWordWrapping = true;
 
             // ── Right sidebar ──────────────────────────────────────────────
             var right = new GameObject("RightColumn", typeof(RectTransform));
@@ -280,7 +288,7 @@ namespace StreetCat.UI
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(s1.rectTransform, new Vector2(0f, 0.92f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
-            s1.fontStyle = FontStyle.Bold;
+            s1.fontStyle = FontStyles.Bold;
             s1.text = UiLoc.T("ui.writing.desk.dir_title", "1. 写作方向");
             TagLoc(s1, "ui.writing.desk.dir_title");
 
@@ -306,15 +314,15 @@ namespace StreetCat.UI
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(wdMatsCount.rectTransform, new Vector2(0f, 0.60f), new Vector2(1f, 0.67f),
                 Vector2.zero, Vector2.zero);
-            wdMatsCount.fontStyle = FontStyle.Bold;
+            wdMatsCount.fontStyle = FontStyles.Bold;
 
             wdMatsList = CreateUiText(right.transform, "MatsList", 13, TextAnchor.UpperLeft,
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(wdMatsList.rectTransform, new Vector2(0f, 0.28f), new Vector2(1f, 0.60f),
                 Vector2.zero, Vector2.zero);
-            wdMatsList.horizontalOverflow = HorizontalWrapMode.Wrap;
-            wdMatsList.verticalOverflow = VerticalWrapMode.Truncate;
-            wdMatsList.lineSpacing = 1.1f;
+            wdMatsList.enableWordWrapping = true;
+            wdMatsList.overflowMode = TextOverflowModes.Truncate;
+            wdMatsList.lineSpacing = 10f;
 
             wdMatsHint = CreateUiText(right.transform, "MatsHint", 13, TextAnchor.MiddleLeft,
                 WdOrange, Vector2.zero, Vector2.zero);
@@ -325,7 +333,7 @@ namespace StreetCat.UI
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(s3.rectTransform, new Vector2(0f, 0.155f), new Vector2(1f, 0.22f),
                 Vector2.zero, Vector2.zero);
-            s3.fontStyle = FontStyle.Bold;
+            s3.fontStyle = FontStyles.Bold;
             s3.text = UiLoc.T("ui.writing.desk.status_title", "3. 生成状态");
             TagLoc(s3, "ui.writing.desk.status_title");
 
@@ -333,8 +341,8 @@ namespace StreetCat.UI
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(wdStatusLines.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.155f),
                 Vector2.zero, Vector2.zero);
-            wdStatusLines.horizontalOverflow = HorizontalWrapMode.Wrap;
-            wdStatusLines.verticalOverflow = VerticalWrapMode.Truncate;
+            wdStatusLines.enableWordWrapping = true;
+            wdStatusLines.overflowMode = TextOverflowModes.Truncate;
 
             // ── Bottom action bar ──────────────────────────────────────────
             var bar = CreateImage(writingDeskRoot.transform, "ActionBar", WdNavy);
@@ -355,14 +363,14 @@ namespace StreetCat.UI
                 new Vector2(0.30f, 0.12f), new Vector2(0.52f, 0.88f), WdNavy,
                 OnWritingDeskAiPolish);
             wdPolishBtn = polishGo.GetComponent<Button>();
-            wdPolishLabel = polishGo.GetComponentInChildren<Text>();
+            wdPolishLabel = polishGo.GetComponentInChildren<TextMeshProUGUI>();
 
             var submitGo = SpawnDeskBarButton(bar.transform, "Submit",
                 "ui.writing.desk.submit", "提交主编审核",
                 new Vector2(0.54f, 0.08f), new Vector2(0.99f, 0.92f), WdOrange,
                 OnWritingDeskSubmit);
             wdSubmitBtn = submitGo.GetComponent<Button>();
-            wdSubmitLabel = submitGo.GetComponentInChildren<Text>();
+            wdSubmitLabel = submitGo.GetComponentInChildren<TextMeshProUGUI>();
 
             writingDeskRoot.SetActive(false);
         }
@@ -382,7 +390,7 @@ namespace StreetCat.UI
 
         void BuildDirButton(Transform parent, string name, string locKey, string fallback,
             Vector2 aMin, Vector2 aMax, UnityEngine.Events.UnityAction onClick,
-            out Image bg, out Text label)
+            out Image bg, out TextMeshProUGUI label)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(parent, false);
@@ -393,8 +401,8 @@ namespace StreetCat.UI
             label = CreateUiText(go.transform, "T", 16, TextAnchor.MiddleCenter,
                 WdInk, Vector2.zero, Vector2.zero);
             Stretch(label.rectTransform, Vector2.zero, Vector2.one, new Vector2(8, 4), new Vector2(-8, -4));
-            label.fontStyle = FontStyle.Bold;
-            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.fontStyle = FontStyles.Bold;
+            label.enableWordWrapping = true;
             label.text = UiLoc.T(locKey, fallback);
             label.raycastTarget = false;
             TagLoc(label, locKey);
@@ -412,14 +420,14 @@ namespace StreetCat.UI
             var tx = CreateUiText(go.transform, "T", 15, TextAnchor.MiddleCenter,
                 Color.white, Vector2.zero, Vector2.zero);
             StretchFull(tx.rectTransform);
-            tx.fontStyle = FontStyle.Bold;
+            tx.fontStyle = FontStyles.Bold;
             tx.text = UiLoc.T(locKey, fallback);
             tx.raycastTarget = false;
             TagLoc(tx, locKey);
             return go;
         }
 
-        static void TagLoc(Text tx, string key)
+        static void TagLoc(TextMeshProUGUI tx, string key)
         {
             if (tx == null || string.IsNullOrEmpty(key)) return;
             var tag = tx.gameObject.GetComponent<LocTag>();
@@ -697,7 +705,7 @@ namespace StreetCat.UI
 
         /// <summary>
         /// Grow ScrollRect content to measured draft height so wheel / scrollbar can scroll.
-        /// Uses TextGenerator with an explicit wrap width (not stretched-rect preferredHeight).
+        /// Uses TMP GetPreferredValues with an explicit wrap width (not stretched-rect preferredHeight).
         /// </summary>
         void RebuildWritingDeskDraftLayout()
         {
@@ -722,7 +730,7 @@ namespace StreetCat.UI
 
             float textWidth = Mathf.Max(1f, viewW - draftPad * 2f);
 
-            // Lay out text width before measuring so preferredHeight / TextGenerator agree.
+            // Lay out text width before measuring so preferredHeight / GetPreferredValues agree.
             var textRt = wdDraftBody.rectTransform;
             textRt.anchorMin = new Vector2(0f, 1f);
             textRt.anchorMax = new Vector2(1f, 1f);
@@ -751,7 +759,7 @@ namespace StreetCat.UI
             if (wdDraftInput is WritingDeskDraftInputField deskField)
                 deskField.textTopPad = draftPad;
 
-            if (wdDraftInput != null && wdDraftInput.placeholder is Text ph)
+            if (wdDraftInput != null && wdDraftInput.placeholder is TextMeshProUGUI ph)
             {
                 var phRt = ph.rectTransform;
                 phRt.anchorMin = new Vector2(0f, 1f);
@@ -775,21 +783,14 @@ namespace StreetCat.UI
 #endif
         }
 
-        static float MeasureWritingDeskDraftTextHeight(Text text, float width, string content)
+        static float MeasureWritingDeskDraftTextHeight(TextMeshProUGUI text, float width, string content)
         {
             if (text == null || width < 1f)
                 return 0f;
             if (string.IsNullOrEmpty(content))
                 content = " ";
-
-            var settings = text.GetGenerationSettings(new Vector2(width, 0f));
-            settings.horizontalOverflow = HorizontalWrapMode.Wrap;
-            settings.verticalOverflow = VerticalWrapMode.Overflow;
-            settings.generateOutOfBounds = true;
-
-            float px = text.cachedTextGeneratorForLayout.GetPreferredHeight(content, settings);
-            float ppu = Mathf.Max(0.01f, text.pixelsPerUnit);
-            return px / ppu;
+            // TMP preferred height for wrapped content at a fixed width.
+            return text.GetPreferredValues(content, width, float.PositiveInfinity).y;
         }
 
         void UpdateWritingDeskCharCount()
@@ -875,7 +876,7 @@ namespace StreetCat.UI
             return "○  " + (string.IsNullOrEmpty(badText) ? okText : badText);
         }
 
-        static void StyleToggle(Image bg, Text tx, bool on)
+        static void StyleToggle(Image bg, TextMeshProUGUI tx, bool on)
         {
             if (bg != null) bg.color = on ? WdOrange : WdPillOff;
             if (tx != null) tx.color = on ? Color.white : WdInk;

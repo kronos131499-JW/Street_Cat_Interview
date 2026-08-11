@@ -5,6 +5,7 @@ using StreetCat.Loc;
 using StreetCat.Notebook;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -86,7 +87,7 @@ namespace StreetCat.UI
                 NbTitleMint, Vector2.zero, Vector2.zero);
             Stretch(notebookTitleText.rectTransform, new Vector2(0, 0), new Vector2(1, 1),
                 new Vector2(56f, 0f), new Vector2(-4f, 0f));
-            notebookTitleText.fontStyle = FontStyle.Bold;
+            notebookTitleText.fontStyle = FontStyles.Bold;
             notebookTitleText.text = UiLoc.T("ui.notebook.title", "记者笔记");
 
             var gridHost = new GameObject("StickyGridHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
@@ -169,8 +170,8 @@ namespace StreetCat.UI
                 NbInk, Vector2.zero, Vector2.zero);
             Stretch(notebookDetailTitleText.rectTransform, new Vector2(0, 0.88f), new Vector2(0.62f, 0.98f),
                 new Vector2(48f, 0f), new Vector2(-8f, -8f));
-            notebookDetailTitleText.fontStyle = FontStyle.Bold;
-            notebookDetailTitleText.verticalOverflow = VerticalWrapMode.Overflow;
+            notebookDetailTitleText.fontStyle = FontStyles.Bold;
+            notebookDetailTitleText.overflowMode = TextOverflowModes.Overflow;
 
             notebookStatusChipBg = CreateImage(notebookPageImage.transform, "StatusChip", new Color(0.96f, 0.92f, 0.78f, 0.92f));
             Stretch(notebookStatusChipBg.rectTransform, new Vector2(0.62f, 0.90f), new Vector2(0.92f, 0.97f),
@@ -178,7 +179,7 @@ namespace StreetCat.UI
             notebookStatusChipText = CreateUiText(notebookStatusChipBg.transform, "Label", 16, TextAnchor.MiddleCenter,
                 NbInkMuted, Vector2.zero, Vector2.zero);
             StretchFull(notebookStatusChipText.rectTransform);
-            notebookStatusChipText.fontStyle = FontStyle.Bold;
+            notebookStatusChipText.fontStyle = FontStyles.Bold;
 
             var detailHost = new GameObject("DetailHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             detailHost.transform.SetParent(notebookPageImage.transform, false);
@@ -203,14 +204,14 @@ namespace StreetCat.UI
             dcrt.pivot = new Vector2(0.5f, 1);
             dcrt.sizeDelta = Vector2.zero;
             dContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            notebookDetailBodyText = dContent.AddComponent<Text>();
+            notebookDetailBodyText = dContent.AddComponent<TextMeshProUGUI>();
             notebookDetailBodyText.font = font;
             notebookDetailBodyText.fontSize = 21;
             notebookDetailBodyText.color = NbInk;
-            notebookDetailBodyText.alignment = TextAnchor.UpperLeft;
-            notebookDetailBodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            notebookDetailBodyText.verticalOverflow = VerticalWrapMode.Overflow;
-            notebookDetailBodyText.lineSpacing = 1.55f;
+            notebookDetailBodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            notebookDetailBodyText.enableWordWrapping = true;
+            notebookDetailBodyText.overflowMode = TextOverflowModes.Overflow;
+            notebookDetailBodyText.lineSpacing = 55f;
             notebookDetailBodyText.raycastTarget = false;
             notebookDetailScroll.viewport = dVp.GetComponent<RectTransform>();
             notebookDetailScroll.content = dcrt;
@@ -270,16 +271,16 @@ namespace StreetCat.UI
                 Color.white, Vector2.zero, Vector2.zero);
             Stretch(notebookInspireHeaderText.rectTransform, new Vector2(0, 0.62f), new Vector2(1, 0.95f),
                 new Vector2(40f, 0f), new Vector2(-28f, -4f));
-            notebookInspireHeaderText.fontStyle = FontStyle.Bold;
+            notebookInspireHeaderText.fontStyle = FontStyles.Bold;
             notebookInspireHeaderText.text = UiLoc.T("ui.notebook.inspiration", "提问灵感");
 
             notebookInspireBodyText = CreateUiText(inspireGo.transform, "InspireBody", 16, TextAnchor.UpperLeft,
                 new Color(0.18f, 0.12f, 0.06f, 1f), Vector2.zero, Vector2.zero);
             Stretch(notebookInspireBodyText.rectTransform, new Vector2(0, 0.05f), new Vector2(1, 0.62f),
                 new Vector2(14f, 8f), new Vector2(-18f, -4f));
-            notebookInspireBodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            notebookInspireBodyText.verticalOverflow = VerticalWrapMode.Truncate;
-            notebookInspireBodyText.lineSpacing = 1.25f;
+            notebookInspireBodyText.enableWordWrapping = true;
+            notebookInspireBodyText.overflowMode = TextOverflowModes.Truncate;
+            notebookInspireBodyText.lineSpacing = 25f;
 
             // Close button
             var closeBtn = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -408,12 +409,12 @@ namespace StreetCat.UI
         {
             if (notebookRoot == null || font == null) return;
             float scale = GameSettings.FontSizeScale;
-            void Chrome(Text t, int baseSize, bool bold = false)
+            void Chrome(TextMeshProUGUI t, int baseSize, bool bold = false)
             {
                 if (t == null) return;
                 t.font = font;
                 t.fontSize = Mathf.RoundToInt(baseSize * scale);
-                if (bold) t.fontStyle = FontStyle.Bold;
+                if (bold) t.fontStyle = FontStyles.Bold;
                 ApplyLetterSpacing(t, 0f);
             }
             Chrome(notebookTitleText, 28, true);
@@ -427,8 +428,8 @@ namespace StreetCat.UI
             {
                 notebookDetailBodyText.font = font;
                 notebookDetailBodyText.fontSize = Mathf.RoundToInt(21f * scale);
-                notebookDetailBodyText.lineSpacing = 1.55f;
-                notebookDetailBodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                notebookDetailBodyText.lineSpacing = 55f;
+                notebookDetailBodyText.enableWordWrapping = true;
                 ApplyLetterSpacing(notebookDetailBodyText, 0f);
             }
         }
@@ -446,7 +447,7 @@ namespace StreetCat.UI
                 foreach (var tag in notebookModeRow.GetComponentsInChildren<LocTag>(true))
                 {
                     if (tag == null || string.IsNullOrEmpty(tag.key)) continue;
-                    var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<Text>();
+                    var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<TextMeshProUGUI>();
                     if (tx != null) tx.text = UiLoc.T(tag.key);
                 }
             }
@@ -679,9 +680,9 @@ namespace StreetCat.UI
             var label = CreateUiText(go.transform, "Label", 14, TextAnchor.UpperCenter, NbInk, Vector2.zero, Vector2.zero);
             Stretch(label.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.34f), Vector2.zero, Vector2.zero);
             label.text = topic.title;
-            label.fontStyle = selected ? FontStyle.Bold : FontStyle.Normal;
-            label.horizontalOverflow = HorizontalWrapMode.Wrap;
-            label.verticalOverflow = VerticalWrapMode.Truncate;
+            label.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
+            label.enableWordWrapping = true;
+            label.overflowMode = TextOverflowModes.Truncate;
 
             string id = topic.id;
             go.GetComponent<Button>().targetGraphic = face;

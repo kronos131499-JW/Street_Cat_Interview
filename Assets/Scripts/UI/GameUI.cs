@@ -12,6 +12,7 @@ using StreetCat.Writing;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -31,23 +32,23 @@ namespace StreetCat.UI
         Image propImage;
         Image portraitImage;
         Image vignetteImage;
-        Text locationText;
-        Text objectiveText;
-        Text chapterChip;
+        TextMeshProUGUI locationText;
+        TextMeshProUGUI objectiveText;
+        TextMeshProUGUI chapterChip;
         Image dialoguePanel;
         Button dialogueClick;
         Image namePlate;
-        Text nameText;
-        Text bodyText;
-        Text statusText;
-        Text stageHint;
+        TextMeshProUGUI nameText;
+        TextMeshProUGUI bodyText;
+        TextMeshProUGUI statusText;
+        TextMeshProUGUI stageHint;
         CanvasGroup locationFade;
         CanvasGroup stageHintFade;
         Coroutine sceneTitleCo;
         string lastSceneTitleKey;
         CanvasGroup dialogueFade;
         Button hideDialogueBtn;
-        Text hideDialogueLabel;
+        TextMeshProUGUI hideDialogueLabel;
         Image sceneFadeImage;
         CanvasGroup sceneFadeCg;
         Coroutine sceneFadeCo;
@@ -55,57 +56,57 @@ namespace StreetCat.UI
         bool sceneTransitioning;
         Transform buttonRoot;
         Transform choiceRoot;
-        InputField inputField;
+        TMP_InputField inputField;
         GameObject titleRoot;
         Image titleLogoCn;
         Image titleLogoEn;
-        Text titleBrand;
-        Text titleSubtitle;
-        Text titleContentsLabel;
-        Text titleTagline;
+        TextMeshProUGUI titleBrand;
+        TextMeshProUGUI titleSubtitle;
+        TextMeshProUGUI titleContentsLabel;
+        TextMeshProUGUI titleTagline;
         bool titleTaglineCleared;
 
         // Menu / backlog / notebook
         GameObject menuRoot;
-        Text menuTitleText;
+        TextMeshProUGUI menuTitleText;
         GameObject settingsRoot;
-        Text settingsTitleText;
-        Text settingsBgmValue;
-        Text settingsSfxValue;
-        Text settingsAutoDelayValue;
+        TextMeshProUGUI settingsTitleText;
+        TextMeshProUGUI settingsBgmValue;
+        TextMeshProUGUI settingsSfxValue;
+        TextMeshProUGUI settingsAutoDelayValue;
         Slider settingsBgmSlider;
         Slider settingsSfxSlider;
         Slider settingsAutoDelaySlider;
-        Text settingsLangZhBtn;
-        Text settingsLangEnBtn;
-        Text settingsFontNameLabel;
-        Text settingsFontSizeValue;
-        Text settingsLetterSpacingValue;
+        TextMeshProUGUI settingsLangZhBtn;
+        TextMeshProUGUI settingsLangEnBtn;
+        TextMeshProUGUI settingsFontNameLabel;
+        TextMeshProUGUI settingsFontSizeValue;
+        TextMeshProUGUI settingsLetterSpacingValue;
         Slider settingsFontSizeSlider;
         Slider settingsLetterSpacingSlider;
-        Text settingsSpeedSlowBtn;
-        Text settingsSpeedNormalBtn;
-        Text settingsSpeedFastBtn;
-        Text settingsAutoOnBtn;
-        Text settingsAutoOffBtn;
-        Text settingsFullscreenBtn;
-        Text settingsWindowedBtn;
+        TextMeshProUGUI settingsSpeedSlowBtn;
+        TextMeshProUGUI settingsSpeedNormalBtn;
+        TextMeshProUGUI settingsSpeedFastBtn;
+        TextMeshProUGUI settingsAutoOnBtn;
+        TextMeshProUGUI settingsAutoOffBtn;
+        TextMeshProUGUI settingsFullscreenBtn;
+        TextMeshProUGUI settingsWindowedBtn;
         Coroutine autoPlayCo;
         GameObject backlogRoot;
         GameObject notebookRoot;
         GameObject saveLoadRoot;
-        Text backlogTitleText;
-        Text backlogText;
+        TextMeshProUGUI backlogTitleText;
+        TextMeshProUGUI backlogText;
         ScrollRect backlogScroll;
-        Text notebookTitleText;
-        Text notebookCloseLabel;
-        Text notebookDetailTitleText;
-        Text notebookStatusChipText;
+        TextMeshProUGUI notebookTitleText;
+        TextMeshProUGUI notebookCloseLabel;
+        TextMeshProUGUI notebookDetailTitleText;
+        TextMeshProUGUI notebookStatusChipText;
         Image notebookStatusChipBg;
-        Text notebookDetailBodyText;
-        Text notebookSourceText;
-        Text notebookInspireHeaderText;
-        Text notebookInspireBodyText;
+        TextMeshProUGUI notebookDetailBodyText;
+        TextMeshProUGUI notebookSourceText;
+        TextMeshProUGUI notebookInspireHeaderText;
+        TextMeshProUGUI notebookInspireBodyText;
         Button notebookInspireButton;
         Image notebookInspirePanel;
         Transform notebookStickyGrid;
@@ -117,12 +118,12 @@ namespace StreetCat.UI
         readonly List<GameObject> notebookSpawned = new List<GameObject>();
         Sprite notebookLinedPaperSprite;
         Sprite notebookNavySprite;
-        Text saveLoadTitle;
+        TextMeshProUGUI saveLoadTitle;
         Transform saveLoadList;
         bool saveLoadIsSave; // true=存档, false=读档
         int pendingOverwriteSlot = -999;
         GameObject confirmRoot;
-        Text confirmText;
+        TextMeshProUGUI confirmText;
         bool canClickAdvance;
         bool waitingForChoice;
         bool savedWaitingForChoice;
@@ -136,13 +137,13 @@ namespace StreetCat.UI
 
         // Interview full-screen layout
         GameObject interviewRoot;
-        Text interviewSubjectText;
-        Text interviewStatusText;
-        Text interviewLogText;
+        TextMeshProUGUI interviewSubjectText;
+        TextMeshProUGUI interviewStatusText;
+        TextMeshProUGUI interviewLogText;
         ScrollRect interviewScroll;
         Transform interviewHintRoot;
         Transform interviewActionRoot;
-        InputField interviewInput;
+        TMP_InputField interviewInput;
         readonly List<GameObject> interviewSpawned = new List<GameObject>();
         readonly List<GameObject> interviewPresetSpawned = new List<GameObject>();
 
@@ -155,9 +156,9 @@ namespace StreetCat.UI
         string writingPolishKey;
         bool writingAiPolishUsed;
         string lastInspectText;
-        Font font;
+        TMP_FontAsset font;
         /// <summary>Title / menu typography (OS CJK when available).</summary>
-        Font titleFont;
+        TMP_FontAsset titleFont;
         Coroutine fadeCo;
         Coroutine typewriterCo;
         Coroutine portraitFadeCo;
@@ -175,14 +176,14 @@ namespace StreetCat.UI
         Image atmosphereWash;
         ScrollRect dialogueScroll;
         GameObject investigateRoot;
-        Text investigateTitle;
-        Text investigateIntelHint;
+        TextMeshProUGUI investigateTitle;
+        TextMeshProUGUI investigateIntelHint;
         Transform investigateHotspotLayer;
         Transform investigateActions;
-        Text investigateHoverLabel;
+        TextMeshProUGUI investigateHoverLabel;
         Transform titleActionRoot;
         readonly List<GameObject> investigateSpawned = new List<GameObject>();
-        Text clickHintText;
+        TextMeshProUGUI clickHintText;
         bool investigateHotspotsVisible;
         bool backlogOpenedFromNotebook;
         bool talkAwaitingClickReturn;
@@ -277,20 +278,25 @@ namespace StreetCat.UI
             RefreshAdvanceHint();
         }
 
-        static Font ResolveUiFont() => FontCatalog.Resolve(GameSettings.UiFontId);
+        static TMP_FontAsset ResolveUiFont() => TmpFontCatalog.Resolve(GameSettings.UiFontId);
 
-        static Font ResolveTitleFont() => FontCatalog.Resolve(GameSettings.UiFontId);
+        static TMP_FontAsset ResolveTitleFont() => TmpFontCatalog.Resolve(GameSettings.UiFontId);
 
         void ApplyActiveFonts()
         {
             font = ResolveUiFont();
             titleFont = ResolveTitleFont() ?? font;
-            if (canvasRt == null || font == null) return;
+            if (font == null)
+            {
+                Debug.LogError("[GameUI] ResolveUiFont returned null — all text will be □. Check TmpFontCatalog / Resources/Fonts.");
+                return;
+            }
+            if (canvasRt == null) return;
 
             float scale = GameSettings.FontSizeScale;
             float spacing = GameSettings.LetterSpacing;
 
-            var texts = canvasRt.GetComponentsInChildren<Text>(true);
+            var texts = canvasRt.GetComponentsInChildren<TextMeshProUGUI>(true);
             for (int i = 0; i < texts.Length; i++)
             {
                 var t = texts[i];
@@ -299,7 +305,7 @@ namespace StreetCat.UI
                 t.font = titleish ? titleFont : font;
                 // Letter-spacing mesh hack breaks Wrap — only apply to non-wrapping lines.
                 // Writing corkboard: keep tracking off (scrapbook cards + chrome stay crisp).
-                bool wraps = t.horizontalOverflow == HorizontalWrapMode.Wrap;
+                bool wraps = t.enableWordWrapping;
                 bool underWriting = (writingMatsRoot != null && t.transform.IsChildOf(writingMatsRoot.transform))
                     || (writingDeskRoot != null && t.transform.IsChildOf(writingDeskRoot.transform));
                 ApplyLetterSpacing(t, (wraps || underWriting) ? 0f : spacing);
@@ -309,10 +315,9 @@ namespace StreetCat.UI
             {
                 bodyText.font = font;
                 bodyText.fontSize = Mathf.RoundToInt(24f * scale);
-                bodyText.alignment = TextAnchor.UpperLeft;
-                bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
-                bodyText.verticalOverflow = VerticalWrapMode.Overflow;
-                bodyText.alignByGeometry = false;
+                bodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+                bodyText.enableWordWrapping = true;
+                bodyText.overflowMode = TextOverflowModes.Overflow;
                 ApplyLetterSpacing(bodyText, 0f);
                 var contentRt = bodyText.rectTransform;
                 if (dialogueScroll != null && dialogueScroll.viewport != null)
@@ -331,8 +336,8 @@ namespace StreetCat.UI
             {
                 nameText.font = font;
                 nameText.fontSize = Mathf.RoundToInt(20f * scale);
-                nameText.alignment = TextAnchor.MiddleCenter;
-                nameText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                nameText.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
+                nameText.enableWordWrapping = false;
                 nameText.color = VnTheme.TextPrimary;
                 ApplyLetterSpacing(nameText, spacing * 0.35f);
             }
@@ -340,22 +345,22 @@ namespace StreetCat.UI
             {
                 statusText.font = font;
                 statusText.fontSize = Mathf.RoundToInt(15f * scale);
-                statusText.alignment = TextAnchor.LowerLeft;
-                statusText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                statusText.alignment = VnText.ToAlignment(TextAnchor.LowerLeft);
+                statusText.enableWordWrapping = false;
                 ApplyLetterSpacing(statusText, spacing * 0.35f);
             }
             if (clickHintText != null)
             {
                 clickHintText.font = font;
                 clickHintText.fontSize = Mathf.RoundToInt(16f * Mathf.Max(1f, scale));
-                clickHintText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                clickHintText.enableWordWrapping = false;
                 ApplyLetterSpacing(clickHintText, spacing * 0.35f);
             }
             if (objectiveText != null)
             {
                 objectiveText.font = font;
-                objectiveText.alignment = TextAnchor.MiddleLeft;
-                objectiveText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                objectiveText.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
+                objectiveText.enableWordWrapping = true;
                 ApplyLetterSpacing(objectiveText, 0f);
             }
             if (locationText != null)
@@ -371,23 +376,25 @@ namespace StreetCat.UI
             if (backlogText != null)
             {
                 backlogText.font = font;
-                backlogText.alignment = TextAnchor.UpperLeft;
-                backlogText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                backlogText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+                backlogText.enableWordWrapping = true;
                 ApplyLetterSpacing(backlogText, 0f);
             }
             ApplyNotebookFonts();
             ApplyInterviewFonts();
             ApplyWritingFonts();
+            if (inputField != null)
+            {
+                inputField.fontAsset = font;
+                if (inputField.textComponent != null)
+                    inputField.textComponent.font = font;
+                if (inputField.placeholder is TMP_Text ph)
+                    ph.font = font;
+            }
         }
 
-        static void ApplyLetterSpacing(Text t, float spacing)
-        {
-            if (t == null) return;
-            var ls = t.GetComponent<UILetterSpacing>();
-            if (ls == null)
-                ls = t.gameObject.AddComponent<UILetterSpacing>();
-            ls.Spacing = spacing;
-        }
+        static void ApplyLetterSpacing(TMP_Text t, float spacing) =>
+            VnText.ApplyLetterSpacing(t, spacing);
 
         void Start()
         {
@@ -597,14 +604,14 @@ namespace StreetCat.UI
             bcrt.sizeDelta = Vector2.zero;
             bodyContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            bodyText = bodyContent.AddComponent<Text>();
+            bodyText = bodyContent.AddComponent<TextMeshProUGUI>();
             bodyText.font = font;
             bodyText.fontSize = 25;
             bodyText.color = VnTheme.TextPrimary;
-            bodyText.alignment = TextAnchor.UpperLeft;
-            bodyText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            bodyText.verticalOverflow = VerticalWrapMode.Overflow;
-            bodyText.lineSpacing = 1.2f;
+            bodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            bodyText.enableWordWrapping = true;
+            bodyText.overflowMode = TextOverflowModes.Overflow;
+            bodyText.lineSpacing = 20f;
             bodyText.raycastTarget = false;
 
             dialogueScroll.viewport = bodyViewport.rectTransform;
@@ -937,7 +944,7 @@ namespace StreetCat.UI
             tr.anchorMax = new Vector2(0, 0.5f);
             tr.pivot = new Vector2(0, 0.5f);
             investigateTitle.text = "槐安社区　·　调查";
-            investigateTitle.fontStyle = FontStyle.Bold;
+            investigateTitle.fontStyle = FontStyles.Bold;
 
             investigateIntelHint = CreateUiText(chrome.transform, "IntelHint", 15, TextAnchor.MiddleLeft,
                 VnTheme.TextMuted, new Vector2(18, -14), new Vector2(480, 22));
@@ -951,7 +958,7 @@ namespace StreetCat.UI
             var hlRt = investigateHoverLabel.GetComponent<RectTransform>();
             hlRt.anchorMin = hlRt.anchorMax = new Vector2(0.5f, 0.5f);
             hlRt.pivot = new Vector2(0.5f, 0f);
-            investigateHoverLabel.fontStyle = FontStyle.Bold;
+            investigateHoverLabel.fontStyle = FontStyles.Bold;
             investigateHoverLabel.gameObject.SetActive(false);
             var hoverBg = CreateImage(investigateHoverLabel.transform, "Bg", new Color(0.06f, 0.07f, 0.09f, 0.82f));
             Stretch(hoverBg.rectTransform, Vector2.zero, Vector2.one, new Vector2(-14, -6), new Vector2(14, 6));
@@ -991,10 +998,10 @@ namespace StreetCat.UI
             var tgo = new GameObject("T", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             StretchFull(tgo.GetComponent<RectTransform>());
-            var tx = tgo.AddComponent<Text>();
+            var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
             tx.fontSize = 16;
-            tx.alignment = TextAnchor.MiddleCenter;
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             tx.color = VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
@@ -1020,7 +1027,7 @@ namespace StreetCat.UI
                 VnTheme.Accent, new Vector2(0, -22), new Vector2(360, 40));
             menuTitleText = title;
             title.text = UiLoc.T("ui.menu");
-            title.fontStyle = FontStyle.Bold;
+            title.fontStyle = FontStyles.Bold;
             var tr = title.GetComponent<RectTransform>();
             tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 1);
 
@@ -1043,10 +1050,10 @@ namespace StreetCat.UI
                 var tg = new GameObject("T", typeof(RectTransform));
                 tg.transform.SetParent(go.transform, false);
                 StretchFull(tg.GetComponent<RectTransform>());
-                var tx = tg.AddComponent<Text>();
+                var tx = tg.AddComponent<TextMeshProUGUI>();
                 tx.font = font;
                 tx.fontSize = 20;
-                tx.alignment = TextAnchor.MiddleCenter;
+                tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 tx.color = VnTheme.TextPrimary;
                 tx.text = UiLoc.T(locKey);
                 tx.raycastTarget = false;
@@ -1107,10 +1114,10 @@ namespace StreetCat.UI
             var ct = new GameObject("T", typeof(RectTransform));
             ct.transform.SetParent(closeBtn.transform, false);
             StretchFull(ct.GetComponent<RectTransform>());
-            var ctx = ct.AddComponent<Text>();
+            var ctx = ct.AddComponent<TextMeshProUGUI>();
             ctx.font = font;
             ctx.fontSize = 18;
-            ctx.alignment = TextAnchor.MiddleCenter;
+            ctx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             ctx.color = VnTheme.TextPrimary;
             ctx.text = "关闭";
             ctx.raycastTarget = false;
@@ -1164,10 +1171,10 @@ namespace StreetCat.UI
                 var tg = new GameObject("T", typeof(RectTransform));
                 tg.transform.SetParent(go.transform, false);
                 StretchFull(tg.GetComponent<RectTransform>());
-                var tx = tg.AddComponent<Text>();
+                var tx = tg.AddComponent<TextMeshProUGUI>();
                 tx.font = font;
                 tx.fontSize = 20;
-                tx.alignment = TextAnchor.MiddleCenter;
+                tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 tx.color = VnTheme.TextPrimary;
                 tx.text = label;
                 tx.raycastTarget = false;
@@ -1240,13 +1247,13 @@ namespace StreetCat.UI
                 var label = new GameObject("L", typeof(RectTransform));
                 label.transform.SetParent(go.transform, false);
                 Stretch(label.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(16, 8), new Vector2(-16, -8));
-                var tx = label.AddComponent<Text>();
+                var tx = label.AddComponent<TextMeshProUGUI>();
                 tx.font = font;
                 tx.fontSize = 18;
-                tx.alignment = TextAnchor.UpperLeft;
+                tx.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
                 tx.color = VnTheme.TextPrimary;
-                tx.horizontalOverflow = HorizontalWrapMode.Wrap;
-                tx.verticalOverflow = VerticalWrapMode.Truncate;
+                tx.enableWordWrapping = true;
+                tx.overflowMode = TextOverflowModes.Truncate;
                 tx.raycastTarget = false;
                 if (info.empty)
                     tx.text = (saveLoadIsSave ? $"存档位 {info.slot + 1}" : info.label) + "\n空";
@@ -1332,7 +1339,7 @@ namespace StreetCat.UI
             backlogTitleText = CreateUiText(panel.transform, "Title", 26, TextAnchor.MiddleLeft,
                 VnTheme.Accent, Vector2.zero, Vector2.zero);
             backlogTitleText.text = UiLoc.T("ui.backlog.title", "对话回看");
-            backlogTitleText.fontStyle = FontStyle.Bold;
+            backlogTitleText.fontStyle = FontStyles.Bold;
             var titleRt = backlogTitleText.GetComponent<RectTransform>();
             Stretch(titleRt, new Vector2(0f, 1f), new Vector2(1f, 1f),
                 new Vector2(28f, -headerH), new Vector2(-120f, -8f));
@@ -1360,14 +1367,14 @@ namespace StreetCat.UI
             crt.sizeDelta = new Vector2(0, 0);
             content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            backlogText = content.AddComponent<Text>();
+            backlogText = content.AddComponent<TextMeshProUGUI>();
             backlogText.font = font;
             backlogText.fontSize = 22;
             backlogText.color = VnTheme.TextPrimary;
-            backlogText.alignment = TextAnchor.UpperLeft;
-            backlogText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            backlogText.verticalOverflow = VerticalWrapMode.Overflow;
-            backlogText.lineSpacing = 1.2f;
+            backlogText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            backlogText.enableWordWrapping = true;
+            backlogText.overflowMode = TextOverflowModes.Overflow;
+            backlogText.lineSpacing = 20f;
 
             backlogScroll.viewport = viewport.GetComponent<RectTransform>();
             backlogScroll.content = crt;
@@ -1384,10 +1391,10 @@ namespace StreetCat.UI
             var ct = new GameObject("T", typeof(RectTransform));
             ct.transform.SetParent(closeBtn.transform, false);
             StretchFull(ct.GetComponent<RectTransform>());
-            var ctx = ct.AddComponent<Text>();
+            var ctx = ct.AddComponent<TextMeshProUGUI>();
             ctx.font = font;
             ctx.fontSize = 18;
-            ctx.alignment = TextAnchor.MiddleCenter;
+            ctx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             ctx.color = VnTheme.TextPrimary;
             ctx.text = "关闭";
             ctx.raycastTarget = false;
@@ -1557,18 +1564,17 @@ namespace StreetCat.UI
             }
         }
 
-        void StyleTitleMenuText(Text t, int size, bool bold)
+        void StyleTitleMenuText(TextMeshProUGUI t, int size, bool bold)
         {
             if (t == null) return;
             t.font = titleFont != null ? titleFont : font;
             float scale = GameSettings.FontSizeScale;
             // Render larger then scale down via layout — sharper than tiny Dynamic fonts.
             t.fontSize = Mathf.RoundToInt(Mathf.Max(size, 28) * scale);
-            t.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
-            t.alignByGeometry = true;
-            t.resizeTextForBestFit = false;
-            t.horizontalOverflow = HorizontalWrapMode.Overflow;
-            t.verticalOverflow = VerticalWrapMode.Overflow;
+            t.fontStyle = bold ? FontStyles.Bold : FontStyles.Normal;
+            t.enableAutoSizing = false;
+            t.enableWordWrapping = false;
+            t.overflowMode = TextOverflowModes.Overflow;
             // Drop Outline/Shadow — they soft-blur CJK/Latin UI Text on the title screen.
             foreach (var fx in t.GetComponents<Shadow>())
             {
@@ -1581,7 +1587,7 @@ namespace StreetCat.UI
         /// Left-page magazine blurb: wrap + BestFit inside the quote rect.
         /// Letter-spacing is off (mesh tracking breaks Wrap).
         /// </summary>
-        void StyleTitleMenuBodyText(Text t, int preferredSize)
+        void StyleTitleMenuBodyText(TextMeshProUGUI t, int preferredSize)
         {
             if (t == null) return;
             t.font = titleFont != null ? titleFont : font;
@@ -1590,15 +1596,14 @@ namespace StreetCat.UI
             int maxSize = Mathf.RoundToInt(Mathf.Clamp(preferredSize * scale, 14f, 30f));
             int minSize = Mathf.Max(11, Mathf.RoundToInt(maxSize * 0.55f));
             t.fontSize = maxSize;
-            t.fontStyle = FontStyle.Normal;
-            t.alignByGeometry = true;
-            t.alignment = TextAnchor.MiddleLeft;
-            t.horizontalOverflow = HorizontalWrapMode.Wrap;
-            t.verticalOverflow = VerticalWrapMode.Truncate;
-            t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = minSize;
-            t.resizeTextMaxSize = maxSize;
-            t.lineSpacing = 1.15f;
+            t.fontStyle = FontStyles.Normal;
+            t.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
+            t.enableWordWrapping = true;
+            t.overflowMode = TextOverflowModes.Truncate;
+            t.enableAutoSizing = true;
+            t.fontSizeMin = minSize;
+            t.fontSizeMax = maxSize;
+            t.lineSpacing = 15f;
             foreach (var fx in t.GetComponents<Shadow>())
             {
                 if (fx != null) fx.enabled = false;
@@ -1607,7 +1612,7 @@ namespace StreetCat.UI
         }
 
         /// <summary>Single-line title brand fallback when logo sprites are missing.</summary>
-        void StyleTitleMenuFittedText(Text t, int preferredSize, bool bold)
+        void StyleTitleMenuFittedText(TextMeshProUGUI t, int preferredSize, bool bold)
         {
             if (t == null) return;
             t.font = titleFont != null ? titleFont : font;
@@ -1615,14 +1620,13 @@ namespace StreetCat.UI
             int maxSize = Mathf.RoundToInt(Mathf.Clamp(preferredSize * scale, 22f, 56f));
             int minSize = Mathf.Max(14, Mathf.RoundToInt(maxSize * 0.45f));
             t.fontSize = maxSize;
-            t.fontStyle = bold ? FontStyle.Bold : FontStyle.Normal;
-            t.alignByGeometry = true;
-            t.alignment = TextAnchor.MiddleCenter;
-            t.horizontalOverflow = HorizontalWrapMode.Overflow;
-            t.verticalOverflow = VerticalWrapMode.Overflow;
-            t.resizeTextForBestFit = true;
-            t.resizeTextMinSize = minSize;
-            t.resizeTextMaxSize = maxSize;
+            t.fontStyle = bold ? FontStyles.Bold : FontStyles.Normal;
+            t.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
+            t.enableWordWrapping = false;
+            t.overflowMode = TextOverflowModes.Overflow;
+            t.enableAutoSizing = true;
+            t.fontSizeMin = minSize;
+            t.fontSizeMax = maxSize;
             foreach (var fx in t.GetComponents<Shadow>())
             {
                 if (fx != null) fx.enabled = false;
@@ -1658,7 +1662,7 @@ namespace StreetCat.UI
                 var label = child.Find("Label");
                 if (label != null)
                 {
-                    var tx = label.GetComponent<Text>();
+                    var tx = label.GetComponent<TextMeshProUGUI>();
                     if (tx != null)
                         StyleTitleMenuText(tx, primary ? 24 : 21, true);
                 }
@@ -1673,7 +1677,7 @@ namespace StreetCat.UI
             var target = go.GetComponent<RectTransform>();
             var title = TitleMenuLayout.DisplayNames.TryGetValue(id, out var n) ? n : id;
 
-            // Unity: only one Graphic per GameObject. Text hosts need a child hit Image.
+            // Unity: only one Graphic per GameObject. TextMeshProUGUI hosts need a child hit Image.
             Image hitImg = go.GetComponent<Image>();
             GameObject host = go;
             bool ownsHit = false;
@@ -1780,57 +1784,27 @@ namespace StreetCat.UI
             return img;
         }
 
-        Text CreateUiText(Transform parent, string name, int size, TextAnchor align, Color color, Vector2 pos, Vector2 sizeDelta)
+        TextMeshProUGUI CreateUiText(Transform parent, string name, int size, TextAnchor align, Color color, Vector2 pos, Vector2 sizeDelta)
         {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = sizeDelta;
-            var t = go.AddComponent<Text>();
-            t.font = font;
-            t.fontSize = size;
-            t.color = color;
-            t.alignment = align;
-            t.horizontalOverflow = HorizontalWrapMode.Wrap;
-            t.verticalOverflow = VerticalWrapMode.Truncate;
-            t.raycastTarget = false;
-            return t;
+            return VnText.Create(parent, name, font, size, align, color, pos, sizeDelta, wrap: true, raycastTarget: false);
         }
 
-        InputField CreateVnInput(Transform parent)
+        TMP_InputField CreateVnInput(Transform parent)
         {
-            var go = new GameObject("InterviewInput", typeof(RectTransform), typeof(Image), typeof(InputField));
-            go.transform.SetParent(parent, false);
-            var rt = go.GetComponent<RectTransform>();
+            var input = VnText.CreateInput(
+                parent,
+                "InterviewInput",
+                font,
+                22,
+                VnTheme.TextPrimary,
+                new Color(1f, 1f, 1f, 0.28f),
+                "想问什么？");
+            var rt = input.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0, 0);
             rt.anchorMax = new Vector2(1, 0);
             rt.pivot = new Vector2(0.5f, 0);
             rt.anchoredPosition = new Vector2(0, 44);
             rt.sizeDelta = new Vector2(-80, 44);
-            go.GetComponent<Image>().color = VnTheme.InputBg;
-
-            var textGo = new GameObject("Text", typeof(RectTransform));
-            textGo.transform.SetParent(go.transform, false);
-            Stretch(textGo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(14, 6), new Vector2(-14, -6));
-            var text = textGo.AddComponent<Text>();
-            text.font = font;
-            text.fontSize = 22;
-            text.color = VnTheme.TextPrimary;
-            text.supportRichText = false;
-
-            var phGo = new GameObject("Placeholder", typeof(RectTransform));
-            phGo.transform.SetParent(go.transform, false);
-            Stretch(phGo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(14, 6), new Vector2(-14, -6));
-            var ph = phGo.AddComponent<Text>();
-            ph.font = font;
-            ph.fontSize = 22;
-            ph.color = new Color(1, 1, 1, 0.28f);
-            ph.text = "想问什么？";
-
-            var input = go.GetComponent<InputField>();
-            input.textComponent = text;
-            input.placeholder = ph;
             return input;
         }
 
@@ -2009,8 +1983,8 @@ namespace StreetCat.UI
             tgo.transform.SetParent(go.transform, false);
             Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
                 new Vector2(padL, 2f), new Vector2(padR, -2f));
-            var tx = tgo.AddComponent<Text>();
-            tx.alignment = TextAnchor.MiddleLeft;
+            var tx = tgo.AddComponent<TextMeshProUGUI>();
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
             tx.color = labelColor;
             tx.text = string.Format("{0:00}  {1}", index, label);
             tx.raycastTarget = false;
@@ -2096,11 +2070,11 @@ namespace StreetCat.UI
                 var checkGo = new GameObject("Check", typeof(RectTransform));
                 checkGo.transform.SetParent(badge.transform, false);
                 StretchFull(checkGo.GetComponent<RectTransform>());
-                var check = checkGo.AddComponent<Text>();
+                var check = checkGo.AddComponent<TextMeshProUGUI>();
                 check.font = font;
                 check.fontSize = 15;
-                check.fontStyle = FontStyle.Bold;
-                check.alignment = TextAnchor.MiddleCenter;
+                check.fontStyle = FontStyles.Bold;
+                check.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 check.color = new Color(0.78f, 0.92f, 0.80f, 1f);
                 check.text = "✓";
                 check.raycastTarget = false;
@@ -2202,10 +2176,10 @@ namespace StreetCat.UI
             var tgo = new GameObject("L", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             StretchFull(tgo.GetComponent<RectTransform>());
-            var tx = tgo.AddComponent<Text>();
+            var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
             tx.fontSize = 16;
-            tx.alignment = TextAnchor.MiddleCenter;
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             tx.color = primary ? VnTheme.Accent : VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
@@ -2274,10 +2248,10 @@ namespace StreetCat.UI
             var tgo = new GameObject("Label", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(18, 0), new Vector2(-16, 0));
-            var tx = tgo.AddComponent<Text>();
+            var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
             tx.fontSize = wide ? 22 : 17;
-            tx.alignment = TextAnchor.MiddleCenter;
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             tx.color = VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;

@@ -2,6 +2,7 @@ using StreetCat.Core;
 using StreetCat.Loc;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -28,7 +29,7 @@ namespace StreetCat.UI
 
             settingsTitleText = CreateUiText(panel.transform, "Title", 26, TextAnchor.UpperCenter,
                 VnTheme.Accent, new Vector2(0, -18), new Vector2(440, 36));
-            settingsTitleText.fontStyle = FontStyle.Bold;
+            settingsTitleText.fontStyle = FontStyles.Bold;
             var tr = settingsTitleText.GetComponent<RectTransform>();
             tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 1);
 
@@ -91,9 +92,9 @@ namespace StreetCat.UI
             var fontNameLe = settingsFontNameLabel.gameObject.AddComponent<LayoutElement>();
             fontNameLe.flexibleWidth = 1f;
             fontNameLe.preferredHeight = 42;
-            settingsFontNameLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
-            settingsFontNameLabel.verticalOverflow = VerticalWrapMode.Overflow;
-            settingsFontNameLabel.lineSpacing = 0.9f;
+            settingsFontNameLabel.enableWordWrapping = true;
+            settingsFontNameLabel.overflowMode = TextOverflowModes.Overflow;
+            settingsFontNameLabel.lineSpacing = -10f;
             AddSettingsPlainButton(fontRow, "FontNext", "›", () => GameSettings.CycleUiFont(1));
 
             AddSettingsLabel(list.transform, "FontSizeLabel", "ui.settings.font_size");
@@ -216,7 +217,7 @@ namespace StreetCat.UI
             return go.transform;
         }
 
-        Text AddSettingsToggle(Transform parent, string name, string locKey, UnityEngine.Events.UnityAction act)
+        TextMeshProUGUI AddSettingsToggle(Transform parent, string name, string locKey, UnityEngine.Events.UnityAction act)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
             go.transform.SetParent(parent, false);
@@ -261,7 +262,7 @@ namespace StreetCat.UI
             tx.raycastTarget = false;
         }
 
-        Slider AddSettingsSlider(Transform parent, string name, System.Action<float> onChanged, out Text valueLabel)
+        Slider AddSettingsSlider(Transform parent, string name, System.Action<float> onChanged, out TextMeshProUGUI valueLabel)
         {
             var row = new GameObject(name + "Row", typeof(RectTransform), typeof(HorizontalLayoutGroup), typeof(LayoutElement));
             row.transform.SetParent(parent, false);
@@ -421,13 +422,13 @@ namespace StreetCat.UI
             HighlightToggle(settingsWindowedBtn, !GameSettings.Fullscreen);
         }
 
-        static void HighlightToggle(Text label, bool on)
+        static void HighlightToggle(TextMeshProUGUI label, bool on)
         {
             if (label == null) return;
             var img = label.transform.parent != null ? label.transform.parent.GetComponent<Image>() : null;
             if (img != null)
                 img.color = on ? VnTheme.AccentSoft : VnTheme.Button;
-            label.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
+            label.fontStyle = on ? FontStyles.Bold : FontStyles.Normal;
         }
 
         void RefreshSettingsLabels()
@@ -438,8 +439,8 @@ namespace StreetCat.UI
             foreach (var tag in settingsRoot.GetComponentsInChildren<LocTag>(true))
             {
                 if (tag == null || string.IsNullOrEmpty(tag.key)) continue;
-                var tx = tag.target != null ? tag.target : tag.GetComponent<Text>();
-                if (tx == null) tx = tag.GetComponentInChildren<Text>();
+                var tx = tag.target != null ? tag.target : tag.GetComponent<TextMeshProUGUI>();
+                if (tx == null) tx = tag.GetComponentInChildren<TextMeshProUGUI>();
                 if (tx != null) tx.text = UiLoc.T(tag.key);
             }
         }
@@ -456,7 +457,7 @@ namespace StreetCat.UI
                 foreach (var tag in menuRoot.GetComponentsInChildren<LocTag>(true))
                 {
                     if (tag == null || string.IsNullOrEmpty(tag.key)) continue;
-                    var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<Text>();
+                    var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<TextMeshProUGUI>();
                     if (tx != null) tx.text = UiLoc.T(tag.key);
                 }
             }
@@ -566,10 +567,10 @@ namespace StreetCat.UI
         }
     }
 
-    /// <summary>Marks a UI Text for language refresh.</summary>
+    /// <summary>Marks TMP UI text for language refresh.</summary>
     public class LocTag : MonoBehaviour
     {
         public string key;
-        public Text target;
+        public TextMeshProUGUI target;
     }
 }

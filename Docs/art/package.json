@@ -1,0 +1,15 @@
+{
+  "name": "street-cat-art-docs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build-ui-refs": "node build-ui-art-refs-xlsx.mjs",
+    "build-ui": "node build-ui-xlsx.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "exceljs": "^4.4.0",
+    "sharp": "^0.35.3"
+  }
+}

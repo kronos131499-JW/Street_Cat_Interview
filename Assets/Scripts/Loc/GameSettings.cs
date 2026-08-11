@@ -21,7 +21,7 @@ namespace StreetCat.Loc
         const string PrefAutoDelay = "sci.autoDelay";
         const string PrefFullscreen = "sci.fullscreen";
 
-        const string DefaultFontZh = "siyuan";
+        const string DefaultFontZh = "simhei";
         const string DefaultFontEn = "barlow";
 
         public const float FontSizeMin = 0.75f;

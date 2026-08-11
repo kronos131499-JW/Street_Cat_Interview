@@ -16,7 +16,7 @@ namespace StreetCat.Loc
             public bool LatinOnly;
             /// <summary>Multiply base UI/dialogue font sizes.</summary>
             public float SizeScale;
-            /// <summary>Extra pixels between glyphs (UILetterSpacing).</summary>
+            /// <summary>Extra pixels between glyphs (mapped to TMP characterSpacing).</summary>
             public float LetterSpacing;
         }
 
@@ -27,6 +27,8 @@ namespace StreetCat.Loc
         public static readonly Option[] All =
         {
             new Option { Id = "siyuan", DisplayName = "Source Han Sans / 思源黑体", ResourcesName = "SiYuanHeiTi", LatinOnly = false, SizeScale = 1.15f, LetterSpacing = 2.5f },
+            // TrueType CJK (optional): StreetCat/Fonts/Import Windows SimHei — more reliable for TMP FontEngine than CFF OTF.
+            new Option { Id = "simhei", DisplayName = "SimHei / 黑体", ResourcesName = "SimHei", LatinOnly = false, SizeScale = 1.15f, LetterSpacing = 2.2f },
             new Option { Id = "system", DisplayName = "System CJK", ResourcesName = "", LatinOnly = false, SizeScale = 1.15f, LetterSpacing = 2.2f },
             new Option { Id = "butflow", DisplayName = "Butflow", ResourcesName = "Butflow", LatinOnly = true, SizeScale = S, LetterSpacing = Sp },
             new Option { Id = "papernotes", DisplayName = "Papernotes", ResourcesName = "Papernotes", LatinOnly = true, SizeScale = S, LetterSpacing = Sp },

@@ -6,6 +6,7 @@ using StreetCat.Narrative;
 using StreetCat.Writing;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -45,19 +46,19 @@ namespace StreetCat.UI
 
         GameObject writingMatsRoot;
         GameObject writingPreviewRoot;
-        Text writingTapeTitle;
-        Text writingSelectedCountText;
+        TextMeshProUGUI writingTapeTitle;
+        TextMeshProUGUI writingSelectedCountText;
         Transform writingProgressDots;
         Transform writingParagraphList;
         Transform writingCardGrid;
         ScrollRect writingCardScroll;
-        Text writingDetailTitle;
-        Text writingDetailTag;
-        Text writingDetailSource;
-        Text writingDetailBody;
+        TextMeshProUGUI writingDetailTitle;
+        TextMeshProUGUI writingDetailTag;
+        TextMeshProUGUI writingDetailSource;
+        TextMeshProUGUI writingDetailBody;
         Image writingDetailTagBg;
-        Text writingPreviewBody;
-        Text writingStatusHint;
+        TextMeshProUGUI writingPreviewBody;
+        TextMeshProUGUI writingStatusHint;
         Button writingGoBtn;
         Button writingReInterviewBtn;
         readonly List<GameObject> writingSpawned = new List<GameObject>();
@@ -106,9 +107,9 @@ namespace StreetCat.UI
                 WmInk, Vector2.zero, Vector2.zero);
             Stretch(writingTapeTitle.rectTransform, Vector2.zero, Vector2.one,
                 new Vector2(18f, 4f), new Vector2(-18f, -4f));
-            writingTapeTitle.fontStyle = FontStyle.Bold;
-            writingTapeTitle.horizontalOverflow = HorizontalWrapMode.Overflow;
-            writingTapeTitle.verticalOverflow = VerticalWrapMode.Overflow;
+            writingTapeTitle.fontStyle = FontStyles.Bold;
+            writingTapeTitle.enableWordWrapping = false;
+            writingTapeTitle.overflowMode = TextOverflowModes.Overflow;
             writingTapeTitle.text = UiLoc.T("ui.writing.tape_title", "第一章 写稿 / 素材卡库");
 
             // Top-right selected count + dots
@@ -121,7 +122,7 @@ namespace StreetCat.UI
                 WmInk, Vector2.zero, Vector2.zero);
             Stretch(writingSelectedCountText.rectTransform, new Vector2(0f, 0.35f), new Vector2(0.42f, 1f),
                 Vector2.zero, Vector2.zero);
-            writingSelectedCountText.fontStyle = FontStyle.Bold;
+            writingSelectedCountText.fontStyle = FontStyles.Bold;
 
             writingProgressDots = new GameObject("Dots", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
             writingProgressDots.SetParent(topRight.transform, false);
@@ -173,7 +174,7 @@ namespace StreetCat.UI
                 WmInkMuted, Vector2.zero, Vector2.zero);
             Stretch(stripTitle.rectTransform, new Vector2(0.08f, 0.86f), new Vector2(0.95f, 0.97f),
                 Vector2.zero, Vector2.zero);
-            stripTitle.fontStyle = FontStyle.Bold;
+            stripTitle.fontStyle = FontStyles.Bold;
             stripTitle.text = UiLoc.T("ui.writing.structure", "文章结构（固定段落）");
             var stripTitleTag = stripTitle.gameObject.AddComponent<LocTag>();
             stripTitleTag.key = "ui.writing.structure";
@@ -265,9 +266,9 @@ namespace StreetCat.UI
                 WmInk, Vector2.zero, Vector2.zero);
             Stretch(writingDetailTitle.rectTransform, new Vector2(0.08f, 0.78f), new Vector2(0.92f, 0.94f),
                 Vector2.zero, Vector2.zero);
-            writingDetailTitle.fontStyle = FontStyle.Bold;
-            writingDetailTitle.verticalOverflow = VerticalWrapMode.Overflow;
-            writingDetailTitle.resizeTextForBestFit = false;
+            writingDetailTitle.fontStyle = FontStyles.Bold;
+            writingDetailTitle.overflowMode = TextOverflowModes.Overflow;
+            writingDetailTitle.enableAutoSizing = false;
 
             writingDetailTagBg = CreateImage(detail.transform, "Tag", WmOrange);
             Stretch(writingDetailTagBg.rectTransform, new Vector2(0.08f, 0.68f), new Vector2(0.46f, 0.76f),
@@ -275,15 +276,15 @@ namespace StreetCat.UI
             writingDetailTag = CreateUiText(writingDetailTagBg.transform, "TagLabel", 16, TextAnchor.MiddleCenter,
                 Color.white, Vector2.zero, Vector2.zero);
             StretchFull(writingDetailTag.rectTransform);
-            writingDetailTag.fontStyle = FontStyle.Bold;
-            writingDetailTag.horizontalOverflow = HorizontalWrapMode.Overflow;
-            writingDetailTag.resizeTextForBestFit = false;
+            writingDetailTag.fontStyle = FontStyles.Bold;
+            writingDetailTag.enableWordWrapping = false;
+            writingDetailTag.enableAutoSizing = false;
 
             writingDetailSource = CreateUiText(detail.transform, "Source", 16, TextAnchor.MiddleLeft,
                 WmInkMuted, Vector2.zero, Vector2.zero);
             Stretch(writingDetailSource.rectTransform, new Vector2(0.08f, 0.58f), new Vector2(0.92f, 0.67f),
                 Vector2.zero, Vector2.zero);
-            writingDetailSource.resizeTextForBestFit = false;
+            writingDetailSource.enableAutoSizing = false;
 
             var detailHost = new GameObject("DetailBodyHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             detailHost.transform.SetParent(detail.transform, false);
@@ -307,16 +308,15 @@ namespace StreetCat.UI
             dcrt.pivot = new Vector2(0.5f, 1);
             dcrt.sizeDelta = Vector2.zero;
             dContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            writingDetailBody = dContent.AddComponent<Text>();
+            writingDetailBody = dContent.AddComponent<TextMeshProUGUI>();
             writingDetailBody.font = font;
             writingDetailBody.fontSize = 20;
             writingDetailBody.color = WmInk;
-            writingDetailBody.alignment = TextAnchor.UpperLeft;
-            writingDetailBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-            writingDetailBody.verticalOverflow = VerticalWrapMode.Overflow;
-            writingDetailBody.lineSpacing = 1.45f;
-            writingDetailBody.resizeTextForBestFit = false;
-            writingDetailBody.alignByGeometry = false;
+            writingDetailBody.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            writingDetailBody.enableWordWrapping = true;
+            writingDetailBody.overflowMode = TextOverflowModes.Overflow;
+            writingDetailBody.lineSpacing = 45f;
+            writingDetailBody.enableAutoSizing = false;
             writingDetailBody.raycastTarget = false;
             detailScroll.viewport = dVp.GetComponent<RectTransform>();
             detailScroll.content = dcrt;
@@ -348,7 +348,7 @@ namespace StreetCat.UI
                 OnWritingGoToDesk);
             var goTag = writingGoBtn.gameObject.AddComponent<LocTag>();
             goTag.key = "ui.writing.go_write";
-            goTag.target = writingGoBtn.GetComponentInChildren<Text>();
+            goTag.target = writingGoBtn.GetComponentInChildren<TextMeshProUGUI>();
 
             // Secondary: back + notebook
             var backBtn = SpawnWritingActionButton(cork.transform, "BackDirBtn",
@@ -357,7 +357,7 @@ namespace StreetCat.UI
                 () => { writingMatsActive = false; HideWritingMaterialsBoard(); ShowWritingDirectionPick(); });
             var backTag = backBtn.gameObject.AddComponent<LocTag>();
             backTag.key = "ui.writing.back_direction";
-            backTag.target = backBtn.GetComponentInChildren<Text>();
+            backTag.target = backBtn.GetComponentInChildren<TextMeshProUGUI>();
 
             var nbBtn = SpawnWritingActionButton(cork.transform, "NotebookBtn",
                 UiLoc.T("ui.notebook", "笔记"), new Color(0.28f, 0.24f, 0.20f, 0.92f),
@@ -368,7 +368,7 @@ namespace StreetCat.UI
                 new Vector2(0.26f, 0.025f), new Vector2(0.40f, 0.10f), ShowReInterviewMenu);
             var riTag = writingReInterviewBtn.gameObject.AddComponent<LocTag>();
             riTag.key = "ui.writing.reinterview";
-            riTag.target = writingReInterviewBtn.GetComponentInChildren<Text>();
+            riTag.target = writingReInterviewBtn.GetComponentInChildren<TextMeshProUGUI>();
 
             // ArticlePreview overlay kept in code but unwired — players edit on the writing desk.
             BuildWritingPreviewPanel(cork.transform);
@@ -381,17 +381,16 @@ namespace StreetCat.UI
             if (font == null) return;
             if (writingMatsRoot == null && writingDeskRoot == null) return;
             float scale = GameSettings.FontSizeScale;
-            void Chrome(Text t, int baseSize, bool bold = false, bool wrap = false)
+            void Chrome(TextMeshProUGUI t, int baseSize, bool bold = false, bool wrap = false)
             {
                 if (t == null) return;
                 t.font = font;
                 t.fontSize = Mathf.RoundToInt(baseSize * scale);
-                if (bold) t.fontStyle = FontStyle.Bold;
-                t.resizeTextForBestFit = false;
-                t.alignByGeometry = false;
+                if (bold) t.fontStyle = FontStyles.Bold;
+                t.enableAutoSizing = false;
                 if (wrap)
                 {
-                    t.horizontalOverflow = HorizontalWrapMode.Wrap;
+                    t.enableWordWrapping = true;
                     ApplyLetterSpacing(t, 0f);
                 }
                 else
@@ -412,28 +411,26 @@ namespace StreetCat.UI
             {
                 writingDetailBody.font = font;
                 writingDetailBody.fontSize = Mathf.RoundToInt(20f * scale);
-                writingDetailBody.lineSpacing = 1.45f;
-                writingDetailBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-                writingDetailBody.verticalOverflow = VerticalWrapMode.Overflow;
-                writingDetailBody.resizeTextForBestFit = false;
-                writingDetailBody.alignByGeometry = false;
+                writingDetailBody.lineSpacing = 45f;
+                writingDetailBody.enableWordWrapping = true;
+                writingDetailBody.overflowMode = TextOverflowModes.Overflow;
+                writingDetailBody.enableAutoSizing = false;
                 ApplyLetterSpacing(writingDetailBody, 0f);
             }
             if (writingPreviewBody != null)
             {
                 writingPreviewBody.font = font;
                 writingPreviewBody.fontSize = Mathf.RoundToInt(20f * scale);
-                writingPreviewBody.lineSpacing = 1.45f;
-                writingPreviewBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-                writingPreviewBody.verticalOverflow = VerticalWrapMode.Overflow;
-                writingPreviewBody.resizeTextForBestFit = false;
-                writingPreviewBody.alignByGeometry = false;
+                writingPreviewBody.lineSpacing = 45f;
+                writingPreviewBody.enableWordWrapping = true;
+                writingPreviewBody.overflowMode = TextOverflowModes.Overflow;
+                writingPreviewBody.enableAutoSizing = false;
                 ApplyLetterSpacing(writingPreviewBody, 0f);
             }
             // Paragraph strip + action buttons built once at overlay create time.
             if (writingParagraphList != null)
             {
-                foreach (var t in writingParagraphList.GetComponentsInChildren<Text>(true))
+                foreach (var t in writingParagraphList.GetComponentsInChildren<TextMeshProUGUI>(true))
                 {
                     if (t == null || t.name != "Label") continue;
                     Chrome(t, 17);
@@ -444,7 +441,7 @@ namespace StreetCat.UI
                 foreach (var btn in writingMatsRoot.GetComponentsInChildren<Button>(true))
                 {
                     if (btn == null) continue;
-                    var label = btn.GetComponentInChildren<Text>(true);
+                    var label = btn.GetComponentInChildren<TextMeshProUGUI>(true);
                     if (label == null || label.name != "Label") continue;
                     // Skip material cards (spawned under CardGrid Content).
                     if (writingCardGrid != null && label.transform.IsChildOf(writingCardGrid))
@@ -469,9 +466,9 @@ namespace StreetCat.UI
                 {
                     wdDraftBody.font = font;
                     wdDraftBody.fontSize = Mathf.RoundToInt(18f * scale);
-                    wdDraftBody.lineSpacing = 1.15f;
-                    wdDraftBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-                    wdDraftBody.verticalOverflow = VerticalWrapMode.Overflow;
+                    wdDraftBody.lineSpacing = 15f;
+                    wdDraftBody.enableWordWrapping = true;
+                    wdDraftBody.overflowMode = TextOverflowModes.Overflow;
                     ApplyLetterSpacing(wdDraftBody, 0f);
                 }
                 if (wdDraftCharCount != null)
@@ -480,14 +477,19 @@ namespace StreetCat.UI
                     wdDraftCharCount.fontSize = Mathf.RoundToInt(13f * scale);
                     ApplyLetterSpacing(wdDraftCharCount, 0f);
                 }
-                if (wdDraftInput != null && wdDraftInput.placeholder is Text ph)
+                if (wdDraftInput != null)
                 {
-                    ph.font = font;
-                    ph.fontSize = Mathf.RoundToInt(18f * scale);
+                    wdDraftInput.fontAsset = font;
+                    wdDraftInput.pointSize = Mathf.RoundToInt(18f * scale);
+                    if (wdDraftInput.placeholder is TextMeshProUGUI ph)
+                    {
+                        ph.font = font;
+                        ph.fontSize = Mathf.RoundToInt(18f * scale);
+                    }
                 }
                 foreach (var btn in writingDeskRoot.GetComponentsInChildren<Button>(true))
                 {
-                    var label = btn != null ? btn.GetComponentInChildren<Text>(true) : null;
+                    var label = btn != null ? btn.GetComponentInChildren<TextMeshProUGUI>(true) : null;
                     if (label != null && label.name == "T")
                         Chrome(label, 15, true);
                 }
@@ -517,7 +519,7 @@ namespace StreetCat.UI
                 WmInk, Vector2.zero, Vector2.zero);
             Stretch(title.rectTransform, new Vector2(0.06f, 0.90f), new Vector2(0.94f, 0.98f),
                 Vector2.zero, Vector2.zero);
-            title.fontStyle = FontStyle.Bold;
+            title.fontStyle = FontStyles.Bold;
             title.text = UiLoc.T("ui.writing.preview_title", "文章预览");
             var titleTag = title.gameObject.AddComponent<LocTag>();
             titleTag.key = "ui.writing.preview_title";
@@ -544,16 +546,15 @@ namespace StreetCat.UI
             crt.pivot = new Vector2(0.5f, 1);
             crt.sizeDelta = Vector2.zero;
             content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            writingPreviewBody = content.AddComponent<Text>();
+            writingPreviewBody = content.AddComponent<TextMeshProUGUI>();
             writingPreviewBody.font = font;
             writingPreviewBody.fontSize = 20;
             writingPreviewBody.color = WmInk;
-            writingPreviewBody.alignment = TextAnchor.UpperLeft;
-            writingPreviewBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-            writingPreviewBody.verticalOverflow = VerticalWrapMode.Overflow;
-            writingPreviewBody.lineSpacing = 1.45f;
-            writingPreviewBody.resizeTextForBestFit = false;
-            writingPreviewBody.alignByGeometry = false;
+            writingPreviewBody.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            writingPreviewBody.enableWordWrapping = true;
+            writingPreviewBody.overflowMode = TextOverflowModes.Overflow;
+            writingPreviewBody.lineSpacing = 45f;
+            writingPreviewBody.enableAutoSizing = false;
             writingPreviewBody.raycastTarget = false;
             scroll.viewport = vp.GetComponent<RectTransform>();
             scroll.content = crt;
@@ -564,7 +565,7 @@ namespace StreetCat.UI
                 () => { if (writingPreviewRoot) writingPreviewRoot.SetActive(false); });
             var closeTag = close.gameObject.AddComponent<LocTag>();
             closeTag.key = "ui.writing.preview_close";
-            closeTag.target = close.GetComponentInChildren<Text>();
+            closeTag.target = close.GetComponentInChildren<TextMeshProUGUI>();
 
             writingPreviewRoot.SetActive(false);
         }
@@ -587,9 +588,9 @@ namespace StreetCat.UI
             var tx = CreateUiText(go.transform, "Label", Mathf.RoundToInt(18f * scale),
                 TextAnchor.MiddleCenter, Color.white, Vector2.zero, Vector2.zero);
             StretchFull(tx.rectTransform);
-            tx.fontStyle = FontStyle.Bold;
-            tx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            tx.resizeTextForBestFit = false;
+            tx.fontStyle = FontStyles.Bold;
+            tx.enableWordWrapping = false;
+            tx.enableAutoSizing = false;
             tx.text = label;
             tx.raycastTarget = false;
             ApplyLetterSpacing(tx, 0f);
@@ -620,7 +621,7 @@ namespace StreetCat.UI
             var label = CreateUiText(go.transform, "Label", Mathf.RoundToInt(17f * scale),
                 TextAnchor.MiddleLeft, WmInk, Vector2.zero, Vector2.zero);
             Stretch(label.rectTransform, new Vector2(0.08f, 0f), new Vector2(0.78f, 1f), Vector2.zero, Vector2.zero);
-            label.resizeTextForBestFit = false;
+            label.enableAutoSizing = false;
             label.text = UiLoc.T(WmParagraphKeys[index], WmParagraphFallback[index]);
             ApplyLetterSpacing(label, 0f);
             var tag = label.gameObject.AddComponent<LocTag>();
@@ -710,7 +711,7 @@ namespace StreetCat.UI
             foreach (var tag in writingMatsRoot.GetComponentsInChildren<LocTag>(true))
             {
                 if (tag == null || string.IsNullOrEmpty(tag.key)) continue;
-                var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<Text>();
+                var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<TextMeshProUGUI>();
                 if (tx != null) tx.text = UiLoc.T(tag.key);
             }
             if (writingMatsRoot.activeSelf)
@@ -792,9 +793,9 @@ namespace StreetCat.UI
                 var label = row.Find("Label");
                 if (label != null)
                 {
-                    var tx = label.GetComponent<Text>();
+                    var tx = label.GetComponent<TextMeshProUGUI>();
                     if (tx != null)
-                        tx.fontStyle = on ? FontStyle.Bold : FontStyle.Normal;
+                        tx.fontStyle = on ? FontStyles.Bold : FontStyles.Normal;
                 }
 
                 float fill = WritingParagraphFill(i);
@@ -860,7 +861,7 @@ namespace StreetCat.UI
                     TextAnchor.MiddleCenter,
                     new Color(0.95f, 0.90f, 0.82f, 0.85f), Vector2.zero, Vector2.zero);
                 StretchFull(empty.rectTransform);
-                empty.resizeTextForBestFit = false;
+                empty.enableAutoSizing = false;
                 empty.text = UiLoc.T("ui.writing.empty_para", "此段落暂无素材卡");
                 ApplyLetterSpacing(empty, 0f);
                 writingSpawned.Add(empty.gameObject);
@@ -955,10 +956,10 @@ namespace StreetCat.UI
 
             var idTx = CreateUiText(go.transform, "Id", Sz(15), TextAnchor.UpperLeft, WmInkMuted, Vector2.zero, Vector2.zero);
             Stretch(idTx.rectTransform, new Vector2(0.07f, 0.80f), new Vector2(0.38f, 0.96f), Vector2.zero, Vector2.zero);
-            idTx.fontStyle = FontStyle.Bold;
-            idTx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            idTx.verticalOverflow = VerticalWrapMode.Overflow;
-            idTx.resizeTextForBestFit = false;
+            idTx.fontStyle = FontStyles.Bold;
+            idTx.enableWordWrapping = false;
+            idTx.overflowMode = TextOverflowModes.Overflow;
+            idTx.enableAutoSizing = false;
             idTx.text = m.id;
             ApplyLetterSpacing(idTx, 0f);
 
@@ -966,29 +967,27 @@ namespace StreetCat.UI
             Stretch(tagBg.rectTransform, new Vector2(0.40f, 0.80f), new Vector2(0.93f, 0.95f), Vector2.zero, Vector2.zero);
             var tagTx = CreateUiText(tagBg.transform, "T", Sz(14), TextAnchor.MiddleCenter, WmInk, Vector2.zero, Vector2.zero);
             StretchFull(tagTx.rectTransform);
-            tagTx.fontStyle = FontStyle.Bold;
-            tagTx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            tagTx.resizeTextForBestFit = false;
+            tagTx.fontStyle = FontStyles.Bold;
+            tagTx.enableWordWrapping = false;
+            tagTx.enableAutoSizing = false;
             tagTx.text = MaterialTypeLabel(m.type);
             ApplyLetterSpacing(tagTx, 0f);
 
             var titleTx = CreateUiText(go.transform, "Title", Sz(19), TextAnchor.UpperLeft, WmInk, Vector2.zero, Vector2.zero);
             Stretch(titleTx.rectTransform, new Vector2(0.07f, 0.50f), new Vector2(0.93f, 0.78f), Vector2.zero, Vector2.zero);
-            titleTx.fontStyle = FontStyle.Bold;
-            titleTx.horizontalOverflow = HorizontalWrapMode.Wrap;
-            titleTx.verticalOverflow = VerticalWrapMode.Truncate;
-            titleTx.resizeTextForBestFit = false;
-            titleTx.alignByGeometry = false;
+            titleTx.fontStyle = FontStyles.Bold;
+            titleTx.enableWordWrapping = true;
+            titleTx.overflowMode = TextOverflowModes.Truncate;
+            titleTx.enableAutoSizing = false;
             titleTx.text = unlocked ? m.title : "？？？";
             ApplyLetterSpacing(titleTx, 0f);
 
             var bodyTx = CreateUiText(go.transform, "Body", Sz(15), TextAnchor.UpperLeft, WmInkMuted, Vector2.zero, Vector2.zero);
             Stretch(bodyTx.rectTransform, new Vector2(0.07f, 0.12f), new Vector2(0.78f, 0.48f), Vector2.zero, Vector2.zero);
-            bodyTx.horizontalOverflow = HorizontalWrapMode.Wrap;
-            bodyTx.verticalOverflow = VerticalWrapMode.Truncate;
-            bodyTx.lineSpacing = 1.2f;
-            bodyTx.resizeTextForBestFit = false;
-            bodyTx.alignByGeometry = false;
+            bodyTx.enableWordWrapping = true;
+            bodyTx.overflowMode = TextOverflowModes.Truncate;
+            bodyTx.lineSpacing = 20f;
+            bodyTx.enableAutoSizing = false;
             bodyTx.text = unlocked ? Shorten(m.body, 52) : UiLoc.T("ui.writing.locked", "尚未解锁");
             ApplyLetterSpacing(bodyTx, 0f);
 
@@ -1009,18 +1008,18 @@ namespace StreetCat.UI
             {
                 var check = CreateUiText(status.transform, "Check", Sz(14), TextAnchor.MiddleCenter, Color.white, Vector2.zero, Vector2.zero);
                 StretchFull(check.rectTransform);
-                check.horizontalOverflow = HorizontalWrapMode.Overflow;
-                check.resizeTextForBestFit = false;
+                check.enableWordWrapping = false;
+                check.enableAutoSizing = false;
                 check.text = "✓";
-                check.fontStyle = FontStyle.Bold;
+                check.fontStyle = FontStyles.Bold;
                 ApplyLetterSpacing(check, 0f);
             }
             else if (!unlocked)
             {
                 var lockTx = CreateUiText(status.transform, "Lock", Sz(13), TextAnchor.MiddleCenter, Color.white, Vector2.zero, Vector2.zero);
                 StretchFull(lockTx.rectTransform);
-                lockTx.horizontalOverflow = HorizontalWrapMode.Overflow;
-                lockTx.resizeTextForBestFit = false;
+                lockTx.enableWordWrapping = false;
+                lockTx.enableAutoSizing = false;
                 lockTx.text = "锁";
                 ApplyLetterSpacing(lockTx, 0f);
             }

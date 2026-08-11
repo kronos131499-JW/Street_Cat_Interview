@@ -2,6 +2,7 @@
 using StreetCat.Core;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace StreetCat.UI
 {
@@ -29,7 +30,7 @@ namespace StreetCat.UI
             Stretch(title.GetComponent<RectTransform>(),
                 new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.99f), Vector2.zero, Vector2.zero);
             title.text = "测试跳转 (F9)";
-            title.fontStyle = FontStyle.Bold;
+            title.fontStyle = FontStyles.Bold;
             title.raycastTarget = false;
 
             var hint = CreateUiText(debugJumpRoot.transform, "Hint", 13, TextAnchor.MiddleLeft,

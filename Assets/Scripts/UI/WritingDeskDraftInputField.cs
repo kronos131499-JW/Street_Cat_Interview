@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -5,19 +6,19 @@ using UnityEngine.UI;
 namespace StreetCat.UI
 {
     /// <summary>
-    /// Legacy <see cref="InputField"/> steals drag (text selection) from a parent
+    /// <see cref="TMP_InputField"/> steals drag (text selection) from a parent
     /// <see cref="ScrollRect"/>. Forward drag to ScrollRect so the draft pans.
     /// Wheel is also forwarded when the pointer is over the field (IScrollHandler).
-    /// Do not call base drag/scroll — InputField would offset the text rect and fight ScrollRect.
+    /// Do not call base drag/scroll — TMP_InputField would offset the text rect and fight ScrollRect.
     /// </summary>
-    public class WritingDeskDraftInputField : InputField,
+    public class WritingDeskDraftInputField : TMP_InputField,
         IScrollHandler,
         IInitializePotentialDragHandler
     {
         public ScrollRect scrollRect;
         public float textTopPad = 8f;
 
-        public void OnScroll(PointerEventData eventData)
+        public override void OnScroll(PointerEventData eventData)
         {
             if (scrollRect != null && scrollRect.IsActive())
                 scrollRect.OnScroll(eventData);
@@ -48,8 +49,8 @@ namespace StreetCat.UI
         }
 
         /// <summary>
-        /// Must call <see cref="InputField.LateUpdate"/> — click-to-focus sets
-        /// m_ShouldActivateNextUpdate and only base LateUpdate activates editing/caret.
+        /// Must call <see cref="TMP_InputField.LateUpdate"/> — click-to-focus sets
+        /// internal activate-next-update and only base LateUpdate activates editing/caret.
         /// Then pin text Y so multiline caret-follow does not fight ScrollRect.
         /// </summary>
         protected override void LateUpdate()
