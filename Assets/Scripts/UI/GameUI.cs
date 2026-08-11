@@ -890,16 +890,23 @@ namespace StreetCat.UI
         }
 
         /// <summary>
-        /// Keep TopBar (回看/菜单) above the advance catcher so chrome chips remain clickable
-        /// while click-to-advance still covers the stage / dialogue band.
+        /// Keep TopBar (回看/菜单) above stage catchers / interview HitCatcher so chrome
+        /// chips remain clickable while overlays still cover the stage.
         /// </summary>
         void EnsureTopHudClickable()
         {
-            if (topBarImage == null || advanceCatcher == null) return;
-            int catcherIdx = advanceCatcher.transform.GetSiblingIndex();
+            if (topBarImage == null) return;
             int topIdx = topBarImage.transform.GetSiblingIndex();
-            if (topIdx <= catcherIdx)
-                topBarImage.transform.SetSiblingIndex(catcherIdx + 1);
+            int raiseAbove = topIdx;
+            if (advanceCatcher != null)
+                raiseAbove = Mathf.Max(raiseAbove, advanceCatcher.transform.GetSiblingIndex());
+            // Interview overlay is brought above gameplay and previously swallowed TopBar clicks.
+            if (interviewRoot != null && interviewRoot.activeInHierarchy)
+                raiseAbove = Mathf.Max(raiseAbove, interviewRoot.transform.GetSiblingIndex());
+            if (topIdx <= raiseAbove)
+                topBarImage.transform.SetSiblingIndex(raiseAbove + 1);
+            // Menus / backlog / confirm must stay above the TopBar chips.
+            BringOverlayStackToFront();
         }
 
         void BuildInvestigateOverlay(Transform parent)
@@ -2387,7 +2394,8 @@ namespace StreetCat.UI
             if (portraitImage != null)
                 portraitImage.transform.SetAsLastSibling();
             interviewRoot.transform.SetAsLastSibling();
-            BringOverlayStackToFront();
+            // TopBar must sit above interview HitCatcher / meter pad; menus stay above TopBar.
+            EnsureTopHudClickable();
         }
 
         void BringOverlayStackToFront()

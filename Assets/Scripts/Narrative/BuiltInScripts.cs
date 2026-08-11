@@ -375,7 +375,7 @@ namespace StreetCat.Narrative
             s.lines.Add(L("保安叔叔", "你刚刚在和猫说话？", "疑惑"));
             s.lines.Add(L("小凌", "呃……算是吧？我能听懂猫语。", "局促"));
             s.lines.Add(L("保安叔叔", "现在的年轻人真厉害！", "常态"));
-            s.lines.Add(L("小凌", "叔叔，我回来啦。刚才您说的那个救助人，我想再确认一下。", "认真"));
+            s.lines.Add(L("小凌", "刚才您说的那个救助人，我想再确认一下。", "认真"));
             s.lines.Add(L("保安叔叔", "嗯，你问吧。", "常态"));
             s.lines.Add(new ScriptLine
             {

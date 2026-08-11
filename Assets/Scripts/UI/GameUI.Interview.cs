@@ -61,8 +61,10 @@ namespace StreetCat.UI
             StretchFull(interviewRoot.GetComponent<RectTransform>());
 
             // Transparent catcher so stage clicks don't advance dialogue underneath.
+            // Stop below TopBar so 回看/菜单 stay clickable (interviewRoot sits above TopBar).
             var catcher = CreateImage(interviewRoot.transform, "HitCatcher", new Color(0f, 0f, 0f, 0.001f));
-            StretchFull(catcher.rectTransform);
+            Stretch(catcher.rectTransform, new Vector2(0f, 0f), new Vector2(1f, VnTheme.TopHudBottom),
+                Vector2.zero, Vector2.zero);
             catcher.raycastTarget = true;
 
             // Left companion portrait (cat) — only used in interview chrome.
@@ -90,7 +92,8 @@ namespace StreetCat.UI
             hrt.anchorMin = new Vector2(1f, 1f);
             hrt.anchorMax = new Vector2(1f, 1f);
             hrt.pivot = new Vector2(1f, 1f);
-            hrt.anchoredPosition = new Vector2(-28f, -72f);
+            // Below TopBar (TopHudBottom) so trust note does not cover 回看/菜单.
+            hrt.anchoredPosition = new Vector2(-28f, -96f);
             // Slightly wider so zh/en meter names + values stay readable.
             hrt.sizeDelta = new Vector2(248f, 176f);
 
@@ -99,15 +102,17 @@ namespace StreetCat.UI
             shadow.rectTransform.anchoredPosition = new Vector2(4f, -5f);
             shadow.raycastTarget = false;
 
+            // Cream scrap paper — never tex_paper_dark (charcoal × light tint stays dark;
+            // IvInk labels were invisible on it after icon→text meter change).
             var paper = CreateImage(host.transform, "Paper", IvPaper);
             StretchFull(paper.rectTransform);
             paper.raycastTarget = false;
-            var lined = VnArt.GetUi("tex_paper_dark");
-            if (lined != null)
+            EnsureLinedPaperSprite();
+            if (notebookLinedPaperSprite != null)
             {
-                paper.sprite = lined;
+                paper.sprite = notebookLinedPaperSprite;
                 paper.type = Image.Type.Simple;
-                paper.color = new Color(1f, 0.98f, 0.94f, 0.92f);
+                paper.color = new Color(1f, 0.99f, 0.96f, 0.98f);
             }
 
             AttachPaperclip(paper.transform, new Vector2(0.92f, 1.05f), 34f, 48f, 12f);
@@ -150,24 +155,28 @@ namespace StreetCat.UI
                 Vector2.zero, Vector2.zero);
             tick.raycastTarget = false;
 
-            labelTx = CreateUiText(rowGo.transform, "Label", 15, TextAnchor.MiddleLeft, IvInk,
+            labelTx = CreateUiText(rowGo.transform, "Label", 14, TextAnchor.MiddleLeft, IvInk,
                 Vector2.zero, Vector2.zero);
-            Stretch(labelTx.rectTransform, new Vector2(0.07f, 0.48f), new Vector2(0.62f, 0.98f),
+            Stretch(labelTx.rectTransform, new Vector2(0.07f, 0.42f), new Vector2(0.58f, 1f),
                 Vector2.zero, Vector2.zero);
             labelTx.fontStyle = FontStyle.Bold;
             labelTx.horizontalOverflow = HorizontalWrapMode.Overflow;
-            labelTx.verticalOverflow = VerticalWrapMode.Truncate;
+            labelTx.verticalOverflow = VerticalWrapMode.Overflow;
+            labelTx.raycastTarget = false;
 
-            valueTx = CreateUiText(rowGo.transform, "Value", 15, TextAnchor.MiddleRight, fill,
+            valueTx = CreateUiText(rowGo.transform, "Value", 14, TextAnchor.MiddleRight, fill,
                 Vector2.zero, Vector2.zero);
-            Stretch(valueTx.rectTransform, new Vector2(0.62f, 0.48f), new Vector2(1f, 0.98f),
+            Stretch(valueTx.rectTransform, new Vector2(0.58f, 0.42f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
             valueTx.fontStyle = FontStyle.Bold;
+            valueTx.horizontalOverflow = HorizontalWrapMode.Overflow;
+            valueTx.verticalOverflow = VerticalWrapMode.Overflow;
+            valueTx.raycastTarget = false;
             valueTx.text = "—";
 
             var bar = new GameObject("Bar", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             bar.transform.SetParent(rowGo.transform, false);
-            Stretch(bar.GetComponent<RectTransform>(), new Vector2(0.07f, 0.06f), new Vector2(1f, 0.46f),
+            Stretch(bar.GetComponent<RectTransform>(), new Vector2(0.07f, 0.04f), new Vector2(1f, 0.40f),
                 Vector2.zero, Vector2.zero);
             var hlg = bar.GetComponent<HorizontalLayoutGroup>();
             hlg.spacing = 4f;
@@ -1131,17 +1140,21 @@ namespace StreetCat.UI
         {
             if (tx == null) return;
             tx.font = font;
-            tx.fontSize = Mathf.RoundToInt(15f * scale);
+            tx.fontSize = Mathf.RoundToInt(14f * scale);
             tx.color = IvInk;
             tx.fontStyle = FontStyle.Bold;
+            tx.horizontalOverflow = HorizontalWrapMode.Overflow;
+            tx.verticalOverflow = VerticalWrapMode.Overflow;
         }
 
         void ApplyMeterValueFont(Text tx, float scale)
         {
             if (tx == null) return;
             tx.font = font;
-            tx.fontSize = Mathf.RoundToInt(15f * scale);
+            tx.fontSize = Mathf.RoundToInt(14f * scale);
             tx.fontStyle = FontStyle.Bold;
+            tx.horizontalOverflow = HorizontalWrapMode.Overflow;
+            tx.verticalOverflow = VerticalWrapMode.Overflow;
         }
     }
 }

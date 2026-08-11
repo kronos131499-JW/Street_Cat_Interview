@@ -241,7 +241,7 @@ TR = {
     "你刚刚在和猫说话？": "Were you just talking to the cat?",
     "呃……算是吧？我能听懂猫语。": "Uh... sort of? I can understand cat.",
     "现在的年轻人真厉害！": "Kids these days are amazing!",
-    "叔叔，我回来啦。刚才您说的那个救助人，我想再确认一下。":
+    "刚才您说的那个救助人，我想再确认一下。":
         "Uncle, I'm back. About that rescuer you mentioned—I'd like to double-check.",
     "嗯，你问吧。": "Mm. Ask away.",
     "根据采访线索向保安打听当年的救助者。":
