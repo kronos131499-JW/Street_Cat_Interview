@@ -22,6 +22,17 @@ namespace StreetCat.Interview
         readonly HashSet<string> gainedThisInterview = new HashSet<string>();
         InterviewReply lastReply;
         string lastPlayerQuestion;
+        /// <summary>Rolling window: whether each recent Dafu NPC reply mentioned food.</summary>
+        readonly Queue<bool> recentDafuFoodMentions = new Queue<bool>();
+
+        const int DafuFoodWindowSize = 5;
+        const int DafuFoodMaxPerWindow = 1;
+
+        static readonly string[] DafuFoodKeywords =
+        {
+            "吃", "粮", "罐头", "小鱼干", "投喂", "好吃", "饭", "零食", "小鱼", "火腿",
+            "猫条", "猫粮", "饿", "喂"
+        };
 
         public InterviewSubject Subject => subject;
         public InterviewerStats Stats => engine?.Stats;
@@ -54,6 +65,7 @@ namespace StreetCat.Interview
             boundaryHit = false;
             lastReply = null;
             lastPlayerQuestion = null;
+            recentDafuFoodMentions.Clear();
             crossChecks = GameState.Instance.Data.crossChecksCompleted;
             SaveSystem.Autosave();
 
@@ -101,6 +113,8 @@ namespace StreetCat.Interview
             // LLM answers replace rule templates with the lines actually shown.
             if (!deferSpeakerLines)
             {
+                if (subject == InterviewSubject.Dafu && reply.replyLines != null)
+                    reply.replyLines = EnforceDafuFoodQuota(reply.replyLines, reply, question);
                 AppendSpeakerReply(reply);
                 if (reply.shouldEnd)
                     End(false);
@@ -134,6 +148,9 @@ namespace StreetCat.Interview
                 }
             }
 
+            if (subject == InterviewSubject.Dafu)
+                RecordDafuFoodMention(ContainsFoodMention(lines) || ContainsFoodMention(reply.behavior));
+
             // Persist the same question + reply lines the player just saw (not intel templates).
             if (!string.IsNullOrWhiteSpace(lastPlayerQuestion))
                 ReporterNotebook.Instance?.RecordInterviewExchange(subject, lastPlayerQuestion, reply, lines);
@@ -162,24 +179,30 @@ namespace StreetCat.Interview
                 sb.AppendLine("【任务】直接回答记者问题，像一只真实的猫在说话：自然、生动、可带一点脾气或撒娇，不要电报式短词。");
                 sb.AppendLine("【硬性规则】");
                 sb.AppendLine("1. 禁止说出或装作理解这些人类概念：" + string.Join("、", DafuRuleEngine.ForbiddenLeak) + "。");
-                sb.AppendLine("2. 可用猫经验：疼、饿、亮、味道、笼子、门口、快递柜、晒太阳、狸花伙伴、有人喂、怕人靠近。");
+                sb.AppendLine("2. 可用猫经验：疼、饿、亮、味道、笼子、门口、快递柜、晒太阳、那只花的伙伴（另一只狸花猫，不是你）、有人喂、怕人靠近。");
                 sb.AppendLine("3. 对常见闲聊（名字、饿不饿、好不好、在干什么、几点出来）要给出贴切回答，不要只会反问「有吃的吗」。");
                 sb.AppendLine("4. 听不懂人类抽象/医疗/制度问题时保持困惑（「不知道」「那是什么」），不要编造人类解释。");
                 sb.AppendLine("5. 不要编造具体人名（除「大福」自称感知）、地址、金额、医疗诊断。");
                 sb.AppendLine("6. 每行一句，通常 1～4 句；只输出大福台词，不要旁白、引号或「大福：」前缀。");
+                sb.AppendLine("7. 食物相关（吃/粮/罐头/小鱼干/投喂/好吃/饭/饿/喂等）在最近 "
+                    + DafuFoodWindowSize + " 句回答中最多出现 " + DafuFoodMaxPerWindow + " 次。"
+                    + (IsDafuFoodQuotaExceeded()
+                        ? "本轮已达上限：禁止再提食物，改谈晒太阳、门口、快递柜、那只花的伙伴、味道、人靠近等。"
+                        : "若非记者明确问饿/吃，优先不提食物。"));
                 if (reply != null && reply.cognitiveBoundary)
-                    sb.AppendLine("7. 本题触及认知边界：必须表现为没听懂，禁止解释人类医疗/收养/费用。");
+                    sb.AppendLine("8. 本题触及认知边界：必须表现为没听懂，禁止解释人类医疗/收养/费用。");
                 if (reply != null && reply.isRepeat)
-                    sb.AppendLine("8. 勿复读「刚才说过了」；可简短接话或请对方换个问法。");
+                    sb.AppendLine("9. 勿复读「刚才说过了」；可简短接话或请对方换个问法。");
                 return sb.ToString();
             }
 
             if (subject == InterviewSubject.Lin)
             {
                 var sb = new StringBuilder();
-                sb.AppendLine("你是槐安社区居民「林女士」（林敏），曾救助过大福，正在接受记者采访。");
+                sb.AppendLine("你是槐安社区居民「林女士」（林敏），曾救助过橘猫「大福」，正在接受记者采访。");
                 sb.AppendLine("语气温和、克制、现实，像真人说话；可对常见问题自由发挥，但不要推翻下列硬事实。");
                 sb.AppendLine("【硬事实（不可改写/不可发明冲突内容）】");
+                sb.AppendLine("- 身份：大福是橘猫（橙色短毛），不是狸花猫；社区另有一只狸花猫常与它结伴，二者不是同一只。");
                 sb.AppendLine("- 伤：脖子上粗麻绳嵌进皮肉，坏死感染，需手术；不可编造别的伤口位置或凶器。");
                 sb.AppendLine("- 投喂：连续四个晚上带罐头投喂、放下后倒退；不可改成别的天数套路。");
                 sb.AppendLine("- 抓捕：联系有经验的人协助，装进航空箱送医。");
@@ -188,7 +211,7 @@ namespace StreetCat.Interview
                 sb.AppendLine("- 家庭：家里当时已有" + LinRuleEngine.HomeCatCount
                              + "只猫，还有孩子；不能再长期照顾第五只。不可给家猫起新名字（如豆包等）。");
                 sb.AppendLine("- 放归原因：能力/精力有限，不是冷血遗弃；社区有人投喂照料后才送回。");
-                sb.AppendLine("- 可称呼的名字仅限：大福、林敏/林女士；狸花猫只作描述，不要起宠物名。");
+                sb.AppendLine("- 可称呼的名字仅限：大福、林敏/林女士；那只狸花伙伴只作描述、不要起宠物名，且绝不可把大福说成狸花猫。");
                 sb.AppendLine("【硬性规则】");
                 sb.AppendLine("1. 态度：救助≠必须收养；放归是容量限制下的选择。");
                 sb.AppendLine("2. 对指责可防备，但不攻击记者；不说教、不写成鸡汤演讲。");
@@ -221,6 +244,10 @@ namespace StreetCat.Interview
             else if (reply != null && reply.isRepeat)
             {
                 sb.AppendLine("【说明】不要引用「刚才说过了」类重复稿；结合近期对话自然简短回答，或请对方换个问法。");
+            }
+            if (subject == InterviewSubject.Dafu && IsDafuFoodQuotaExceeded())
+            {
+                sb.AppendLine("【食物配额】最近回答已提过食物：本轮禁止出现吃/粮/罐头/饿/投喂等，改谈感官与日常。");
             }
             if (log.Count > 1)
             {
@@ -286,6 +313,90 @@ namespace StreetCat.Interview
             return true;
         }
 
+        /// <summary>
+        /// Dafu: at most 1 food-related NPC reply per 5 replies.
+        /// Scrubs food lines when the rolling window is full. Does not record —
+        /// <see cref="AppendSpeakerReply"/> records what was actually shown.
+        /// </summary>
+        public List<string> EnforceDafuFoodQuota(IList<string> lines, InterviewReply reply, string playerQuestion)
+        {
+            var result = lines != null ? new List<string>(lines) : new List<string>();
+            if (subject != InterviewSubject.Dafu)
+                return result;
+
+            // Explicit food Q / hungry intent — keep food lines (still counts when spoken).
+            if (reply != null && reply.intent == "hungry")
+                return result;
+            if (ContainsFoodMention(playerQuestion))
+                return result;
+
+            if (ContainsFoodMention(result) && IsDafuFoodQuotaExceeded())
+                result = StripFoodLines(result);
+            return result;
+        }
+
+        /// <summary>True when another food mention is still allowed in the last-5-reply window.</summary>
+        public bool CanDafuMentionFood => !IsDafuFoodQuotaExceeded();
+
+        bool IsDafuFoodQuotaExceeded()
+        {
+            int n = 0;
+            foreach (var had in recentDafuFoodMentions)
+            {
+                if (had) n++;
+            }
+            return n >= DafuFoodMaxPerWindow;
+        }
+
+        void RecordDafuFoodMention(bool hadFood)
+        {
+            recentDafuFoodMentions.Enqueue(hadFood);
+            while (recentDafuFoodMentions.Count > DafuFoodWindowSize)
+                recentDafuFoodMentions.Dequeue();
+        }
+
+        public static bool ContainsFoodMention(IList<string> lines)
+        {
+            if (lines == null) return false;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (ContainsFoodMention(lines[i]))
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool ContainsFoodMention(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+            for (int i = 0; i < DafuFoodKeywords.Length; i++)
+            {
+                if (text.IndexOf(DafuFoodKeywords[i], StringComparison.Ordinal) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
+        static List<string> StripFoodLines(IList<string> lines)
+        {
+            var kept = new List<string>();
+            if (lines != null)
+            {
+                foreach (var line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    if (!ContainsFoodMention(line))
+                        kept.Add(line.Trim());
+                }
+            }
+            if (kept.Count == 0)
+            {
+                kept.Add("嗯。");
+                kept.Add("你说什么？");
+            }
+            return kept;
+        }
+
         static readonly string[] LinInventedPetNames =
         {
             "豆包", "馒头", "汤圆", "饺子", "布丁", "奶茶", "可乐", "咖啡",
@@ -335,7 +446,39 @@ namespace StreetCat.Interview
                 return false;
             }
 
+            // Breed: Dafu is orange (橘猫); 狸花 is a different companion cat.
+            if (LooksLikeDafuCalledTabby(joined))
+            {
+                rejectReason = "dafu_breed_tabby";
+                return false;
+            }
+
             return true;
+        }
+
+        /// <summary>True when output equates 大福 with 狸花猫 (companion is a different cat).</summary>
+        static bool LooksLikeDafuCalledTabby(string joined)
+        {
+            if (string.IsNullOrEmpty(joined) || !joined.Contains("狸花"))
+                return false;
+
+            if (joined.Contains("大福是狸花") || joined.Contains("大福是一只狸花")
+                || joined.Contains("大福是那只狸花") || joined.Contains("狸花猫大福")
+                || joined.Contains("大福这只狸花") || joined.Contains("这只狸花猫大福")
+                || joined.Contains("狸花叫大福") || joined.Contains("大福那只狸花"))
+                return true;
+
+            if (!joined.Contains("大福"))
+                return false;
+            bool companionFraming = joined.Contains("一起") || joined.Contains("另一")
+                                    || joined.Contains("伙伴") || joined.Contains("结伴")
+                                    || joined.Contains("和一只狸花") || joined.Contains("跟一只狸花")
+                                    || joined.Contains("旁边的狸花") || joined.Contains("那只狸花");
+            if (companionFraming)
+                return false;
+
+            return joined.Contains("是狸花猫") || joined.Contains("这只狸花")
+                   || joined.Contains("那只狸花猫叫") || joined.Contains("狸花猫叫大福");
         }
 
         /// <summary>Replace trailing speaker reply lines in the interview log after LLM rephrase.</summary>

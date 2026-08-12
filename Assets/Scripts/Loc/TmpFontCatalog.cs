@@ -17,19 +17,36 @@ namespace StreetCat.Loc
         const string ProbeLatin = "Aa1";
         const string ProbeCjk = "街角";
 
+        /// <summary>
+        /// SDF sampling point size — keep ≥ typical UI font sizes (40–48) or glyphs look soft/糊.
+        /// </summary>
+        const int SamplingPointSize = 90;
+        const int AtlasPadding = 9;
+        const int AtlasWidth = 2048;
+        const int AtlasHeight = 2048;
+
         static readonly Dictionary<string, TMP_FontAsset> Cache = new Dictionary<string, TMP_FontAsset>();
         /// <summary>Keep source <see cref="Font"/>s alive so FontEngine can re-load faces for dynamic glyphs.</summary>
         static readonly List<Font> SourceKeepAlive = new List<Font>();
+        /// <summary>Failed create keys → do not infinite-retry / log every call.</summary>
+        static readonly HashSet<string> FailedCreateKeys = new HashSet<string>();
+        static readonly HashSet<string> LoggedOnce = new HashSet<string>();
         static TMP_FontAsset cjkFallbackAsset;
         static TMP_FontAsset liberationAsset;
         static bool loggedMissingShader;
         static bool buildingCjkFallback;
+        static float lastWarningRealtime = -999f;
+        const float WarningThrottleSeconds = 8f;
 
         public static TMP_FontAsset Resolve(string id)
         {
             if (string.IsNullOrEmpty(id)) id = FontCatalog.All[0].Id;
             if (Cache.TryGetValue(id, out var cached) && cached != null)
                 return cached;
+
+            // Negative cache: previous CreateFontAsset / CFF failure for this id.
+            if (FailedCreateKeys.Contains(id) && Cache.TryGetValue(id, out var failedCached))
+                return failedCached;
 
             var opt = FontCatalog.Get(id);
             bool needCjk = !opt.LatinOnly;
@@ -43,21 +60,24 @@ namespace StreetCat.Loc
 
             if (asset == null && id != "siyuan")
             {
-                Debug.LogWarning("[TmpFontCatalog] Falling back to siyuan for id='" + id + "'");
+                LogOnce("fallback_siyuan_" + id, LogType.Warning,
+                    "[TmpFontCatalog] Falling back to siyuan for id='" + id + "'");
                 asset = Resolve("siyuan");
             }
 
             if (asset == null && id != "simhei")
             {
-                Debug.LogWarning("[TmpFontCatalog] Falling back to simhei for id='" + id + "'");
+                LogOnce("fallback_simhei_" + id, LogType.Warning,
+                    "[TmpFontCatalog] Falling back to simhei for id='" + id + "'");
                 asset = Resolve("simhei");
             }
 
             if (asset == null)
             {
-                Debug.LogError("[TmpFontCatalog] Failed to create TMP font for '" + id +
-                               "'. Using LiberationSans (Latin-only) + CJK fallback if available.");
+                LogThrottled("[TmpFontCatalog] Failed to create TMP font for '" + id +
+                             "'. Using LiberationSans (Latin-only) + CJK fallback if available.");
                 asset = GetLiberationFallback();
+                FailedCreateKeys.Add(id);
             }
 
             if (asset != null)
@@ -66,8 +86,10 @@ namespace StreetCat.Loc
                 AttachCjkFallbackIfNeeded(asset);
                 if (!ValidateGlyphs(asset, needCjk))
                 {
-                    Debug.LogError("[TmpFontCatalog] Font '" + id +
-                                   "' cannot render required glyphs (atlas/face). Check Console / font import.");
+                    // Recoverable when fallbacks exist — do not LogError every Resolve.
+                    LogOnce("glyph_probe_" + id, LogType.Warning,
+                        "[TmpFontCatalog] Font '" + id +
+                        "' primary atlas missing some probe glyphs; relying on fallbacks if attached.");
                 }
             }
 
@@ -84,18 +106,25 @@ namespace StreetCat.Loc
             if (baked == null) return null;
 
             baked.isMultiAtlasTexturesEnabled = true;
+            // If an older bake used a low sampling size, leave it — rebuilding requires the baker.
+            // Still ensure SDF material + multi-atlas for runtime CJK adds.
             EnsureMaterial(baked);
             return baked;
         }
 
         static TMP_FontAsset CreateFromBundledFont(FontCatalog.Option opt)
         {
+            string failKey = "bundled:" + opt.Id;
+            if (FailedCreateKeys.Contains(failKey))
+                return null;
+
             Font source = null;
             if (!string.IsNullOrEmpty(opt.ResourcesName))
             {
                 source = Resources.Load<Font>("Fonts/" + opt.ResourcesName);
                 if (source == null)
-                    Debug.LogWarning("[TmpFontCatalog] Missing Resources/Fonts/" + opt.ResourcesName);
+                    LogOnce("missing_font_" + opt.ResourcesName, LogType.Warning,
+                        "[TmpFontCatalog] Missing Resources/Fonts/" + opt.ResourcesName);
             }
 
             if (source == null && (string.IsNullOrEmpty(opt.ResourcesName) || opt.Id == "system"))
@@ -116,6 +145,9 @@ namespace StreetCat.Loc
                 if (ttf != null)
                     created = CreateDynamic(ttf, "TMP_" + opt.Id + "_simhei", !opt.LatinOnly);
             }
+
+            if (created == null)
+                FailedCreateKeys.Add(failKey);
             return created;
         }
 
@@ -132,6 +164,9 @@ namespace StreetCat.Loc
         /// </summary>
         static TMP_FontAsset CreateFromOsFontName(bool needCjk)
         {
+            if (FailedCreateKeys.Contains("os_cjk"))
+                return null;
+
             var osFont = FontCatalog.ResolveSystemCjk();
             if (osFont == null) return null;
 
@@ -139,8 +174,10 @@ namespace StreetCat.Loc
             if (fromOs != null && ValidateGlyphs(fromOs, needCjk))
                 return fromOs;
 
+            FailedCreateKeys.Add("os_cjk");
             if (fromOs != null)
-                Debug.LogWarning("[TmpFontCatalog] OS font TMP asset failed glyph probe; discarding.");
+                LogOnce("os_glyph_fail", LogType.Warning,
+                    "[TmpFontCatalog] OS font TMP asset failed glyph probe; discarding.");
             return null;
         }
 
@@ -148,26 +185,33 @@ namespace StreetCat.Loc
         {
             if (source == null) return null;
 
+            string failKey = "dyn:" + name + ":" + source.GetInstanceID();
+            if (FailedCreateKeys.Contains(failKey))
+                return null;
+
             if (!SourceKeepAlive.Contains(source))
                 SourceKeepAlive.Add(source);
 
             try
             {
                 // Explicit multi-atlas: CJK exhausts a single atlas quickly.
+                // Higher sampling + padding keeps UI sizes (40–48) sharp.
                 var asset = TMP_FontAsset.CreateFontAsset(
                     source,
-                    80,
-                    8,
+                    SamplingPointSize,
+                    AtlasPadding,
                     GlyphRenderMode.SDFAA,
-                    2048,
-                    2048,
+                    AtlasWidth,
+                    AtlasHeight,
                     AtlasPopulationMode.Dynamic,
                     true);
 
                 if (asset == null)
                 {
-                    Debug.LogError("[TmpFontCatalog] CreateFontAsset returned null for '" + name +
-                                   "' (source='" + source.name + "'). Include Font Data must be enabled on the Font importer.");
+                    FailedCreateKeys.Add(failKey);
+                    LogOnce("create_null_" + name, LogType.Warning,
+                        "[TmpFontCatalog] CreateFontAsset returned null for '" + name +
+                        "' (source='" + source.name + "'). Include Font Data must be enabled on the Font importer.");
                     return null;
                 }
 
@@ -175,20 +219,32 @@ namespace StreetCat.Loc
                 asset.hideFlags = HideFlags.DontSave;
                 asset.isMultiAtlasTexturesEnabled = true;
                 EnsureMaterial(asset);
+                TuneSdfMaterial(asset);
 
                 if (!ValidateGlyphs(asset, needCjk))
                 {
-                    Debug.LogError("[TmpFontCatalog] Dynamic font '" + name +
-                                   "' failed glyph probe (needCjk=" + needCjk + "). source='" + source.name + "'.");
+                    FailedCreateKeys.Add(failKey);
+                    LogOnce("dyn_probe_" + name, LogType.Warning,
+                        "[TmpFontCatalog] Dynamic font '" + name +
+                        "' failed glyph probe (needCjk=" + needCjk + "). source='" + source.name +
+                        "'. CFF/OTF may be unsupported — try SimHei TTF.");
                     return null;
                 }
 
-                Debug.Log("[TmpFontCatalog] Created dynamic TMP font '" + name + "' from '" + source.name + "'.");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                LogOnce("created_" + name, LogType.Log,
+                    "[TmpFontCatalog] Created dynamic TMP font '" + name + "' from '" + source.name +
+                    "' (sampling=" + SamplingPointSize + ", pad=" + AtlasPadding + ").");
+#else
+                LoggedOnce.Add("created_" + name);
+#endif
                 return asset;
             }
             catch (System.Exception e)
             {
-                Debug.LogError("[TmpFontCatalog] CreateFontAsset failed for " + name + ": " + e.Message);
+                FailedCreateKeys.Add(failKey);
+                LogOnce("create_ex_" + name, LogType.Warning,
+                    "[TmpFontCatalog] CreateFontAsset failed for " + name + ": " + e.Message);
                 return null;
             }
         }
@@ -283,6 +339,20 @@ namespace StreetCat.Loc
             {
                 asset.material.shader = shader;
             }
+
+            TuneSdfMaterial(asset);
+        }
+
+        /// <summary>Slightly crisper SDF edges for UI sizes near sampling point size.</summary>
+        static void TuneSdfMaterial(TMP_FontAsset asset)
+        {
+            if (asset == null || asset.material == null) return;
+            var mat = asset.material;
+            // Soften face dilate a touch so thin strokes stay readable at large UI sizes.
+            if (mat.HasProperty(ShaderUtilities.ID_FaceDilate))
+                mat.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
+            if (mat.HasProperty(ShaderUtilities.ID_OutlineSoftness))
+                mat.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);
         }
 
         static void AttachCjkFallbackIfNeeded(TMP_FontAsset asset)
@@ -361,6 +431,31 @@ namespace StreetCat.Loc
             if (liberationAsset == null)
                 liberationAsset = TMP_Settings.defaultFontAsset;
             return liberationAsset;
+        }
+
+        static void LogOnce(string key, LogType type, string message)
+        {
+            if (!LoggedOnce.Add(key)) return;
+            switch (type)
+            {
+                case LogType.Error:
+                    Debug.LogError(message);
+                    break;
+                case LogType.Warning:
+                    Debug.LogWarning(message);
+                    break;
+                default:
+                    Debug.Log(message);
+                    break;
+            }
+        }
+
+        static void LogThrottled(string message)
+        {
+            float now = Time.realtimeSinceStartup;
+            if (now - lastWarningRealtime < WarningThrottleSeconds) return;
+            lastWarningRealtime = now;
+            Debug.LogWarning(message);
         }
 
         /// <summary>

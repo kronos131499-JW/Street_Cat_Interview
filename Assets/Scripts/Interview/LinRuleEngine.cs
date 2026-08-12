@@ -72,7 +72,7 @@ namespace StreetCat.Interview
                         {
                             "我第一次注意到它，是2024年1月。",
                             "那天我下班回来，看见有人在烧鸡店门口讨吃的，说是想喂两只猫。",
-                            "我这才看到大福脖子上缠着东西，而且已经出血了。"
+                            "我这才看到那只橘猫——大福——脖子上缠着东西，而且已经出血了。"
                         },
                         "林女士停顿了一下，像是在回忆。",
                         new[] { IntelIds.PastAfraid },
@@ -193,9 +193,9 @@ namespace StreetCat.Interview
                     return R("community",
                         new[]
                         {
-                            "放归以后它渐渐固定在门口活动。",
+                            "放归以后这只橘猫渐渐固定在门口活动。",
                             "有人换水，有人添粮，有人搭了猫屋，保安也会喂。",
-                            "后来它还常和一只狸花猫一起活动。我偶尔也会去看它。"
+                            "后来它还常和另一只狸花猫一起活动。我偶尔也会去看它。"
                         },
                         null,
                         new[] { IntelIds.CommunityCare, IntelIds.TabbyPartner, IntelIds.DafuNearGuard });
@@ -215,7 +215,7 @@ namespace StreetCat.Interview
                         new[]
                         {
                             "我第一次注意到它，是2024年1月。",
-                            "那天有人在烧鸡店门口讨吃的，说想喂附近的猫。我过去看，才发现大福脖子上缠着一根很粗的绳子。"
+                            "那天有人在烧鸡店门口讨吃的，说想喂附近的猫。我过去看，才发现那只橘猫——大福——脖子上缠着一根很粗的绳子。"
                         },
                         null,
                         null,

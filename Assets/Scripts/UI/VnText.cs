@@ -10,6 +10,8 @@ namespace StreetCat.UI
     /// </summary>
     public static class VnText
     {
+        static bool loggedMissingFont;
+
         public static TextAlignmentOptions ToAlignment(TextAnchor anchor)
         {
             switch (anchor)
@@ -76,9 +78,13 @@ namespace StreetCat.UI
             if (t == null) return;
             if (font == null)
             {
+                // ResolveActive is cached inside TmpFontCatalog — safe; do not recreate atlases here.
                 font = Loc.TmpFontCatalog.ResolveActive();
-                if (font == null)
+                if (font == null && !loggedMissingFont)
+                {
+                    loggedMissingFont = true;
                     Debug.LogError("[VnText] No TMP_FontAsset available — text will render as □ / default LiberationSans.");
+                }
             }
             if (font != null) t.font = font;
             t.fontSize = size;

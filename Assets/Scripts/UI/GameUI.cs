@@ -171,6 +171,8 @@ namespace StreetCat.UI
         float skipHoldTimer;
         Image advanceCatcher;
         Image topBarImage;
+        /// <summary>TopBar 回看/菜单 chips — hidden during free interview (local toolbar only).</summary>
+        GameObject hudActionsRoot;
         Image choiceHostImage;
         CanvasGroup portraitFade;
         Image atmosphereWash;
@@ -685,19 +687,19 @@ namespace StreetCat.UI
             dialogueClick.onClick.AddListener(TryAdvanceByClick);
             dialoguePanel.raycastTarget = true;
 
-            var hudActions = new GameObject("HudActions", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-            hudActions.transform.SetParent(topBarImage.transform, false);
-            var hart = hudActions.GetComponent<RectTransform>();
+            hudActionsRoot = new GameObject("HudActions", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            hudActionsRoot.transform.SetParent(topBarImage.transform, false);
+            var hart = hudActionsRoot.GetComponent<RectTransform>();
             hart.anchorMin = hart.anchorMax = new Vector2(1, 0.5f);
             hart.pivot = new Vector2(1, 0.5f);
             hart.anchoredPosition = new Vector2(-28, 0);
             hart.sizeDelta = new Vector2(260, 36);
-            var hhlg = hudActions.GetComponent<HorizontalLayoutGroup>();
+            var hhlg = hudActionsRoot.GetComponent<HorizontalLayoutGroup>();
             hhlg.spacing = 8;
             hhlg.childAlignment = TextAnchor.MiddleRight;
             hhlg.childForceExpandWidth = false;
-            SpawnHudChip(hudActions.transform, "回看", OpenBacklog);
-            SpawnHudChip(hudActions.transform, "菜单", OpenMenu);
+            SpawnHudChip(hudActionsRoot.transform, "回看", OpenBacklog);
+            SpawnHudChip(hudActionsRoot.transform, "菜单", OpenMenu);
             EnsureTopHudClickable();
 
             BuildInvestigateOverlay(canvasGo.transform);
@@ -2289,10 +2291,14 @@ namespace StreetCat.UI
             if (!showLocation || showTitle || mode == Mode.Investigate || mode == Mode.Interview)
                 HideSceneTitleImmediate();
             // Title magazine has its own Settings entry — hide TopBar (回看/菜单) on main menu.
+            // Free interview owns its own toolbar — keep TopBar chips + chapter chip off while interviewing.
             if (topBarImage != null)
                 topBarImage.gameObject.SetActive(!showTitle);
-            chapterChip.gameObject.SetActive(!showTitle);
+            bool interviewHud = mode == Mode.Interview;
+            chapterChip.gameObject.SetActive(!showTitle && !interviewHud);
             objectiveText.gameObject.SetActive(!showTitle);
+            if (hudActionsRoot != null)
+                hudActionsRoot.SetActive(!showTitle && !interviewHud);
             if (interviewRoot != null && mode != Mode.Interview)
                 interviewRoot.SetActive(false);
             if (investigateRoot != null && mode != Mode.Investigate)
@@ -2324,10 +2330,10 @@ namespace StreetCat.UI
                 dialogueHidden = false;
             if (interviewRoot != null)
                 interviewRoot.SetActive(on);
-            if (!on && interviewCompanionPortrait != null)
+            if (!on && interviewPortraitImage != null)
             {
-                interviewCompanionPortrait.enabled = false;
-                interviewCompanionPortrait.gameObject.SetActive(false);
+                interviewPortraitImage.sprite = null;
+                interviewPortraitImage.enabled = false;
             }
             if (investigateRoot != null)
                 investigateRoot.SetActive(false);
@@ -2341,6 +2347,24 @@ namespace StreetCat.UI
                 buttonRoot.gameObject.SetActive(!on);
             if (inputField != null)
                 inputField.gameObject.SetActive(false);
+
+            // Interview toolbar owns 回看/菜单 — hide TopBar chips; restore on leave.
+            if (hudActionsRoot != null)
+                hudActionsRoot.SetActive(!on);
+            // Avoid triple header fight with paper title「自由采访」.
+            if (chapterChip != null)
+                chapterChip.gameObject.SetActive(!on && mode != Mode.Title);
+            if (objectiveText != null && on)
+            {
+                objectiveText.fontSize = 14;
+                objectiveText.color = new Color(0.82f, 0.84f, 0.88f, 0.72f);
+            }
+            else if (objectiveText != null && !on)
+            {
+                objectiveText.fontSize = 16;
+                objectiveText.color = VnTheme.TextMuted;
+            }
+
             if (on)
             {
                 // ChoiceHost itself (not only its viewport) is a large raycast slab — must be off in interview.

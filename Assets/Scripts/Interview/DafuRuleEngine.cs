@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using StreetCat.Data;
 
@@ -14,6 +15,20 @@ namespace StreetCat.Interview
             "医院", "医生", "救助", "收养", "放归", "主人", "医疗", "费用",
             "治疗", "住院", "麻醉", "缝合", "消毒"
         };
+
+        /// <summary>Food-related tokens for quota tracking (reply lines + LLM constraint).</summary>
+        public static readonly string[] FoodKeywords =
+        {
+            "吃", "粮", "罐头", "小鱼干", "投喂", "好吃", "饭", "饿", "猫条", "零食",
+            "喂", "猫粮", "食物", "小鱼", "火腿"
+        };
+
+        /// <summary>
+        /// Soft prefer: use non-food template lines when the interview window already used its food slot.
+        /// Hard scrub also runs in <see cref="InterviewController.EnforceDafuFoodQuota"/>.
+        /// </summary>
+        public bool CanMentionFood =>
+            InterviewController.Instance == null || InterviewController.Instance.CanDafuMentionFood;
 
         protected override string Classify(string input)
         {
@@ -62,89 +77,112 @@ namespace StreetCat.Interview
 
         protected override InterviewReply BuildReply(string input, string intent)
         {
+            InterviewReply reply;
             switch (intent)
             {
                 case "daily":
-                    return Reply("daily", "询问现在的生活",
-                        new[] { "门口。", "有吃的。", "有时候和那只花的一起。" },
+                    reply = Reply("daily", "询问现在的生活",
+                        PreferFood(CanMentionFood,
+                            new[] { "门口。", "有吃的。", "有时候和那只花的一起。" },
+                            new[] { "门口。", "太阳晒着就好。", "有时候和那只花的一起。" }),
                         "大福甩了甩尾巴，看向快递柜方向。",
                         new[] { IntelIds.DafuNearGuard, IntelIds.TabbyPartner },
                         trust: 2, stress: -2);
+                    break;
 
                 case "name":
-                    return Reply("name", "询问名字",
-                        new[] { "大福？", "他们这么喊我。", "有吃的就会过来。" },
+                    reply = Reply("name", "询问名字",
+                        PreferFood(CanMentionFood,
+                            new[] { "大福？", "他们这么喊我。", "有吃的就会过来。" },
+                            new[] { "大福？", "他们这么喊我。", "门口那一带。" }),
                         "大福耳朵动了动。",
                         null,
                         trust: 1, stress: -1);
+                    break;
 
                 case "hungry":
-                    return Reply("hungry", "询问食物",
+                    // Player explicitly asked about food — always answer in-kind (counts toward quota when spoken).
+                    reply = Reply("hungry", "询问食物",
                         new[] { "还想吃。", "门口有时候有。", "你还有吗？" },
                         "大福盯着你的手看了一眼。",
                         null,
                         trust: 2, stress: -2);
+                    break;
 
                 case "feeling":
-                    return Reply("feeling", "询问心情",
-                        new[] { "现在还行。", "有吃的，太阳晒着就好。", "人太近会想走。" },
+                    reply = Reply("feeling", "询问心情",
+                        PreferFood(CanMentionFood,
+                            new[] { "现在还行。", "有吃的，太阳晒着就好。", "人太近会想走。" },
+                            new[] { "现在还行。", "太阳晒着就好。", "人太近会想走。" }),
                         "大福眯了眯眼。",
                         null,
                         trust: 1, stress: -1);
+                    break;
 
                 case "greeting":
-                    return Reply("greeting", "打招呼",
-                        new[] { "嗯？", "你是刚才那个。", "有吃的吗？" },
+                    // Never open with food-ask spam.
+                    reply = Reply("greeting", "打招呼",
+                        new[] { "嗯？", "你是刚才那个。", "……在听。" },
                         "大福歪头看你。",
                         null,
                         trust: 1, stress: -1);
+                    break;
 
                 case "past_fear":
-                    return Reply("past_fear", "询问以前是否怕人",
+                    reply = Reply("past_fear", "询问以前是否怕人",
                         new[] { "人靠近，我就跑。", "以前很怕。" },
                         "大福耳朵微微向后。",
                         new[] { IntelIds.PastAfraid },
                         trust: 1, stress: 3);
+                    break;
 
                 case "neck":
-                    return Reply("neck", "询问脖子旧伤",
+                    reply = Reply("neck", "询问脖子旧伤",
                         new[] { "疼。", "一直有东西勒着。", "弄不掉。" },
                         "大福低了低头，舔毛的动作停了一会儿。",
                         new[] { IntelIds.NeckPain, IntelIds.NeckObject, IntelIds.NeckObjectTight, IntelIds.NeckLongTermPain },
                         trust: 0, stress: 8, attention: -4);
+                    break;
 
                 case "woman":
-                    return Reply("woman", "询问送食物的人",
-                        new[] { "有个人。", "很多次把吃的放下。", "她会走开。", "后来我认识她的味道。" },
+                    // Plot-critical feeding intel — allow one food mention if quota free; else sensory-only.
+                    reply = Reply("woman", "询问送食物的人",
+                        PreferFood(CanMentionFood,
+                            new[] { "有个人。", "很多次把吃的放下。", "她会走开。", "后来我认识她的味道。" },
+                            new[] { "有个人。", "很多次来。", "她会走开。", "后来我认识她的味道。" }),
                         "大福嗅了嗅空气。",
                         new[] { IntelIds.RepeatedFeeding, IntelIds.WomanClue },
                         newQuestion: "连续给大福送食物的女人是谁？",
                         trust: 2, stress: 2);
+                    break;
 
                 case "capture":
-                    return Reply("capture", "询问被带走",
+                    reply = Reply("capture", "询问被带走",
                         new[] { "她和其他人来了。", "我跑了。", "没跑掉。", "被装进一个封闭的地方。" },
                         "大福的尾巴尖轻轻抽动。",
                         new[] { IntelIds.TakenAway, IntelIds.CaptureParticipant },
                         trust: 0, stress: 10, attention: -4);
+                    break;
 
                 case "strange_place":
-                    return Reply("strange_place", "询问陌生场所",
+                    reply = Reply("strange_place", "询问陌生场所",
                         new[] { "很亮。", "味道很重。", "很多别的动物。", "有人碰过我脖子。", "我睡着很久。", "醒来……勒着的东西不见了。" },
                         "大福抬起前爪蹭了蹭脖子附近的毛。",
                         new[] { IntelIds.BrightStrangePlace, IntelIds.Sleep, IntelIds.ObjectGone },
                         trust: 0, stress: 6);
+                    break;
 
                 case "return":
-                    return Reply("return", "询问回到社区",
+                    reply = Reply("return", "询问回到社区",
                         new[] { "她把我带回这里。", "没有长期待在她那里。", "不知道为什么。" },
                         "大福看向社区入口。",
                         new[] { IntelIds.ReturnedDafu },
                         newQuestion: "为什么康复后没有被收养？",
                         trust: 1, stress: 2);
+                    break;
 
                 case "cognitive_boundary":
-                    return new InterviewReply
+                    reply = new InterviewReply
                     {
                         intent = intent,
                         translatedIntent = "触及无法转译的人类概念",
@@ -158,35 +196,44 @@ namespace StreetCat.Interview
                         attentionChange = -2,
                         systemHint = "这个问题里有大福无法理解的内容，可以换一种更具体的问法。"
                     };
+                    break;
 
                 case "too_broad":
-                    return new InterviewReply
+                    reply = new InterviewReply
                     {
                         intent = intent,
                         replyLines = { "什么故事？", "你具体想问啥？" },
                         behavior = "大福眨了眨眼。",
                         attentionChange = -2
                     };
+                    break;
 
                 case "oob":
-                    return new InterviewReply
+                    reply = new InterviewReply
                     {
                         intent = intent,
                         replyLines = { "不知道你在说什么。" },
                         attentionChange = -5
                     };
+                    break;
 
                 default:
-                    return new InterviewReply
+                    reply = new InterviewReply
                     {
                         intent = "generic",
-                        replyLines = { "嗯？", "你说什么？", "有吃的吗？" },
+                        replyLines = { "嗯？", "你说什么？", "……听着呢。" },
                         behavior = "大福歪头看着你，尾巴轻轻甩了一下。",
                         attentionChange = -1,
                         systemHint = "可以问问它的生活、旧伤，或认识的人。"
                     };
+                    break;
             }
+
+            return reply;
         }
+
+        protected override InterviewReply PostProcessReply(InterviewReply reply)
+            => ApplyFoodQuota(reply);
 
         InterviewReply Reply(string intent, string translated, string[] lines, string behavior,
             string[] intel, string newQuestion = null, int trust = 0, int stress = 0, int attention = -3)
@@ -216,6 +263,88 @@ namespace StreetCat.Interview
                 }
             }
             return r;
+        }
+
+        InterviewReply ApplyFoodQuota(InterviewReply reply)
+        {
+            if (reply == null) return null;
+
+            // Player asked about food — keep lines; spoken reply still updates the window.
+            if (reply.intent == "hungry")
+                return reply;
+
+            if (!CanMentionFood)
+            {
+                var scrubbed = new List<string>();
+                for (int i = 0; i < reply.replyLines.Count; i++)
+                {
+                    var line = reply.replyLines[i];
+                    scrubbed.Add(TextMentionsFood(line) ? NonFoodSubstitute(reply.intent, i) : line);
+                }
+                reply.replyLines = scrubbed;
+                if (TextMentionsFood(reply.behavior))
+                    reply.behavior = "大福甩了甩尾巴。";
+            }
+
+            return reply;
+        }
+
+        /// <summary>
+        /// Strip food mentions when the rolling quota is exhausted (soft prefer non-food).
+        /// </summary>
+        public List<string> ScrubLinesToFoodQuota(List<string> lines)
+        {
+            if (lines == null) return new List<string>();
+            if (CanMentionFood) return lines;
+
+            var scrubbed = new List<string>(lines.Count);
+            for (int i = 0; i < lines.Count; i++)
+            {
+                var line = lines[i];
+                scrubbed.Add(TextMentionsFood(line) ? NonFoodSubstitute("generic", i) : line);
+            }
+            return scrubbed;
+        }
+
+        public static bool TextMentionsFood(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+            for (int i = 0; i < FoodKeywords.Length; i++)
+            {
+                if (text.IndexOf(FoodKeywords[i], StringComparison.Ordinal) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
+        static string[] PreferFood(bool allowFood, string[] withFood, string[] withoutFood)
+            => allowFood ? withFood : withoutFood;
+
+        static List<string> PreferFood(bool allowFood, List<string> withFood, List<string> withoutFood)
+            => allowFood ? withFood : withoutFood;
+
+        static string PreferFoodBehavior(bool allowFood, string withFood, string withoutFood)
+            => allowFood ? withFood : withoutFood;
+
+        static string NonFoodSubstitute(string intent, int index)
+        {
+            switch (intent)
+            {
+                case "hungry":
+                    return index == 0 ? "现在还行。" : (index == 1 ? "门口待着。" : "晒太阳。");
+                case "greeting":
+                    return "……在听。";
+                case "name":
+                    return "门口那一带。";
+                case "daily":
+                    return "太阳晒着就好。";
+                case "feeling":
+                    return "太阳晒着就好。";
+                case "woman":
+                    return index == 1 ? "很多次来。" : "她会走开。";
+                default:
+                    return "……听着呢。";
+            }
         }
 
         protected override List<string> GetRepeatLines(string intent)

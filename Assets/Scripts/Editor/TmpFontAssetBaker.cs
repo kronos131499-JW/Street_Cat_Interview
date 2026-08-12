@@ -129,10 +129,11 @@ namespace StreetCat.Editor
             TMP_FontAsset asset = null;
             try
             {
+                // Match TmpFontCatalog runtime sampling so rebakes stay sharp at UI 40–48pt.
                 asset = TMP_FontAsset.CreateFontAsset(
                     source,
-                    80,
-                    8,
+                    90,
+                    9,
                     GlyphRenderMode.SDFAA,
                     2048,
                     2048,

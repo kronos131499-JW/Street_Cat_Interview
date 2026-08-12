@@ -118,8 +118,9 @@ const sheets = [
       ["Assets/Resources/VnArt/UI、Title、KeyArt；Assets/Art/UI 实勘（含 social_post_*、tex_paper_dark、kv_title）"],
       [""],
       ["注意"],
-      ["本表聚焦 UI 界面与 UI 纹理，不含角色立绘全集与调查近景 BG 全集（见美术总清单）。"],
-      ["tex_paper_dark / kv_title_street_interview 在仓库中已有可用 PNG（与旧文档「还缺」表述不同，以盘上文件为准）。"],
+      ["【画师主表】请以 Docs/art/美术需求清单_给画师.xlsx 为准（含 01_UI界面 + 02_场景背景 + 嵌入参考图）。本 xlsx 为无图摘要，可能滞后。"],
+      ["自由采访已改为三栏：左状态+立绘 / 中聊天+输入 / 右灵感+工具栏；无预览文章按钮；写稿台正文可编辑。"],
+      ["tex_paper_dark / kv_title_street_interview 盘上已有 PNG。后日谈「文章发布页面」仍占位 bg_huaian_afternoon。"],
     ],
   },
 ];

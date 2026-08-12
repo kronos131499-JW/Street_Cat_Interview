@@ -171,7 +171,7 @@ namespace StreetCat.Notebook
             if (gs.HasIntel(IntelIds.DafuNoOwner) || gs.HasIntel(IntelIds.CommunityCare))
                 UnlockNote("community", "c_owner", "没有固定主人，多名居民会投喂、换水；保安也会顺手照看。", "保安叔叔", TopicStatus.Open);
             if (gs.HasIntel(IntelIds.TabbyPartner))
-                UnlockNote("community", "c_tabby", "大福经常和一只狸花猫一起吃饭、休息和活动。", "大福", TopicStatus.Open);
+                UnlockNote("community", "c_tabby", "大福（橘猫）经常和另一只狸花猫一起吃饭、休息和活动。", "大福", TopicStatus.Open);
 
             bool communityArea = gs.HasIntel(IntelIds.DafuRestSpot) || gs.HasIntel(IntelIds.DafuAppearTime) || gs.HasIntel(IntelIds.DafuNearGuard);
             if (communityArea && gs.HasIntel(IntelIds.DafuNoOwner) && gs.HasIntel(IntelIds.CommunityCare))
@@ -900,7 +900,7 @@ namespace StreetCat.Notebook
                 if (!string.IsNullOrEmpty(src))
                     sb.AppendLine("  " + src);
                 if (!string.IsNullOrEmpty(t.inspiration) && t.status != TopicStatus.Complete)
-                    sb.AppendLine((t.inspirationIsInvestigate ? "  🔎 " : "  ✦ ") + t.inspiration);
+                    sb.AppendLine((t.inspirationIsInvestigate ? "  [查] " : "  * ") + t.inspiration);
                 sb.AppendLine();
             }
             var gaps = PendingGaps();

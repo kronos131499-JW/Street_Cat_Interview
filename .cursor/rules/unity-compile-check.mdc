@@ -1,0 +1,32 @@
+---
+description: After C# / Unity script edits, self-check for compiler errors before done
+globs: Assets/Scripts/**/*.cs
+alwaysApply: false
+---
+
+# Unity compile self-check
+
+After any C# / Unity script changes in this repo, the agent MUST self-check for compiler errors before considering the task done.
+
+## Required checks
+
+1. Prefer compiling via Unity if available (Editor batchmode / existing MCP compile), **or** at minimum `grep`/read for broken references and run a sanity pass on touched files.
+2. On Windows, if `dotnet` or Unity batch compile is available for `Assembly-CSharp`, use it; otherwise carefully verify all referenced symbols exist across partials.
+3. Fix CS errors introduced by the change before reporting success.
+4. Especially watch **partial class field removals** (`GameUI.*.cs`): renaming or deleting a field in one partial must update every reference in sibling partials (`GameUI.cs`, `GameUI.Interview.cs`, etc.).
+
+## Sanity pass (minimum)
+
+- Grep for the old symbol name after renames/removals.
+- Confirm new fields are declared on the same `partial class` and assigned before use.
+- Do not report success while known CS0103 / CS0246 / CS1061 remain in touched files.
+
+## Example
+
+```csharp
+// ❌ BAD — field removed in GameUI.Interview.cs but still used in GameUI.cs
+if (interviewCompanionPortrait != null) { ... }
+
+// ✅ GOOD — all partials use the replacement field
+if (interviewPortraitImage != null) { ... }
+```

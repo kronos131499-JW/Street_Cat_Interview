@@ -148,8 +148,11 @@ namespace StreetCat.Interview
             stats.Apply(reply);
             if (stats.attention < 20)
                 reply.systemHint = (reply.systemHint ?? "") + " 对方注意力正在下降。";
-            return reply;
+            return PostProcessReply(reply);
         }
+
+        /// <summary>Hook for subject-specific reply polish (e.g. Dafu food quota).</summary>
+        protected virtual InterviewReply PostProcessReply(InterviewReply reply) => reply;
 
         protected abstract string Classify(string input);
         protected abstract InterviewReply BuildReply(string input, string intent);

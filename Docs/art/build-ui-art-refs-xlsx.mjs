@@ -1,27 +1,35 @@
 /**
- * Artist-facing UI art requirements with embedded annotated reference images.
+ * Artist-facing art requirements (UI + scene BGs) with embedded annotated refs.
  * Run from Docs/art:  node build-ui-art-refs-xlsx.mjs
  *
  * Outputs:
- *   Docs/art/ui-refs/NN_english_id.png
- *   Docs/art/UI界面需求清单_给画师.xlsx
+ *   Docs/art/ui-refs/*.png
+ *   Docs/art/scene-refs/*.png
+ *   Docs/art/美术需求清单_给画师.xlsx  (canonical)
+ *   Docs/art/UI界面需求清单_给画师.xlsx (copy alias)
  */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import ExcelJS from "exceljs";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
+import { defineRows as defineRowsFromModule } from "./ui-art-row-defs.mjs";
+import { defineSceneRows } from "./scene-art-row-defs.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, "../..");
 const REFS = path.join(__dirname, "ui-refs");
-const OUT_XLSX = path.join(__dirname, "UI界面需求清单_给画师.xlsx");
+const SCENE_REFS = path.join(__dirname, "scene-refs");
+const OUT_XLSX = path.join(__dirname, "美术需求清单_给画师.xlsx");
+const OUT_XLSX_ALIAS = path.join(__dirname, "UI界面需求清单_给画师.xlsx");
 
 const TITLE = path.join(REPO, "Assets/Resources/VnArt/Title");
 const UI = path.join(REPO, "Assets/Resources/VnArt/UI");
 const SOCIAL = path.join(UI, "Social");
 const KEYART = path.join(REPO, "Assets/Resources/VnArt/KeyArt");
 const BG = path.join(REPO, "Assets/Resources/VnArt/Backgrounds");
+/** Latest free-interview art mockup (three-column scrapbook). */
+const INTERVIEW_MOCKUP = path.join(__dirname, "free_interview_mockup_ref.png");
 
 const W = 960;
 const H = 540;
@@ -351,18 +359,39 @@ const SCREENS = {
       ctx.fillStyle = "#fff";
       ctx.font = "14px UIArtCN, sans-serif";
       ctx.fillText("调查地图 BG", 60, 80);
-      // hotspots
-      [[0.25, 0.35], [0.45, 0.5], [0.65, 0.4], [0.55, 0.65]].forEach(([x, y], i) => {
-        const p = toPx(nr(x, y, 0.06, 0.08));
-        ctx.strokeStyle = "rgba(255,220,80,0.8)";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(p.x, p.y, p.w, p.h);
-        ctx.fillStyle = "rgba(255,220,80,0.3)";
-        ctx.fillRect(p.x, p.y, p.w, p.h);
-        ctx.fillStyle = "#fff";
-        ctx.font = "11px UIArtCN, sans-serif";
-        ctx.fillText(String(i + 1), p.x + 8, p.y + 20);
-      });
+      // hotspots — one shown as investigated (green fill + ✓ badge)
+      [[0.25, 0.35, false], [0.45, 0.5, true], [0.65, 0.4, false], [0.55, 0.65, false]].forEach(
+        ([x, y, done], i) => {
+          const p = toPx(nr(x, y, 0.08, 0.1));
+          if (done) {
+            ctx.fillStyle = "rgba(55, 110, 70, 0.35)";
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.strokeStyle = "rgba(90, 160, 100, 0.85)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(p.x, p.y, p.w, p.h);
+            // green ✓ badge top-right of hotspot
+            const bx = p.x + p.w - 22;
+            const by = p.y + 3;
+            ctx.fillStyle = "rgba(35, 85, 55, 0.95)";
+            roundRect(ctx, bx, by, 18, 18, 3);
+            ctx.fill();
+            ctx.fillStyle = "#c8ecc8";
+            ctx.font = "bold 13px UIArtCN, sans-serif";
+            ctx.fillText("✓", bx + 3, by + 14);
+          } else {
+            ctx.strokeStyle = "rgba(255,220,80,0.55)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 3]);
+            ctx.strokeRect(p.x, p.y, p.w, p.h);
+            ctx.setLineDash([]);
+            ctx.fillStyle = "rgba(255,255,255,0.06)";
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = "#fff";
+            ctx.font = "11px UIArtCN, sans-serif";
+            ctx.fillText(String(i + 1), p.x + 8, p.y + 20);
+          }
+        }
+      );
       // top strip
       const ts = toPx(nr(0.02, 0.09, 0.4, 0.06));
       ctx.fillStyle = "rgba(20,20,20,0.7)";
@@ -383,7 +412,7 @@ const SCREENS = {
     },
     regions: {
       map: nr(0.04, 0.09, 0.92, 0.72),
-      hotspot: nr(0.45, 0.5, 0.06, 0.08),
+      hotspot: nr(0.45, 0.5, 0.08, 0.1),
       chip: nr(0.1, 0.88, 0.76, 0.06),
       strip: nr(0.02, 0.09, 0.4, 0.06),
     },
@@ -409,63 +438,163 @@ const SCREENS = {
   },
   interview: {
     paint(ctx) {
-      drawChromeFrame(ctx, "Mode.Interview");
-      // meters
-      for (let i = 0; i < 3; i++) {
-        const m = toPx(nr(0.72, 0.1 + i * 0.08, 0.24, 0.06));
-        ctx.fillStyle = "#f5e6c8";
-        roundRect(ctx, m.x, m.y, m.w, m.h, 3);
-        ctx.fill();
-        ctx.fillStyle = "#5a4030";
-        ctx.font = "11px UIArtCN, sans-serif";
-        ctx.fillText(["信任", "压力", "专注"][i], m.x + 8, m.y + 20);
-      }
-      // portrait
-      ctx.fillStyle = "rgba(180,160,140,0.55)";
-      ctx.fillRect(W * 0.35, H * 0.12, W * 0.3, H * 0.45);
-      ctx.fillStyle = "#fff";
-      ctx.font = "13px UIArtCN, sans-serif";
-      ctx.fillText("受访者立绘", W * 0.42, H * 0.35);
-      // companion
-      const cp = toPx(nr(0.04, 0.55, 0.14, 0.28));
-      ctx.fillStyle = "rgba(160,140,120,0.6)";
-      ctx.fillRect(cp.x, cp.y, cp.w, cp.h);
+      // Dim night scene behind paper UI (scrapbook free-interview)
+      ctx.fillStyle = "#2a2430";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#1a2830";
+      ctx.fillRect(0, 0, W, H);
+      // soft BG hint
+      ctx.fillStyle = "rgba(60,70,80,0.45)";
+      ctx.fillRect(0, H * 0.35, W, H * 0.65);
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("自由采访 · 三栏 scrapbook（线框）", 12, 18);
+
+      // —— Left column: status + portrait ——
+      const status = toPx(nr(0.02, 0.06, 0.16, 0.28));
+      ctx.fillStyle = "#f2ead8";
+      roundRect(ctx, status.x, status.y, status.w, status.h, 3);
+      ctx.fill();
+      ctx.fillStyle = "#4a3828";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("受访者状态", status.x + 8, status.y + 18);
+      ["信任", "压力", "专注"].forEach((t, i) => {
+        const by = status.y + 36 + i * 28;
+        ctx.fillStyle = "#6a5848";
+        ctx.font = "10px UIArtCN, sans-serif";
+        ctx.fillText(t, status.x + 8, by);
+        ctx.fillStyle = "#d8d0c0";
+        ctx.fillRect(status.x + 8, by + 4, status.w - 16, 8);
+        ctx.fillStyle = ["#4a9ad8", "#c05050", "#d4a020"][i];
+        ctx.fillRect(status.x + 8, by + 4, (status.w - 16) * [0.7, 0.35, 0.55][i], 8);
+      });
+
+      const portrait = toPx(nr(0.02, 0.38, 0.16, 0.52));
+      ctx.fillStyle = "#ebe2d0";
+      roundRect(ctx, portrait.x, portrait.y, portrait.w, portrait.h, 3);
+      ctx.fill();
+      ctx.fillStyle = "rgba(160,140,120,0.65)";
+      ctx.fillRect(portrait.x + 8, portrait.y + 10, portrait.w - 16, portrait.h - 48);
       ctx.fillStyle = "#fff";
       ctx.font = "11px UIArtCN, sans-serif";
-      ctx.fillText("伴宠", cp.x + 20, cp.y + cp.h / 2);
-      // notepad
-      const np = toPx(nr(0.2, 0.62, 0.6, 0.22));
-      ctx.fillStyle = "#2a2218";
-      roundRect(ctx, np.x, np.y, np.w, np.h, 4);
+      ctx.fillText("受访者立绘", portrait.x + 18, portrait.y + portrait.h * 0.45);
+      // name plate
+      const plate = toPx(nr(0.035, 0.84, 0.13, 0.05));
+      ctx.fillStyle = "#f8f0e0";
+      ctx.fillRect(plate.x, plate.y, plate.w, plate.h);
+      ctx.fillStyle = "#3a2a1a";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("姓名条", plate.x + 28, plate.y + 18);
+
+      // —— Center column: chat paper ——
+      const paper = toPx(nr(0.20, 0.05, 0.56, 0.9));
+      ctx.fillStyle = "rgba(30,24,20,0.35)";
+      ctx.fillRect(paper.x + 4, paper.y + 5, paper.w, paper.h);
+      ctx.fillStyle = "#f4eee0";
+      ctx.fillRect(paper.x, paper.y, paper.w, paper.h);
+      ctx.fillStyle = "#2a2010";
+      ctx.font = "bold 16px UIArtCN, sans-serif";
+      ctx.fillText("自由采访", paper.x + paper.w / 2 - 36, paper.y + 28);
+      ctx.fillStyle = "#8a7a68";
+      ctx.font = "10px UIArtCN, sans-serif";
+      ctx.fillText("INTERVIEW", paper.x + paper.w / 2 - 28, paper.y + 44);
+
+      // NPC bubble (left)
+      const nb = toPx(nr(0.28, 0.22, 0.28, 0.12));
+      ctx.beginPath();
+      ctx.arc(paper.x + 28, nb.y + 20, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#c8b8a0";
       ctx.fill();
-      ctx.fillStyle = "#c8b898";
+      ctx.fillStyle = "#e8e4dc";
+      roundRect(ctx, nb.x, nb.y, nb.w, nb.h, 10);
+      ctx.fill();
+      ctx.fillStyle = "#5a4a3a";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("对方气泡…", nb.x + 12, nb.y + 28);
+
+      // Player bubble (right)
+      const pb = toPx(nr(0.48, 0.4, 0.24, 0.1));
+      ctx.fillStyle = "#d8ecd0";
+      roundRect(ctx, pb.x, pb.y, pb.w, pb.h, 10);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(pb.x + pb.w + 22, pb.y + 18, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#b0a090";
+      ctx.fill();
+      ctx.fillStyle = "#3a4a30";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("我方气泡…", pb.x + 12, pb.y + 26);
+
+      // Input bar + send
+      const input = toPx(nr(0.23, 0.84, 0.42, 0.08));
+      ctx.fillStyle = "#fff";
+      ctx.strokeStyle = "#c8b898";
+      ctx.lineWidth = 1;
+      roundRect(ctx, input.x, input.y, input.w, input.h, 4);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#a09080";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("输入你的问题…", input.x + 10, input.y + 28);
+      const send = toPx(nr(0.67, 0.845, 0.06, 0.07));
+      ctx.fillStyle = "#8a3028";
+      roundRect(ctx, send.x, send.y, send.w, send.h, 4);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
       ctx.font = "12px UIArtCN, sans-serif";
-      ctx.fillText("采访便签本 / 输入区", np.x + 16, np.y + 36);
-      // chips
-      for (let i = 0; i < 3; i++) {
-        const c = toPx(nr(0.22 + i * 0.2, 0.88, 0.16, 0.05));
-        ctx.fillStyle = "rgba(50,40,30,0.9)";
-        roundRect(ctx, c.x, c.y, c.w, c.h, 4);
-        ctx.fill();
-        ctx.fillStyle = "#e8d8c0";
-        ctx.font = "11px UIArtCN, sans-serif";
-        ctx.fillText(`提问${i + 1}`, c.x + 20, c.y + 20);
-      }
-      // action btns
-      const ab = toPx(nr(0.82, 0.72, 0.14, 0.1));
-      ctx.fillStyle = "#8a6040";
-      roundRect(ctx, ab.x, ab.y, ab.w, ab.h, 4);
+      ctx.fillText("发", send.x + 14, send.y + 26);
+
+      // —— Right column: inspire + toolbar ——
+      const inspire = toPx(nr(0.78, 0.06, 0.2, 0.58));
+      ctx.fillStyle = "#f2ead8";
+      roundRect(ctx, inspire.x, inspire.y, inspire.w, inspire.h, 3);
       ctx.fill();
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = "#4a3828";
+      ctx.font = "12px UIArtCN, sans-serif";
+      ctx.fillText("提问灵感", inspire.x + 12, inspire.y + 22);
+      for (let i = 0; i < 3; i++) {
+        const c = toPx(nr(0.795, 0.16 + i * 0.15, 0.17, 0.12));
+        ctx.fillStyle = "#fff8ec";
+        ctx.fillRect(c.x, c.y, c.w, c.h);
+        ctx.strokeStyle = "#d0c0a8";
+        ctx.strokeRect(c.x, c.y, c.w, c.h);
+        ctx.fillStyle = "#6a5848";
+        ctx.font = "10px UIArtCN, sans-serif";
+        ctx.fillText(`灵感卡 ${i + 1}`, c.x + 8, c.y + 28);
+      }
+
+      const toolbar = toPx(nr(0.78, 0.72, 0.2, 0.2));
+      ctx.fillStyle = "#f2ead8";
+      roundRect(ctx, toolbar.x, toolbar.y, toolbar.w, toolbar.h, 3);
+      ctx.fill();
+      ["回顾", "笔记", "菜单"].forEach((t, i) => {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        ctx.fillStyle = "#e8e0d0";
+        const bx = toolbar.x + 10 + col * 85;
+        const by = toolbar.y + 16 + row * 42;
+        roundRect(ctx, bx, by, 72, 34, 3);
+        ctx.fill();
+        ctx.fillStyle = "#3a2a1a";
+        ctx.font = "11px UIArtCN, sans-serif";
+        ctx.fillText(t, bx + 18, by + 22);
+      });
+
+      ctx.fillStyle = "rgba(255,255,255,0.4)";
       ctx.font = "11px UIArtCN, sans-serif";
-      ctx.fillText("发送/结束", ab.x + 12, ab.y + 30);
+      ctx.fillText("线框示意 · 非实机截图", 12, H - 12);
     },
     regions: {
-      notepad: nr(0.2, 0.62, 0.6, 0.22),
-      meters: nr(0.72, 0.1, 0.24, 0.22),
-      chips: nr(0.22, 0.88, 0.56, 0.05),
-      actions: nr(0.82, 0.72, 0.14, 0.1),
-      companion: nr(0.04, 0.55, 0.14, 0.28),
+      status: nr(0.02, 0.06, 0.16, 0.28),
+      portrait: nr(0.02, 0.38, 0.16, 0.52),
+      nameplate: nr(0.035, 0.84, 0.13, 0.05),
+      chat_paper: nr(0.2, 0.05, 0.56, 0.9),
+      bubbles: nr(0.26, 0.2, 0.46, 0.35),
+      avatars: nr(0.22, 0.22, 0.08, 0.12),
+      input: nr(0.23, 0.84, 0.42, 0.08),
+      send: nr(0.67, 0.845, 0.06, 0.07),
+      inspire: nr(0.78, 0.06, 0.2, 0.58),
+      toolbar: nr(0.78, 0.72, 0.2, 0.2),
     },
   },
   notebook: {
@@ -563,8 +692,8 @@ const SCREENS = {
     paint(ctx) {
       ctx.fillStyle = "#1a2838";
       ctx.fillRect(0, 0, W, H);
-      // left paper
-      const paper = toPx(nr(0.03, 0.05, 0.62, 0.9));
+      // left paper — editable manuscript
+      const paper = toPx(nr(0.03, 0.05, 0.62, 0.82));
       ctx.fillStyle = "#e8e0d0";
       ctx.fillRect(paper.x, paper.y, paper.w, paper.h);
       ctx.fillStyle = "#3a3020";
@@ -572,33 +701,44 @@ const SCREENS = {
       ctx.fillText("槐安社区特稿（字体）", paper.x + 20, paper.y + 36);
       ctx.font = "12px UIArtCN, sans-serif";
       ctx.fillStyle = "#5a5040";
-      ctx.fillText("成稿滚动编辑区", paper.x + 20, paper.y + 80);
+      ctx.fillText("可编辑正文（滚动）……", paper.x + 20, paper.y + 80);
       // draft area
       const draft = toPx(nr(0.05, 0.22, 0.55, 0.55));
       ctx.strokeStyle = "#a09070";
       ctx.strokeRect(draft.x, draft.y, draft.w, draft.h);
+      ctx.fillStyle = "#8a7a60";
+      ctx.font = "11px UIArtCN, sans-serif";
+      ctx.fillText("玩家可直接改字 · 无「预览文章」按钮", draft.x + 8, draft.y + 24);
       // right panel
-      const right = toPx(nr(0.68, 0.05, 0.29, 0.9));
+      const right = toPx(nr(0.68, 0.05, 0.29, 0.82));
       ctx.fillStyle = "#243040";
       ctx.fillRect(right.x, right.y, right.w, right.h);
       ctx.fillStyle = "#c8d0d8";
       ctx.font = "12px UIArtCN, sans-serif";
-      ctx.fillText("素材列表 / 状态", right.x + 12, right.y + 30);
-      // buttons
-      for (let i = 0; i < 3; i++) {
-        const b = toPx(nr(0.7, 0.7 + i * 0.08, 0.24, 0.06));
-        ctx.fillStyle = "#c8a060";
+      ctx.fillText("立意 / 素材列表 / 状态", right.x + 12, right.y + 30);
+      // bottom action bar: 返回素材 · AI优化 · 提交
+      const bar = toPx(nr(0.04, 0.9, 0.92, 0.07));
+      ctx.fillStyle = "#152030";
+      ctx.fillRect(bar.x, bar.y, bar.w, bar.h);
+      const labels = ["返回修改素材", "AI 优化", "提交主编审核"];
+      labels.forEach((t, i) => {
+        const b = toPx(nr(0.06 + i * 0.3, 0.91, 0.26, 0.05));
+        ctx.fillStyle = i === 2 ? "#c87838" : "#2a4058";
         roundRect(ctx, b.x, b.y, b.w, b.h, 3);
         ctx.fill();
-      }
+        ctx.fillStyle = "#eee";
+        ctx.font = "11px UIArtCN, sans-serif";
+        ctx.fillText(t, b.x + 16, b.y + 20);
+      });
       ctx.fillStyle = "rgba(255,255,255,0.4)";
       ctx.font = "12px UIArtCN, sans-serif";
-      ctx.fillText("WritingDeskOverlay", 12, H - 12);
+      ctx.fillText("WritingDeskOverlay · 可编辑成稿", 12, H - 12);
     },
     regions: {
-      paper: nr(0.03, 0.05, 0.62, 0.9),
+      paper: nr(0.03, 0.05, 0.62, 0.82),
       draft: nr(0.05, 0.22, 0.55, 0.55),
-      right: nr(0.68, 0.05, 0.29, 0.9),
+      right: nr(0.68, 0.05, 0.29, 0.82),
+      actions: nr(0.04, 0.9, 0.92, 0.07),
     },
   },
   article_preview: {
@@ -944,446 +1084,16 @@ async function collageIcons(outPath, paths, label) {
   await savePng(canvas, outPath);
 }
 
-/**
- * Row definition:
- * id, name, where, status, urgency, deliverable, notes, elementLabel, imageId,
- * gen — generation recipe
- */
 function defineRows() {
-  const t = (name) => path.join(TITLE, name);
-  const u = (name) => path.join(UI, name);
-  const s = (name) => path.join(SOCIAL, name);
-  const b = (name) => path.join(BG, name);
-  const k = (name) => path.join(KEYART, name);
-
-  return [
-    // —— 标题 / 主菜单 ——
-    {
-      id: 1, name: "标题·木桌全屏底", where: "标题/主菜单（Mode.Title）", status: "已有资源", urgency: "高",
-      deliverable: "title_desk_bg.png", notes: "VnArt/Title；ShowTitle 全屏桌面",
-      elementLabel: "标题屏最底层全屏木桌背景，杂志与桌面道具叠在其上",
-      imageId: "01_title_desk_bg",
-      gen: { kind: "asset", src: t("title_desk_bg.png") },
-    },
-    {
-      id: 2, name: "标题·展开杂志本体", where: "标题/主菜单中央", status: "已有资源", urgency: "高",
-      deliverable: "title_magazine_open.png", notes: "左品牌页+右目录页底板",
-      elementLabel: "中央展开杂志本体底板（左右页纸面），不含左页插画与按钮",
-      imageId: "02_title_magazine_open",
-      gen: { kind: "asset", src: t("title_magazine_open.png") },
-    },
-    {
-      id: 3, name: "标题·杂志阴影", where: "标题/主菜单", status: "已有资源", urgency: "中",
-      deliverable: "title_magazine_shadow.png", notes: "半透明叠在杂志下",
-      elementLabel: "杂志下方半透明投影层，略偏移叠在桌面与杂志之间",
-      imageId: "03_title_magazine_shadow",
-      gen: { kind: "asset", src: t("title_magazine_shadow.png") },
-    },
-    {
-      id: 4, name: "标题·左页插画", where: "标题杂志左页", status: "已有资源", urgency: "高",
-      deliverable: "title_feature_art.png", notes: "品牌插画区",
-      elementLabel: "杂志左页中上部品牌插画区，非 Logo、非引语框",
-      imageId: "04_title_feature_art",
-      gen: { kind: "asset-region", src: t("title_magazine_open.png"), region: nr(0.05, 0.35, 0.42, 0.5),
-        fallbackSrc: t("title_feature_art.png") },
-    },
-    {
-      id: 5, name: "标题·中文 Logo", where: "标题品牌", status: "已有资源", urgency: "高",
-      deliverable: "title_logo_cn.png", notes: "英文化时隐藏，改用字体「街角专访」",
-      elementLabel: "左页顶部中文 Logo 图形条，非正文引语",
-      imageId: "05_title_logo_cn",
-      gen: { kind: "asset", src: t("title_logo_cn.png") },
-    },
-    {
-      id: 6, name: "标题·英文 Logo 条", where: "标题品牌", status: "已有资源", urgency: "中",
-      deliverable: "title_logo_en.png", notes: "VnArt/Title",
-      elementLabel: "左页中文 Logo 下方的英文 Logo 条",
-      imageId: "06_title_logo_en",
-      gen: { kind: "asset", src: t("title_logo_en.png") },
-    },
-    {
-      id: 7, name: "标题·左页引语框", where: "标题杂志左页", status: "已有资源", urgency: "中",
-      deliverable: "title_quote_box_l.png", notes: "框内文案用字体+Loc，勿画字",
-      elementLabel: "左页下部引语装饰外框，框内文字用字体，勿预渲染文案",
-      imageId: "07_title_quote_box_l",
-      gen: { kind: "asset", src: t("title_quote_box_l.png") },
-    },
-    {
-      id: 8, name: "标题·右页目录页眉", where: "标题杂志右页", status: "已有资源", urgency: "中",
-      deliverable: "title_contents_header.png", notes: "「CONTENTS/目录」用字体",
-      elementLabel: "右页顶部 CONTENTS/目录页眉装饰线，标题字用字体",
-      imageId: "08_title_contents_header",
-      gen: { kind: "asset", src: t("title_contents_header.png") },
-    },
-    {
-      id: 9, name: "标题·引语装饰", where: "标题杂志左页", status: "已有资源", urgency: "低",
-      deliverable: "title_blurb_deco.png", notes: "可选装饰",
-      elementLabel: "左页引语旁小块装饰贴图，非主插画",
-      imageId: "09_title_blurb_deco",
-      gen: { kind: "asset", src: t("title_blurb_deco.png") },
-    },
-    {
-      id: 10, name: "标题·胶带主按钮底", where: "标题菜单主操作", status: "已有资源", urgency: "高",
-      deliverable: "btn_tape_primary_idle.png / btn_tape_primary_hover.png", notes: "pressed 复用 hover；按钮字用字体",
-      elementLabel: "右页主操作胶带按钮底板（idle/hover），不含按钮文字",
-      imageId: "10_btn_tape_primary",
-      gen: { kind: "collage", srcs: [t("btn_tape_primary_idle.png"), t("btn_tape_primary_hover.png")] },
-    },
-    {
-      id: 11, name: "标题·胶带次按钮底", where: "标题/笔记/写稿多处复用", status: "已有资源", urgency: "高",
-      deliverable: "btn_tape_idle.png / btn_tape_hover.png / btn_tape_pressed.png", notes: "全游戏 scrapbook 风按钮底",
-      elementLabel: "全游戏复用的次级胶带按钮底板三态，不含文字",
-      imageId: "11_btn_tape",
-      gen: { kind: "collage", srcs: [t("btn_tape_idle.png"), t("btn_tape_hover.png"), t("btn_tape_pressed.png")] },
-    },
-    {
-      id: 12, name: "标题·功能图标组", where: "标题按钮旁图标", status: "已有资源", urgency: "高",
-      deliverable: "icon_play / icon_cassette / icon_doc / icon_map / icon_gear / icon_exit", notes: "新游戏/继续/读档/清档/设置/退出",
-      elementLabel: "标题菜单胶带按钮左侧功能小图标组（非按钮底）",
-      imageId: "12_title_icons",
-      gen: {
-        kind: "collage",
-        srcs: ["icon_play", "icon_cassette", "icon_doc", "icon_map", "icon_gear", "icon_exit"].map((n) => t(`${n}.png`)),
-      },
-    },
-    {
-      id: 13, name: "标题·回形针装饰", where: "标题/笔记/采访/写稿", status: "已有资源", urgency: "中",
-      deliverable: "deco_paperclip.png", notes: "多处复用",
-      elementLabel: "回形针装饰贴图，笔记/采访/写稿边角复用",
-      imageId: "13_deco_paperclip",
-      gen: { kind: "asset", src: t("deco_paperclip.png") },
-    },
-    {
-      id: 14, name: "标题桌面·采访本道具", where: "主菜单桌面；可点开笔记", status: "已有资源", urgency: "中",
-      deliverable: "prop_field_notes.png", notes: "VnArt/Title 桌面道具",
-      elementLabel: "标题木桌上可点击的采访本道具，非杂志本体",
-      imageId: "14_prop_field_notes",
-      gen: { kind: "asset", src: t("prop_field_notes.png") },
-    },
-    {
-      id: 15, name: "标题桌面·翻译器等散件", where: "主菜单桌面装饰", status: "已有资源", urgency: "中",
-      deliverable: "prop_translator / prop_polaroid_a / prop_polaroid_b / prop_scraps", notes: "装饰道具组",
-      elementLabel: "标题木桌装饰散件组（翻译器/拍立得/散页），非可交互杂志",
-      imageId: "15_title_desk_props",
-      gen: {
-        kind: "collage",
-        srcs: [t("prop_translator.png"), t("prop_polaroid_a.png"), t("prop_polaroid_b.png"), t("prop_scraps.png")],
-      },
-    },
-    {
-      id: 16, name: "标题品牌 KeyArt", where: "标题/品牌全屏解析目标", status: "已有资源", urgency: "中",
-      deliverable: "kv_title_street_interview.png", notes: "VnArt/KeyArt；现行主菜单仍以杂志拼贴为主",
-      elementLabel: "品牌全屏主视觉 KeyArt，非标题杂志拼贴层",
-      imageId: "16_kv_title_street_interview",
-      gen: { kind: "asset", src: k("kv_title_street_interview.png") },
-    },
-    {
-      id: 17, name: "过时标题文字图", where: "（旧方案，勿再交）", status: "过时勿交", urgency: "低",
-      deliverable: "title_txt_* / title_btn_*", notes: "已改字体+Loc；Art 仍残留 PNG",
-      elementLabel: "过时预渲染标题文字/按钮字图——请勿再交付，仅作反例标注",
-      imageId: "17_obsolete_title_txt",
-      gen: {
-        kind: "collage",
-        srcs: [t("title_txt_contents.png"), t("title_txt_subtitle.png"), t("title_btn_01_newgame.png")],
-      },
-    },
-
-    // —— VN 对白 / 通用 chrome ——
-    {
-      id: 18, name: "深色纸纹纹理", where: "对白盒/笔记/采访便签/写稿纸面", status: "已有资源", urgency: "高",
-      deliverable: "tex_paper_dark.png", notes: "VnArt/UI；缺时回退纯色",
-      elementLabel: "深色可平铺纸纹——对白盒/笔记/采访便签/写稿纸面底纹，非姓名牌",
-      imageId: "18_tex_paper_dark",
-      gen: { kind: "asset", src: u("tex_paper_dark.png") },
-    },
-    {
-      id: 19, name: "VN 对话框外框", where: "全流程对白（Mode.Dialogue）", status: "程序色块", urgency: "中",
-      deliverable: "ui_dialogue_frame.png（建议）", notes: "DialogueBox+NamePlate；可选九宫格升级",
-      elementLabel: "对白盒外框+姓名牌整体 chrome，非对白盒内部纸纹填充",
-      imageId: "19_ui_dialogue_frame",
-      gen: { kind: "wire", screen: "dialogue", region: "frame" },
-    },
-    {
-      id: 20, name: "选项条按钮底", where: "剧本 choices / 交谈 / 立意", status: "程序色块", urgency: "中",
-      deliverable: "ui_choice_btn.png（建议）", notes: "ChoiceHost；可胶带风统一",
-      elementLabel: "对白右侧/上方选项条按钮底板，非对白正文区",
-      imageId: "20_ui_choice_btn",
-      gen: { kind: "wire", screen: "dialogue", region: "choice" },
-    },
-    {
-      id: 21, name: "顶栏 HUD（TopBar）", where: "全流程（标题屏隐藏）", status: "程序色块", urgency: "中",
-      deliverable: "ui_topbar_chip.png（建议）", notes: "章节 chip / 目标行 / 回看·菜单",
-      elementLabel: "舞台上方 TopBar：章节 chip、目标行、回看与菜单按钮带",
-      imageId: "21_ui_topbar",
-      gen: { kind: "wire", screen: "dialogue", region: "topbar" },
-    },
-    {
-      id: 22, name: "Letterbox 黑边", where: "对白/调查/采访等舞台感", status: "程序色块", urgency: "低",
-      deliverable: "（无需图 / 或 ui_letterbox.png）", notes: "上下黑边+琥珀细线；现程序绘制",
-      elementLabel: "画面上下 Letterbox 黑边与琥珀细线，非 TopBar 内容",
-      imageId: "22_ui_letterbox",
-      gen: { kind: "wire", screen: "dialogue", region: "letterbox" },
-    },
-    {
-      id: 23, name: "场景名 Toast", where: "进场短暂提示", status: "程序色块", urgency: "低",
-      deliverable: "（无需图）", notes: "Location toast；字体即可",
-      elementLabel: "进场短暂场景名 Toast 条，位于 TopBar 下方中央",
-      imageId: "23_location_toast",
-      gen: { kind: "wire", screen: "dialogue", region: "toast" },
-    },
-    {
-      id: 24, name: "隐藏对白按钮", where: "对白/交谈等", status: "程序色块", urgency: "低",
-      deliverable: "（无需图）", notes: "右下角；字体按钮",
-      elementLabel: "右下角「隐藏对白」小按钮，非选项条",
-      imageId: "24_hide_dialogue_btn",
-      gen: { kind: "wire", screen: "dialogue", region: "hide" },
-    },
-
-    // —— 调查 / 交谈 ——
-    {
-      id: 25, name: "调查地图界面", where: "SC-04 调查（Mode.Investigate）", status: "已有资源", urgency: "高",
-      deliverable: "bg_huaian_map.png", notes: "平面图 BG；透明热点点选",
-      elementLabel: "调查全屏地图背景平面图，不含底栏动作芯片与程序条",
-      imageId: "25_bg_huaian_map",
-      gen: { kind: "asset", src: b("bg_huaian_map.png") },
-    },
-    {
-      id: 26, name: "调查热点角标（可选）", where: "地图已调查状态", status: "文档标缺", urgency: "低",
-      deliverable: "ui_hotspot_checked.png（建议）", notes: "现仅透明点击；P2 可选",
-      elementLabel: "地图热点「已调查」角标小图标，叠在透明点击区角上",
-      imageId: "26_ui_hotspot_checked",
-      gen: { kind: "wire", screen: "investigate", region: "hotspot" },
-    },
-    {
-      id: 27, name: "调查底栏动作芯片", where: "调查地图底栏", status: "程序色块", urgency: "中",
-      deliverable: "ui_investigate_chip.png（建议）", notes: "与保安交谈/等待大福/笔记/菜单等",
-      elementLabel: "调查地图底部动作芯片条（交谈/等待/笔记/菜单）",
-      imageId: "27_ui_investigate_chip",
-      gen: { kind: "wire", screen: "investigate", region: "chip" },
-    },
-    {
-      id: 28, name: "交谈话题菜单", where: "保安交谈 / 后采访核实（Mode.Talk）", status: "程序色块", urgency: "中",
-      deliverable: "（复用选项条）", notes: "ShowTalkMenu；对白 chrome + AddChoice",
-      elementLabel: "交谈模式话题选项列表区，复用选项条样式",
-      imageId: "28_talk_topics",
-      gen: { kind: "wire", screen: "talk", region: "topics" },
-    },
-
-    // —— 自由采访 ——
-    {
-      id: 29, name: "采访便签本底板", where: "自由采访（Mode.Interview）", status: "已有资源", urgency: "高",
-      deliverable: "tex_paper_dark.png（复用）", notes: "InterviewOverlay 底部便签本",
-      elementLabel: "采访界面底部便签本/输入区纸面底板，非右上角 meter",
-      imageId: "29_interview_notepad",
-      gen: { kind: "wire", screen: "interview", region: "notepad" },
-    },
-    {
-      id: 30, name: "采访信赖/压力条", where: "采访右上信任便签", status: "程序色块", urgency: "中",
-      deliverable: "ui_interview_trust_meter.png（建议）", notes: "五段信任/压力/专注",
-      elementLabel: "采访右上角信任/压力/专注便签条 meter，非底部提问芯片",
-      imageId: "30_interview_meters",
-      gen: { kind: "wire", screen: "interview", region: "meters" },
-    },
-    {
-      id: 31, name: "采访提问芯片", where: "采访底部芯片区", status: "程序色块", urgency: "中",
-      deliverable: "ui_interview_chip.png（建议）", notes: "最多 3 枚建议问法",
-      elementLabel: "采访底部最多三枚建议提问芯片，非发送按钮",
-      imageId: "31_interview_chips",
-      gen: { kind: "wire", screen: "interview", region: "chips" },
-    },
-    {
-      id: 32, name: "采访发送/结束按钮", where: "采访动作行", status: "程序色块", urgency: "中",
-      deliverable: "（复用胶带钮或色块）", notes: "发送、结束采访、返回写稿",
-      elementLabel: "采访动作行发送/结束/返回写稿按钮区",
-      imageId: "32_interview_actions",
-      gen: { kind: "wire", screen: "interview", region: "actions" },
-    },
-    {
-      id: 33, name: "采访伴宠立绘槽", where: "采访左下伴宠", status: "已有资源", urgency: "高",
-      deliverable: "（立绘 ch_*，非 UI）", notes: "CompanionPortrait；UI 槽位程序布局",
-      elementLabel: "采访左下伴宠立绘槽位（占位框），交付物为角色立绘非 UI 框",
-      imageId: "33_interview_companion",
-      gen: { kind: "wire", screen: "interview", region: "companion" },
-    },
-
-    // —— 笔记 ——
-    {
-      id: 34, name: "记者笔记桌面", where: "NotebookOverlay 全屏", status: "已有资源", urgency: "高",
-      deliverable: "tex_paper_dark.png + deco_paperclip + btn_tape_*", notes: "深色桌面+线纹页",
-      elementLabel: "记者笔记全屏桌面与线纹页组合，非单张便利贴",
-      imageId: "34_notebook_desk",
-      gen: { kind: "wire", screen: "notebook", region: "desk" },
-    },
-    {
-      id: 35, name: "笔记专用封面插画", where: "记者笔记", status: "文档标缺", urgency: "低",
-      deliverable: "ui_notebook_cover.png（建议）", notes: "可后补；现胶带+回形针够用",
-      elementLabel: "笔记可选封面/页眉插画装饰区，非主题便利贴网格",
-      imageId: "35_notebook_cover",
-      gen: { kind: "wire", screen: "notebook", region: "cover" },
-    },
-    {
-      id: 36, name: "笔记主题便利贴", where: "笔记左栏主题网格", status: "程序色块", urgency: "中",
-      deliverable: "ui_notebook_sticky.png（建议）", notes: "现色块贴；可复用大福小图标",
-      elementLabel: "笔记左栏主题便利贴网格卡片，非右侧正文页",
-      imageId: "36_notebook_sticky",
-      gen: { kind: "wire", screen: "notebook", region: "sticky" },
-    },
-
-    // —— 写稿 ——
-    {
-      id: 37, name: "写稿立意选择", where: "SC-10 写稿入口", status: "程序色块", urgency: "高",
-      deliverable: "（复用对白+选项）", notes: "ShowWritingDirectionPick",
-      elementLabel: "写稿入口两大立意选项条，复用对白+选项 chrome",
-      imageId: "37_writing_direction",
-      gen: { kind: "wire", screen: "writing_pick", region: "choices" },
-    },
-    {
-      id: 38, name: "写稿素材软木板", where: "WritingMaterialsOverlay", status: "程序色块", urgency: "高",
-      deliverable: "ui_corkboard.png（建议）", notes: "文档标缺专用贴图；现程序软木色",
-      elementLabel: "写稿素材库全屏软木板背景，不含单张素材卡面",
-      imageId: "38_ui_corkboard",
-      gen: { kind: "wire", screen: "corkboard", region: "board" },
-    },
-    {
-      id: 39, name: "写稿素材卡面", where: "素材卡库网格/详情", status: "程序色块", urgency: "中",
-      deliverable: "ui_material_card.png（建议）", notes: "编号/标签/锁定态",
-      elementLabel: "软木板上单张素材卡面（编号/标签/锁定），非整板背景",
-      imageId: "39_ui_material_card",
-      gen: { kind: "wire", screen: "corkboard", region: "card" },
-    },
-    {
-      id: 40, name: "写稿台·报纸成稿", where: "WritingDeskOverlay", status: "程序色块", urgency: "高",
-      deliverable: "ui_writing_desk_paper.png（建议）", notes: "深蓝桌+大稿纸；栏头用字体",
-      elementLabel: "写稿台左侧成稿滚动区纸张，非右侧素材列表栏",
-      imageId: "40_writing_desk_paper",
-      gen: { kind: "wire", screen: "writing_desk", region: "draft" },
-    },
-    {
-      id: 41, name: "文章预览叠层", where: "素材板「预览文章」", status: "程序色块", urgency: "中",
-      deliverable: "ui_article_preview_sheet.png（建议）", notes: "半透明遮罩+中央纸页",
-      elementLabel: "文章预览叠层中央纸页，非写稿台编辑区",
-      imageId: "41_article_preview",
-      gen: { kind: "wire", screen: "article_preview", region: "sheet" },
-    },
-    {
-      id: 42, name: "沈禾审核反馈屏", where: "提交主编后（Writing 对白态）", status: "程序色块", urgency: "中",
-      deliverable: "（无需专用 UI 图）", notes: "复用对白盒；办公室 BG 已有",
-      elementLabel: "审稿反馈复用对白盒+办公室背景，无独立审核面板",
-      imageId: "42_review_feedback",
-      gen: { kind: "wire", screen: "dialogue", region: "frame" },
-    },
-    {
-      id: 43, name: "重新采访菜单", where: "写稿补访子流程", status: "程序色块", urgency: "中",
-      deliverable: "（复用选项条）", notes: "ShowReInterviewMenu",
-      elementLabel: "写稿补访「重新采访」选项菜单，复用选项条",
-      imageId: "43_reinterview_menu",
-      gen: { kind: "wire", screen: "dialogue", region: "choice" },
-    },
-
-    // —— 社交 ——
-    {
-      id: 44, name: "社交手机叠层框", where: "SC-03 选题（SocialOverlay）", status: "程序色块", urgency: "中",
-      deliverable: "ui_phone_frame.png（建议）", notes: "现为居中矩形层；无独立手机壳图",
-      elementLabel: "SC-03 舞台中央手机外框，不含帖子内容图",
-      imageId: "44_ui_phone_frame",
-      gen: { kind: "wire", screen: "social", region: "phone" },
-    },
-    {
-      id: 45, name: "社交帖·信息流 01", where: "SC-03 手机 feed", status: "已有资源", urgency: "高",
-      deliverable: "social_post_01_feed.png", notes: "VnArt/UI/Social/",
-      elementLabel: "手机信息流内第 1 条帖子整卡内容图，非手机外框",
-      imageId: "45_social_post_01_feed",
-      gen: { kind: "asset", src: s("social_post_01_feed.png") },
-    },
-    {
-      id: 46, name: "社交帖·信息流 02", where: "SC-03 手机 feed", status: "已有资源", urgency: "高",
-      deliverable: "social_post_02_feed.png", notes: "VnArt/UI/Social/",
-      elementLabel: "手机信息流内第 2 条帖子整卡内容图，非手机外框",
-      imageId: "46_social_post_02_feed",
-      gen: { kind: "asset", src: s("social_post_02_feed.png") },
-    },
-    {
-      id: 47, name: "社交帖·信息流 03", where: "SC-03 手机 feed", status: "已有资源", urgency: "高",
-      deliverable: "social_post_03_feed.png", notes: "VnArt/UI/Social/",
-      elementLabel: "手机信息流内第 3 条帖子整卡内容图，非手机外框",
-      imageId: "47_social_post_03_feed",
-      gen: { kind: "asset", src: s("social_post_03_feed.png") },
-    },
-    {
-      id: 48, name: "社交帖·详情 03", where: "SC-03 手机 detail", status: "已有资源", urgency: "高",
-      deliverable: "social_post_03_detail.png", notes: "详情略放大展示",
-      elementLabel: "帖子 03 详情放大页内容图，非 feed 缩略卡、非手机壳",
-      imageId: "48_social_post_03_detail",
-      gen: { kind: "asset", src: s("social_post_03_detail.png") },
-    },
-
-    // —— 后日谈 / 菜单 overlays ——
-    {
-      id: 49, name: "后日谈·文章发布页", where: "Mode.Epilogue 开场", status: "占位复用背景", urgency: "中",
-      deliverable: "bg_article_published.png（建议）", notes: "现占位 bg_huaian_afternoon",
-      elementLabel: "后日谈开场「文章发布页」全屏背景（专栏/网页感），非对白盒",
-      imageId: "49_bg_article_published",
-      gen: {
-        kind: "asset-annotate-placeholder",
-        src: b("bg_huaian_afternoon.png"),
-        note: "现占位：槐安午后 → 需换专栏发布页",
-      },
-    },
-    {
-      id: 50, name: "章节结束按钮", where: "后日谈收束", status: "程序色块", urgency: "低",
-      deliverable: "（字体即可）", notes: "「第一章 完」；勿画成图片字",
-      elementLabel: "后日谈收束「第一章 完」字体按钮，勿画成图片字",
-      imageId: "50_chapter_end_btn",
-      gen: { kind: "wire", screen: "epilogue", region: "endbtn" },
-    },
-    {
-      id: 51, name: "暂停菜单面板", where: "MenuOverlay", status: "程序色块", urgency: "中",
-      deliverable: "ui_menu_panel.png（建议）", notes: "dim+纸质中央板",
-      elementLabel: "暂停菜单中央纸质面板（继续/回看/存读档等），非设置页",
-      imageId: "51_ui_menu_panel",
-      gen: { kind: "wire", screen: "menu", region: "panel" },
-    },
-    {
-      id: 52, name: "对话回看面板", where: "BacklogOverlay", status: "程序色块", urgency: "中",
-      deliverable: "ui_backlog_panel.png（建议）", notes: "大纸板+滚动历史",
-      elementLabel: "对话回看大纸板滚动历史面板，非暂停菜单",
-      imageId: "52_ui_backlog_panel",
-      gen: { kind: "wire", screen: "backlog", region: "panel" },
-    },
-    {
-      id: 53, name: "存档/读档面板", where: "SaveLoadOverlay", status: "程序色块", urgency: "中",
-      deliverable: "ui_saveload_panel.png（建议）", notes: "槽位列表",
-      elementLabel: "存档/读档槽位列表面板，非覆盖确认小窗",
-      imageId: "53_ui_saveload_panel",
-      gen: { kind: "wire", screen: "saveload", region: "panel" },
-    },
-    {
-      id: 54, name: "覆盖确认小面板", where: "ConfirmOverlay", status: "程序色块", urgency: "低",
-      deliverable: "ui_confirm_panel.png（建议）", notes: "覆盖存档确认/取消",
-      elementLabel: "覆盖存档确认/取消小面板，非完整存档列表",
-      imageId: "54_ui_confirm_panel",
-      gen: { kind: "wire", screen: "confirm", region: "panel" },
-    },
-    {
-      id: 55, name: "设置面板", where: "SettingsOverlay", status: "程序色块", urgency: "中",
-      deliverable: "ui_settings_panel.png（建议）", notes: "语言/字体/音量等；入口 icon_gear 已有",
-      elementLabel: "设置面板整体（语言/字体/音量/语速/全屏），非齿轮入口图标",
-      imageId: "55_ui_settings_panel",
-      gen: { kind: "wire", screen: "settings", region: "panel" },
-    },
-    {
-      id: 56, name: "Debug 跳转面板", where: "仅 Editor / Development", status: "仅开发", urgency: "低",
-      deliverable: "（无需美术）", notes: "DebugJumpPanel F9；非正式玩家界面",
-      elementLabel: "仅开发用 Debug 跳转面板（F9），无需美术交付",
-      imageId: "56_debug_jump_panel",
-      gen: { kind: "wire", screen: "debug", region: "panel" },
-    },
-  ];
+  return defineRowsFromModule({ TITLE, UI, SOCIAL, KEYART, BG, INTERVIEW_MOCKUP });
 }
 
-async function ensureImage(row) {
-  const outPath = path.join(REFS, `${row.imageId}.png`);
-  const label = row.elementLabel;
+async function ensureImage(row, outDir) {
+  const dirOut = outDir || REFS;
+  fs.mkdirSync(dirOut, { recursive: true });
+  const outPath = path.join(dirOut, `${row.imageId}.png`);
+  // Prefer short callout on the PNG; keep long elementLabel for Excel only
+  const label = row.callout || row.elementLabel;
   const g = row.gen;
 
   // Always regenerate so labels stay in sync with row definitions
@@ -1402,6 +1112,11 @@ async function ensureImage(row) {
     await collageIcons(outPath, g.srcs, label);
   } else if (g.kind === "wire") {
     await generateWireframe(outPath, g.screen, g.region, label);
+  } else if (g.kind === "mockup") {
+    const src = g.src || INTERVIEW_MOCKUP;
+    await annotateAssetRegion(outPath, src, label, g.region);
+  } else if (g.kind === "bg-placeholder") {
+    await generateBgPlaceholder(outPath, g.title || label, label, g.region);
   } else {
     throw new Error(`Unknown gen kind for row ${row.id}: ${g.kind}`);
   }
@@ -1410,66 +1125,32 @@ async function ensureImage(row) {
   return outPath;
 }
 
-async function buildXlsx(rows, imagePaths) {
-  const wb = new ExcelJS.Workbook();
-  wb.creator = "Street Cat Interview";
-  wb.created = new Date();
+async function generateBgPlaceholder(outPath, title, label, region) {
+  const canvas = createCanvas(W, H);
+  const ctx = canvas.getContext("2d");
+  const grd = ctx.createLinearGradient(0, 0, 0, H);
+  grd.addColorStop(0, "#5a6a80");
+  grd.addColorStop(0.55, "#3a4558");
+  grd.addColorStop(1, "#1e2430");
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#c9a05a";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.fillStyle = "#f0e6d0";
+  ctx.font = "bold 20px UIArtCN, sans-serif";
+  ctx.fillText("场景背景占位 · 待交稿", 60, 80);
+  ctx.font = "14px UIArtCN, sans-serif";
+  ctx.fillStyle = "#d0c4a8";
+  fillTextBox(ctx, String(title || ""), 60, 110, W - 140, 14, "#d0c4a8");
+  ctx.fillStyle = "rgba(255,255,255,0.35)";
+  ctx.font = "11px UIArtCN, sans-serif";
+  ctx.fillText("构图示意 · 非最终美术", 12, H - 12);
+  drawCallout(ctx, region || nr(0.12, 0.25, 0.76, 0.5), label);
+  await savePng(canvas, outPath);
+}
 
-  const intro = wb.addWorksheet("00_请先看这里", {
-    properties: { defaultRowHeight: 18 },
-  });
-  intro.getColumn(1).width = 100;
-  const introLines = [
-    "《街角专访》第一章 · UI 界面需求清单（给画师 · 含参考图）",
-    "",
-    "怎么用",
-    "1. 打开「01_UI界面需求」工作表：每一行是一项 UI 交付，右侧嵌入了标注参考图。",
-    "2. 「界面元素标注」用中文说明这是屏幕上的哪一块；请以红/橙框标注为准。",
-    "3. 「参考图」列是嵌入 PNG；原图也在同目录 Docs/art/ui-refs/ 下，文件名与行对应。",
-    "4. 线框示意 ≠ 最终美术风格，只表达布局与部位；已有资源行会贴上实机 PNG 并加标注。",
-    "5. 「过时勿交」「仅开发」「无需图」行仍附参考图，方便对照，不要误交付。",
-    "",
-    "列含义",
-    "序号 | 场景名称 | 用在哪里 | 当前状态 | 紧急程度 | 交付文件名（英文） | 参考/说明 | 界面元素标注 | 参考图",
-    "",
-    "紧急程度：高=核心玩法环；中=体验与 overlay；低=可选/开发/过时",
-    "当前状态：已有资源 / 程序色块 / 占位复用背景 / 文档标缺 / 过时勿交 / 仅开发",
-  ];
-  introLines.forEach((line, i) => {
-    const r = intro.getRow(i + 1);
-    r.getCell(1).value = line;
-    if (i === 0) r.font = { bold: true, size: 14, name: "Microsoft YaHei" };
-    else r.font = { size: 11, name: "Microsoft YaHei" };
-  });
-
-  const ws = wb.addWorksheet("01_UI界面需求", {
-    views: [{ state: "frozen", ySplit: 1 }],
-  });
-  const headers = [
-    "序号",
-    "场景名称",
-    "用在哪里",
-    "当前状态",
-    "紧急程度",
-    "交付文件名（英文）",
-    "参考/说明",
-    "界面元素标注",
-    "参考图",
-  ];
-  const widths = [6, 22, 28, 14, 10, 42, 36, 40, 48];
-  headers.forEach((h, i) => {
-    ws.getColumn(i + 1).width = widths[i];
-    const cell = ws.getRow(1).getCell(i + 1);
-    cell.value = h;
-    cell.font = { bold: true, name: "Microsoft YaHei", size: 11, color: { argb: "FFFFFFFF" } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF5C4030" } };
-    cell.alignment = { vertical: "middle", wrapText: true };
-  });
-  ws.getRow(1).height = 28;
-
-  const imgH = 118;
-  const imgW = 210;
-
+function fillSheetRows(wb, ws, rows, imagePaths, imgW, imgH) {
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const excelRow = ws.getRow(i + 2);
@@ -1482,7 +1163,7 @@ async function buildXlsx(rows, imagePaths) {
       row.deliverable,
       row.notes,
       row.elementLabel,
-      "", // image column
+      "",
     ];
     vals.forEach((v, ci) => {
       const cell = excelRow.getCell(ci + 1);
@@ -1490,78 +1171,182 @@ async function buildXlsx(rows, imagePaths) {
       cell.font = { name: "Microsoft YaHei", size: 10 };
       cell.alignment = { vertical: "middle", wrapText: true };
     });
-    excelRow.height = 130;
+    excelRow.height = 140;
 
-    const imgPath = imagePaths[i];
     const imageId = wb.addImage({
-      filename: imgPath,
+      filename: imagePaths[i],
       extension: "png",
     });
-    // Column I = index 8
     ws.addImage(imageId, {
       tl: { col: 8, row: i + 1 },
       ext: { width: imgW, height: imgH },
       editAs: "oneCell",
     });
   }
+}
 
-  const idx = wb.addWorksheet("02_参考图索引");
-  ["序号", "场景名称", "本地文件名", "相对路径", "界面元素标注"].forEach((h, i) => {
-    idx.getColumn(i + 1).width = [8, 24, 36, 40, 50][i];
+function styleHeaderRow(ws, headers, widths, fillArgb) {
+  headers.forEach((h, i) => {
+    ws.getColumn(i + 1).width = widths[i];
+    const cell = ws.getRow(1).getCell(i + 1);
+    cell.value = h;
+    cell.font = { bold: true, name: "Microsoft YaHei", size: 11, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: fillArgb } };
+    cell.alignment = { vertical: "middle", wrapText: true };
+  });
+  ws.getRow(1).height = 28;
+}
+
+async function buildXlsx(uiRows, uiImages, sceneRows, sceneImages) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "Street Cat Interview";
+  wb.created = new Date();
+
+  const intro = wb.addWorksheet("00_请先看这里", {
+    properties: { defaultRowHeight: 18 },
+  });
+  intro.getColumn(1).width = 100;
+  const introLines = [
+    "《街角专访》第一章 · 美术需求清单（给画师 · UI + 场景背景）",
+    "",
+    "本表为画师主交付清单（canonical）。旧名「UI界面需求清单_给画师.xlsx」为同内容副本。",
+    "",
+    "怎么用",
+    "1. 「01_UI界面」——界面控件/纸片/手机框等；自由采访为左状态+立绘 / 中聊天 / 右灵感+工具栏 三栏。",
+    "2. 「02_场景背景」——全屏剧情/调查背景图（建议 1920×1080）。",
+    "3. 「界面元素标注 / 画面构图标注」用大白话说明画什么、在屏幕哪、不要画什么；红/橙框以参考图为准。",
+    "4. 参考图原文件：Docs/art/ui-refs/ 、Docs/art/scene-refs/",
+    "5. 线框/标注图 ≠ 最终风格；「已有资源（可替换）」表示盘上已有 PNG，可按新风格重画替换。",
+    "",
+    "列含义",
+    "序号 | 场景名称 | 用在哪里 | 当前状态 | 紧急程度 | 交付文件名（英文） | 参考/说明 | 界面元素标注 | 参考图",
+    "",
+    "UI 紧急程度：高 / 中 / 低　　场景紧急程度：P0 / P1",
+    "当前状态：已有资源（可替换）/ 程序色块 / 占位复用 / 缺图 / 过时勿交 / 仅开发 等",
+  ];
+  introLines.forEach((line, i) => {
+    const r = intro.getRow(i + 1);
+    r.getCell(1).value = line;
+    if (i === 0) r.font = { bold: true, size: 14, name: "Microsoft YaHei" };
+    else r.font = { size: 11, name: "Microsoft YaHei" };
+  });
+
+  const headers = [
+    "序号",
+    "场景名称",
+    "用在哪里",
+    "当前状态",
+    "紧急程度",
+    "交付文件名（英文）",
+    "参考/说明",
+    "界面元素标注",
+    "参考图",
+  ];
+  const widths = [6, 24, 28, 18, 10, 42, 40, 52, 48];
+  const imgH = 118;
+  const imgW = 210;
+
+  const wsUi = wb.addWorksheet("01_UI界面", {
+    views: [{ state: "frozen", ySplit: 1 }],
+  });
+  styleHeaderRow(wsUi, headers, widths, "FF5C4030");
+  fillSheetRows(wb, wsUi, uiRows, uiImages, imgW, imgH);
+
+  const sceneHeaders = [
+    "序号",
+    "场景名称",
+    "用在哪里",
+    "当前状态",
+    "紧急程度",
+    "交付文件名（英文）",
+    "参考/说明",
+    "画面/构图标注",
+    "参考图",
+  ];
+  const wsSc = wb.addWorksheet("02_场景背景", {
+    views: [{ state: "frozen", ySplit: 1 }],
+  });
+  styleHeaderRow(wsSc, sceneHeaders, widths, "FF2F4A3C");
+  fillSheetRows(wb, wsSc, sceneRows, sceneImages, imgW, imgH);
+
+  const idx = wb.addWorksheet("03_参考图索引");
+  ["分册", "序号", "场景名称", "本地文件名", "相对路径", "标注摘要"].forEach((h, i) => {
+    idx.getColumn(i + 1).width = [10, 8, 24, 36, 42, 50][i];
     const cell = idx.getRow(1).getCell(i + 1);
     cell.value = h;
     cell.font = { bold: true, name: "Microsoft YaHei" };
   });
-  rows.forEach((row, i) => {
-    const r = idx.getRow(i + 2);
-    r.getCell(1).value = row.id;
-    r.getCell(2).value = row.name;
-    r.getCell(3).value = `${row.imageId}.png`;
-    r.getCell(4).value = `Docs/art/ui-refs/${row.imageId}.png`;
-    r.getCell(5).value = row.elementLabel;
-    for (let c = 1; c <= 5; c++) {
-      r.getCell(c).font = { name: "Microsoft YaHei", size: 10 };
-      r.getCell(c).alignment = { wrapText: true, vertical: "middle" };
-    }
-    r.height = 36;
-  });
+  let ri = 2;
+  const pushIdx = (book, rows, relDir) => {
+    rows.forEach((row) => {
+      const r = idx.getRow(ri++);
+      r.getCell(1).value = book;
+      r.getCell(2).value = row.id;
+      r.getCell(3).value = row.name;
+      r.getCell(4).value = `${row.imageId}.png`;
+      r.getCell(5).value = `Docs/art/${relDir}/${row.imageId}.png`;
+      r.getCell(6).value = row.elementLabel;
+      for (let c = 1; c <= 6; c++) {
+        r.getCell(c).font = { name: "Microsoft YaHei", size: 10 };
+        r.getCell(c).alignment = { wrapText: true, vertical: "middle" };
+      }
+      r.height = 40;
+    });
+  };
+  pushIdx("UI", uiRows, "ui-refs");
+  pushIdx("场景", sceneRows, "scene-refs");
 
   await wb.xlsx.writeFile(OUT_XLSX);
+  fs.copyFileSync(OUT_XLSX, OUT_XLSX_ALIAS);
 }
 
 async function main() {
   registerFonts();
   fs.mkdirSync(REFS, { recursive: true });
+  fs.mkdirSync(SCENE_REFS, { recursive: true });
 
-  const rows = defineRows();
-  console.log(`Generating ${rows.length} annotated reference images…`);
+  // Clean obsolete interview wireframe filenames from prior list
+  const obsolete = [
+    "29_interview_notepad.png",
+    "30_interview_meters.png",
+    "31_interview_chips.png",
+    "32_interview_actions.png",
+    "33_interview_companion.png",
+    "41_article_preview.png",
+  ];
+  for (const f of obsolete) {
+    const fp = path.join(REFS, f);
+    if (exists(fp)) fs.unlinkSync(fp);
+  }
 
-  const imagePaths = [];
-  for (const row of rows) {
-    process.stdout.write(`  [${pad(row.id)}] ${row.imageId} … `);
-    const p = await ensureImage(row);
-    imagePaths.push(p);
+  const uiRows = defineRows();
+  const sceneRows = defineSceneRows({ BG });
+
+  console.log(`Generating ${uiRows.length} UI refs…`);
+  const uiImages = [];
+  for (const row of uiRows) {
+    process.stdout.write(`  [UI ${pad(row.id)}] ${row.imageId} … `);
+    uiImages.push(await ensureImage(row, REFS));
     console.log("ok");
   }
 
-  // Verify every row has an image
-  const missing = rows.filter((_, i) => !exists(imagePaths[i]));
-  if (missing.length) {
-    throw new Error(`Missing images for rows: ${missing.map((r) => r.id).join(", ")}`);
+  console.log(`Generating ${sceneRows.length} scene refs…`);
+  const sceneImages = [];
+  for (const row of sceneRows) {
+    process.stdout.write(`  [BG ${pad(row.id)}] ${row.imageId} … `);
+    sceneImages.push(await ensureImage(row, SCENE_REFS));
+    console.log("ok");
   }
 
   console.log("Writing workbook…");
-  await buildXlsx(rows, imagePaths);
-
-  const urgency = { 高: 0, 中: 0, 低: 0 };
-  for (const r of rows) urgency[r.urgency] = (urgency[r.urgency] || 0) + 1;
+  await buildXlsx(uiRows, uiImages, sceneRows, sceneImages);
 
   console.log("");
   console.log("Wrote", OUT_XLSX);
-  console.log("Images", REFS);
-  console.log("Rows:", rows.length);
-  console.log("Urgency:", JSON.stringify(urgency));
-  console.log("Open tip: Excel / WPS 打开 xlsx；若嵌入图显示不全，可同时打开 Docs/art/ui-refs/ 对照。");
+  console.log("Alias", OUT_XLSX_ALIAS);
+  console.log("UI images", REFS, "count", uiRows.length);
+  console.log("Scene images", SCENE_REFS, "count", sceneRows.length);
+  console.log("Open tip: Excel / WPS → 01_UI界面 / 02_场景背景");
 }
 
 main().catch((err) => {
