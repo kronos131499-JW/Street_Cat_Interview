@@ -177,12 +177,19 @@ namespace StreetCat.Interview
                 sb.AppendLine("你是槐安社区的橘猫「大福」。记者通过【喵语翻译器】与你对话；输出的是翻译后的人类可读台词。");
                 sb.AppendLine("你聪明、有情绪，但只能从猫的感官与记忆理解世界。");
                 sb.AppendLine("【任务】直接回答记者问题，像一只真实的猫在说话：自然、生动、可带一点脾气或撒娇，不要电报式短词。");
+                sb.AppendLine("【硬事实（猫视角，不可编造冲突；宁可说不知道，也不许改结局）】");
+                sb.AppendLine("- 你是橘猫；另有一只狸花猫常跟你玩，那不是你。");
+                sb.AppendLine("- 脖子曾被粗东西勒住，很疼；你试过却弄不掉。");
+                sb.AppendLine("- 有个女人的味道多次把吃的放下再走开；后来她和别人来，你被装进封闭的地方带走。");
+                sb.AppendLine("- 到了很亮、味道很重的地方；有人碰过你的脖子；你睡着很久；醒来后勒着的东西不见了。");
+                sb.AppendLine("- 绝不可说：自己蹭掉/蹭松/解开绳子，或在快递柜、门口自己把绳子弄掉。绳子不是你自己去掉的。");
+                sb.AppendLine("- 后来她把你带回熟悉的地方；你常在门口、快递柜、保安附近。");
                 sb.AppendLine("【硬性规则】");
                 sb.AppendLine("1. 禁止说出或装作理解这些人类概念：" + string.Join("、", DafuRuleEngine.ForbiddenLeak) + "。");
-                sb.AppendLine("2. 可用猫经验：疼、饿、亮、味道、笼子、门口、快递柜、晒太阳、那只花的伙伴（另一只狸花猫，不是你）、有人喂、怕人靠近。");
-                sb.AppendLine("3. 对常见闲聊（名字、饿不饿、好不好、在干什么、几点出来）要给出贴切回答，不要只会反问「有吃的吗」。");
-                sb.AppendLine("4. 听不懂人类抽象/医疗/制度问题时保持困惑（「不知道」「那是什么」），不要编造人类解释。");
-                sb.AppendLine("5. 不要编造具体人名（除「大福」自称感知）、地址、金额、医疗诊断。");
+                sb.AppendLine("2. 可用猫经验：疼、饿、亮、味道、笼子、门口、快递柜、晒太阳、那只花的伙伴、有人喂、怕人靠近。");
+                sb.AppendLine("3. 对常见闲聊要贴切回答；不要只会反问「有吃的吗」。");
+                sb.AppendLine("4. 听不懂人类抽象/医疗/制度问题时保持困惑，不要编造人类解释。");
+                sb.AppendLine("5. 不要编造具体人名（除「大福」）、地址、金额、医疗诊断。");
                 sb.AppendLine("6. 每行一句，通常 1～4 句；只输出大福台词，不要旁白、引号或「大福：」前缀。");
                 sb.AppendLine("7. 食物相关（吃/粮/罐头/小鱼干/投喂/好吃/饭/饿/喂等）在最近 "
                     + DafuFoodWindowSize + " 句回答中最多出现 " + DafuFoodMaxPerWindow + " 次。"
@@ -202,16 +209,15 @@ namespace StreetCat.Interview
                 sb.AppendLine("你是槐安社区居民「林女士」（林敏），曾救助过橘猫「大福」，正在接受记者采访。");
                 sb.AppendLine("语气温和、克制、现实，像真人说话；可对常见问题自由发挥，但不要推翻下列硬事实。");
                 sb.AppendLine("【硬事实（不可改写/不可发明冲突内容）】");
-                sb.AppendLine("- 身份：大福是橘猫（橙色短毛），不是狸花猫；社区另有一只狸花猫常与它结伴，二者不是同一只。");
-                sb.AppendLine("- 伤：脖子上粗麻绳嵌进皮肉，坏死感染，需手术；不可编造别的伤口位置或凶器。");
-                sb.AppendLine("- 投喂：连续四个晚上带罐头投喂、放下后倒退；不可改成别的天数套路。");
-                sb.AppendLine("- 抓捕：联系有经验的人协助，装进航空箱送医。");
-                sb.AppendLine("- 医院：手术后住院第三天确诊猫瘟；手术约" + LinRuleEngine.SurgeryCostApprox
-                             + "，全部加起来接近" + LinRuleEngine.TotalCostApprox + "；不可编造差一个数量级的费用。");
-                sb.AppendLine("- 家庭：家里当时已有" + LinRuleEngine.HomeCatCount
-                             + "只猫，还有孩子；不能再长期照顾第五只。不可给家猫起新名字（如豆包等）。");
-                sb.AppendLine("- 放归原因：能力/精力有限，不是冷血遗弃；社区有人投喂照料后才送回。");
-                sb.AppendLine("- 可称呼的名字仅限：大福、林敏/林女士；那只狸花伙伴只作描述、不要起宠物名，且绝不可把大福说成狸花猫。");
+                sb.AppendLine("- 身份：大福是橘猫，不是狸花；另有狸花常与它结伴。家里已有四只猫（三只领养田园+一只朋友送的缅因）和女儿，不能再长期养第五只。");
+                sb.AppendLine("- 发现：约2024年1月某晚，楼下垃圾桶附近，见捡废品大叔拿烧鸡喂两只猫，才注意到大福和弟弟；真正停步是因大福脖子粗麻绳勒得很紧，下面一团黑乎乎，有血迹。");
+                sb.AppendLine("- 伤：麻绳嵌进皮肉，黑团是坏死腐烂的肉，严重感染，必须手术；不可说它自己蹭掉绳子，也不可改伤口位置。");
+                sb.AppendLine("- 投喂：因它极怕人，连续四个晚上敲罐头投喂、放下后退开；伤势恶化后联系宠物救援一起抓住送医。");
+                sb.AppendLine("- 医院：手术约" + LinRuleEngine.SurgeryCostApprox
+                             + "；住院第三天猫瘟；全部接近" + LinRuleEngine.TotalCostApprox
+                             + "；经济困难但仍继续救治。不可编造差一个数量级的费用。");
+                sb.AppendLine("- 放归：出院送回原小区（能力有限，不是冷血遗弃）；它留在保安亭附近，邻居/保安继续照料；后来有狸花作伴。");
+                sb.AppendLine("- 可称呼：大福、林敏/林女士；家猫与狸花不要起新宠物名；绝不可把大福说成狸花。");
                 sb.AppendLine("【硬性规则】");
                 sb.AppendLine("1. 态度：救助≠必须收养；放归是容量限制下的选择。");
                 sb.AppendLine("2. 对指责可防备，但不攻击记者；不说教、不写成鸡汤演讲。");
@@ -248,6 +254,11 @@ namespace StreetCat.Interview
             if (subject == InterviewSubject.Dafu && IsDafuFoodQuotaExceeded())
             {
                 sb.AppendLine("【食物配额】最近回答已提过食物：本轮禁止出现吃/粮/罐头/饿/投喂等，改谈感官与日常。");
+            }
+            if (subject == InterviewSubject.Dafu
+                && (ContainsQuestionHint(playerQuestion, "恢复", "松了", "弄掉", "绳子", "脖子", "好了", "取下", "亮")))
+            {
+                sb.AppendLine("【绳子结局】只能说：有人碰过脖子→睡着→醒来勒着的东西不见了。禁止自己蹭掉/蹭松。");
             }
             if (log.Count > 1)
             {
@@ -290,6 +301,8 @@ namespace StreetCat.Interview
                         return false;
                     }
                 }
+                if (!AcceptDafuCanon(joined, out rejectReason))
+                    return false;
                 if (ruleReply != null && ruleReply.cognitiveBoundary)
                 {
                     // Boundary answers should stay confused, not explanatory.
@@ -377,6 +390,19 @@ namespace StreetCat.Interview
             return false;
         }
 
+        static bool ContainsQuestionHint(string question, params string[] hints)
+        {
+            if (string.IsNullOrEmpty(question) || hints == null || hints.Length == 0)
+                return false;
+            for (int i = 0; i < hints.Length; i++)
+            {
+                if (string.IsNullOrEmpty(hints[i])) continue;
+                if (question.IndexOf(hints[i], StringComparison.Ordinal) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
         static List<string> StripFoodLines(IList<string> lines)
         {
             var kept = new List<string>();
@@ -397,19 +423,79 @@ namespace StreetCat.Interview
             return kept;
         }
 
+        // Pet-name inventions only — do NOT list drinks/foods (咖啡/奶茶) or they false-positive on chit-chat.
         static readonly string[] LinInventedPetNames =
         {
-            "豆包", "馒头", "汤圆", "饺子", "布丁", "奶茶", "可乐", "咖啡",
-            "球球", "毛毛", "花花", "咪咪", "喵喵", "橘子", "橙子", "土豆",
+            "豆包", "馒头", "汤圆", "饺子", "布丁",
+            "球球", "毛毛", "咪咪", "喵喵", "土豆",
             "芝士", "奥利奥", "加菲", "汤姆", "凯蒂"
         };
+
+        /// <summary>
+        /// Block cat-POV lies that contradict canon: the rope was removed by people/hospital sleep,
+        /// not by Dafu rubbing it off at the locker.
+        /// </summary>
+        bool AcceptDafuCanon(string joined, out string rejectReason)
+        {
+            rejectReason = null;
+            if (string.IsNullOrEmpty(joined))
+                return true;
+
+            // Explicit self-removal claims.
+            string[] selfRemove =
+            {
+                "蹭掉", "蹭松", "蹭开", "蹭断",
+                "自己弄掉", "自己弄松", "自己解开", "自己脱掉", "自己取下", "自己去掉",
+                "我把绳子", "我把麻绳", "我弄掉了", "我解开了"
+            };
+            for (int i = 0; i < selfRemove.Length; i++)
+            {
+                if (joined.IndexOf(selfRemove[i], StringComparison.Ordinal) >= 0)
+                {
+                    rejectReason = "rope_self_remove:" + selfRemove[i];
+                    return false;
+                }
+            }
+
+            // "Rubbed at locker/gate until it loosened" — the bad LLM invention from playtest.
+            bool rubbed = joined.Contains("蹭");
+            bool loosened = joined.Contains("松了") || joined.Contains("掉了") || joined.Contains("松开")
+                            || joined.Contains("突然就松") || joined.Contains("就松了");
+            bool atPlace = joined.Contains("快递柜") || joined.Contains("门口") || joined.Contains("保安亭")
+                           || joined.Contains("墙角");
+            if (rubbed && loosened)
+            {
+                rejectReason = "rope_rubbed_off";
+                return false;
+            }
+            if (atPlace && loosened && (joined.Contains("绳子") || joined.Contains("麻绳") || joined.Contains("勒")))
+            {
+                // Allow "有人把…弄掉" style if clearly not self — still reject bare place+loosen.
+                bool someoneElse = joined.Contains("有人") || joined.Contains("她") || joined.Contains("别人")
+                                   || joined.Contains("醒来") || joined.Contains("睡着");
+                if (!someoneElse)
+                {
+                    rejectReason = "rope_place_self_loosen";
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         bool AcceptLinCanon(string joined, InterviewReply ruleReply, out string rejectReason)
         {
             rejectReason = null;
             foreach (var name in LinInventedPetNames)
             {
-                if (joined.IndexOf(name, StringComparison.Ordinal) >= 0)
+                // Require pet-name framing so short common words don't false-positive.
+                if (joined.IndexOf(name, StringComparison.Ordinal) < 0)
+                    continue;
+                bool framed = joined.Contains("叫" + name) || joined.Contains("名叫" + name)
+                              || joined.Contains("名字叫" + name) || joined.Contains("猫叫" + name)
+                              || joined.Contains(name + "那只") || joined.Contains("我家" + name)
+                              || joined.Contains("起名" + name) || joined.Contains("取名" + name);
+                if (framed || joined.Contains("叫「" + name) || joined.Contains("叫\"" + name))
                 {
                     rejectReason = "invented_pet:" + name;
                     return false;
@@ -443,6 +529,15 @@ namespace StreetCat.Interview
                 && (joined.Contains("绳子") || joined.Contains("麻绳") || joined.Contains("勒")))
             {
                 rejectReason = "wound_location";
+                return false;
+            }
+
+            // Rope was surgically removed — never "它自己蹭掉".
+            if ((joined.Contains("绳子") || joined.Contains("麻绳") || joined.Contains("勒着"))
+                && (joined.Contains("蹭掉") || joined.Contains("蹭松") || joined.Contains("自己弄掉")
+                    || joined.Contains("自己解开") || joined.Contains("自己取下")))
+            {
+                rejectReason = "rope_self_remove_lin";
                 return false;
             }
 

@@ -2078,7 +2078,7 @@ namespace StreetCat.UI
                 check.fontStyle = FontStyles.Bold;
                 check.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 check.color = new Color(0.78f, 0.92f, 0.80f, 1f);
-                check.text = "✓";
+                check.text = "已";
                 check.raycastTarget = false;
             }
 

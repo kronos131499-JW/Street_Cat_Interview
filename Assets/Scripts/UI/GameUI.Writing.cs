@@ -1010,7 +1010,7 @@ namespace StreetCat.UI
                 StretchFull(check.rectTransform);
                 check.enableWordWrapping = false;
                 check.enableAutoSizing = false;
-                check.text = "✓";
+                check.text = "已";
                 check.fontStyle = FontStyles.Bold;
                 ApplyLetterSpacing(check, 0f);
             }

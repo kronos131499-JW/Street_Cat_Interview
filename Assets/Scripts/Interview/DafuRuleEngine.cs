@@ -34,7 +34,10 @@ namespace StreetCat.Interview
         {
             if (ContainsAny(input, "手术", "医院", "医生", "猫瘟", "花钱", "费用", "多少钱", "收养", "主人", "救助", "放归"))
                 return "cognitive_boundary";
-            if (ContainsAny(input, "脖子", "疼", "伤", "勒", "绳子", "疤"))
+            // How the rope/pain ended → hospital memory, not "I rubbed it off".
+            if (ContainsAny(input, "恢复", "怎么好", "好起来", "松了", "弄掉", "取下", "去掉", "解开", "蹭掉", "谁帮你"))
+                return "strange_place";
+            if (ContainsAny(input, "脖子", "疼", "伤", "勒", "绳子", "疤", "麻绳"))
                 return "neck";
             // Food offer / hunger before woman「喂」and before bare daily「吃」.
             if (ContainsAny(input, "给你吃", "猫粮", "猫条", "饿", "想吃", "好吃", "零食", "要不要吃", "吃的吗"))
@@ -167,7 +170,7 @@ namespace StreetCat.Interview
                 case "strange_place":
                     reply = Reply("strange_place", "询问陌生场所",
                         new[] { "很亮。", "味道很重。", "很多别的动物。", "有人碰过我脖子。", "我睡着很久。", "醒来……勒着的东西不见了。" },
-                        "大福抬起前爪蹭了蹭脖子附近的毛。",
+                        "大福歪了歪头，爪子轻轻碰了碰脖子附近。",
                         new[] { IntelIds.BrightStrangePlace, IntelIds.Sleep, IntelIds.ObjectGone },
                         trust: 0, stress: 6);
                     break;
