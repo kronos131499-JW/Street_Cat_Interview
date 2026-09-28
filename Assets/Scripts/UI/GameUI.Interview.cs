@@ -100,9 +100,9 @@ namespace StreetCat.UI
         {
             var col = new GameObject("LeftColumn", typeof(RectTransform));
             col.transform.SetParent(parent, false);
-            // ~14% left — prioritize wide center chat
+            // ~13% status + portrait
             Stretch(col.GetComponent<RectTransform>(),
-                new Vector2(0.012f, 0.05f), new Vector2(0.148f, 0.955f),
+                new Vector2(0.010f, 0.05f), new Vector2(0.140f, 0.955f),
                 Vector2.zero, Vector2.zero);
 
             BuildInterviewStatusPad(col.transform);
@@ -169,7 +169,7 @@ namespace StreetCat.UI
             labelTx.overflowMode = TextOverflowModes.Overflow;
             labelTx.raycastTarget = false;
 
-            valueTx = CreateUiText(rowGo.transform, "Value", 12, TextAnchor.MiddleRight, fill,
+            valueTx = CreateUiText(rowGo.transform, "Value", 13, TextAnchor.MiddleRight, IvInk,
                 Vector2.zero, Vector2.zero);
             Stretch(valueTx.rectTransform, new Vector2(0.55f, 0.45f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
@@ -177,6 +177,7 @@ namespace StreetCat.UI
             valueTx.enableWordWrapping = false;
             valueTx.raycastTarget = false;
             valueTx.text = "—";
+            valueTx.color = new Color(0.12f, 0.10f, 0.08f, 1f);
 
             var track = CreateImage(rowGo.transform, "Track", IvBarTrack);
             Stretch(track.rectTransform, new Vector2(0f, 0.08f), new Vector2(1f, 0.40f),
@@ -212,20 +213,20 @@ namespace StreetCat.UI
             AttachTape(paper.transform, new Vector2(0.9f, 1.01f), 48f, 16f, 10f);
 
             interviewPortraitImage = CreateImage(paper.transform, "Portrait", Color.white);
-            // Larger bust, biased right within the paper frame.
+            // Keep bust above the name plate so "Dafu" / "Lin" stays readable.
             Stretch(interviewPortraitImage.rectTransform,
-                new Vector2(0.12f, 0.06f), new Vector2(0.98f, 0.97f),
+                new Vector2(0.08f, 0.16f), new Vector2(0.92f, 0.96f),
                 Vector2.zero, Vector2.zero);
             interviewPortraitImage.preserveAspect = true;
             interviewPortraitImage.raycastTarget = false;
             interviewPortraitImage.enabled = false;
 
             var plate = CreateImage(paper.transform, "NamePlate", IvNamePlate);
-            Stretch(plate.rectTransform, new Vector2(0.12f, 0.03f), new Vector2(0.88f, 0.14f),
+            Stretch(plate.rectTransform, new Vector2(0.10f, 0.03f), new Vector2(0.90f, 0.14f),
                 Vector2.zero, Vector2.zero);
             plate.raycastTarget = false;
 
-            interviewSubjectText = CreateUiText(plate.transform, "Name", 16, TextAnchor.MiddleCenter, IvInk,
+            interviewSubjectText = CreateUiText(plate.transform, "Name", 15, TextAnchor.MiddleCenter, IvInk,
                 Vector2.zero, Vector2.zero);
             StretchFull(interviewSubjectText.rectTransform);
             interviewSubjectText.fontStyle = FontStyles.Bold;
@@ -236,9 +237,9 @@ namespace StreetCat.UI
         {
             var col = new GameObject("CenterColumn", typeof(RectTransform));
             col.transform.SetParent(parent, false);
-            // ~68% center chat — dialogue is the focus
+            // ~60% center chat — leave room for EN Ask Ideas chips on the right
             Stretch(col.GetComponent<RectTransform>(),
-                new Vector2(0.158f, 0.05f), new Vector2(0.838f, 0.955f),
+                new Vector2(0.150f, 0.05f), new Vector2(0.755f, 0.955f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(col.transform, "Shadow", IvPaperShadow);
@@ -257,13 +258,14 @@ namespace StreetCat.UI
             interviewTitleText.fontStyle = FontStyles.Bold;
             interviewTitleText.text = UiLoc.T("ui.interview.title", "自由采访");
 
-            // Soft muted EN label — avoids fighting TopBar + Chinese title.
+            // Ghost EN subtitle removed — fought the real title and looked like a layering bug.
             interviewTitleSubText = CreateUiText(paper.transform, "TitleSub", 10, TextAnchor.UpperCenter,
                 new Color(0.42f, 0.38f, 0.34f, 0.42f), Vector2.zero, Vector2.zero);
             Stretch(interviewTitleSubText.rectTransform, new Vector2(0.25f, 0.875f), new Vector2(0.75f, 0.915f),
                 Vector2.zero, Vector2.zero);
             interviewTitleSubText.text = UiLoc.T("ui.interview.title_sub", "INTERVIEW");
             interviewTitleSubText.characterSpacing = 4f;
+            interviewTitleSubText.gameObject.SetActive(false);
 
             interviewBannerText = CreateUiText(paper.transform, "Banner", 13, TextAnchor.MiddleLeft,
                 new Color(0.55f, 0.28f, 0.18f, 1f), Vector2.zero, Vector2.zero);
@@ -323,17 +325,18 @@ namespace StreetCat.UI
                 Vector2.zero, Vector2.zero);
             sep.raycastTarget = false;
 
-            // Fixed input bar
+            // Fixed input bar — solid field; ArtPack typing-frame sprite is a full mockup strip
+            // and fights the real TMP field when stamped here.
             var inputBar = CreateImage(paper.transform, "InputBar", IvInputBg);
-            Stretch(inputBar.rectTransform, new Vector2(0.04f, 0.02f), new Vector2(0.86f, 0.115f),
+            Stretch(inputBar.rectTransform, new Vector2(0.04f, 0.02f), new Vector2(0.82f, 0.115f),
                 Vector2.zero, Vector2.zero);
             inputBar.raycastTarget = true;
 
             interviewInput = CreateVnInput(inputBar.transform);
             StretchFull(interviewInput.GetComponent<RectTransform>());
             var iirt = interviewInput.GetComponent<RectTransform>();
-            iirt.offsetMin = new Vector2(12f, 4f);
-            iirt.offsetMax = new Vector2(-8f, -4f);
+            iirt.offsetMin = new Vector2(14f, 6f);
+            iirt.offsetMax = new Vector2(-10f, -6f);
             interviewInput.lineType = TMP_InputField.LineType.SingleLine;
             interviewInput.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             if (interviewInput.textComponent != null)
@@ -344,7 +347,7 @@ namespace StreetCat.UI
             }
             if (interviewInput.placeholder is TextMeshProUGUI ph)
             {
-                ph.color = new Color(0.45f, 0.42f, 0.38f, 0.65f);
+                ph.color = new Color(0.28f, 0.24f, 0.20f, 0.78f);
                 ph.fontSize = 17;
                 ph.text = UiLoc.T("ui.interview.input_placeholder", "输入你的问题...");
                 ApplyLetterSpacing(ph, 0f);
@@ -353,7 +356,7 @@ namespace StreetCat.UI
             var sendGo = new GameObject("Send", typeof(RectTransform), typeof(Image), typeof(Button));
             sendGo.transform.SetParent(paper.transform, false);
             Stretch(sendGo.GetComponent<RectTransform>(),
-                new Vector2(0.875f, 0.025f), new Vector2(0.96f, 0.11f),
+                new Vector2(0.835f, 0.025f), new Vector2(0.96f, 0.11f),
                 Vector2.zero, Vector2.zero);
             interviewSendBtnImage = sendGo.GetComponent<Image>();
             interviewSendBtnImage.color = IvSendBrown;
@@ -374,9 +377,9 @@ namespace StreetCat.UI
         {
             var col = new GameObject("RightColumn", typeof(RectTransform));
             col.transform.SetParent(parent, false);
-            // ~14% right
+            // ~23% right — EN ask chips need wrap width
             Stretch(col.GetComponent<RectTransform>(),
-                new Vector2(0.850f, 0.05f), new Vector2(0.988f, 0.955f),
+                new Vector2(0.765f, 0.05f), new Vector2(0.990f, 0.955f),
                 Vector2.zero, Vector2.zero);
 
             BuildInterviewInspirePad(col.transform);
@@ -388,7 +391,7 @@ namespace StreetCat.UI
             var host = new GameObject("InspirePad", typeof(RectTransform));
             host.transform.SetParent(parent, false);
             Stretch(host.GetComponent<RectTransform>(),
-                new Vector2(0f, 0.36f), new Vector2(1f, 1f),
+                new Vector2(0f, 0.34f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(host.transform, "Shadow", IvPaperShadow);
@@ -397,18 +400,18 @@ namespace StreetCat.UI
             shadow.raycastTarget = false;
 
             var paper = CreatePaperFace(host.transform, "Paper");
-            AttachPaperclip(paper.transform, new Vector2(0.92f, 1.04f), 32f, 44f, -10f);
+            // Skip paperclip on this pad — it eats chip space and looks cluttered.
 
             interviewInspireHeaderText = CreateUiText(paper.transform, "Header", 15, TextAnchor.MiddleLeft,
                 IvInk, Vector2.zero, Vector2.zero);
-            Stretch(interviewInspireHeaderText.rectTransform, new Vector2(0.06f, 0.90f), new Vector2(0.94f, 0.98f),
+            Stretch(interviewInspireHeaderText.rectTransform, new Vector2(0.05f, 0.91f), new Vector2(0.95f, 0.985f),
                 Vector2.zero, Vector2.zero);
             interviewInspireHeaderText.fontStyle = FontStyles.Bold;
             interviewInspireHeaderText.text = UiLoc.T("ui.interview.inspiration", "提问灵感");
 
             interviewInspireHintText = CreateUiText(paper.transform, "InspireHint", 11, TextAnchor.UpperLeft,
-                IvInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(interviewInspireHintText.rectTransform, new Vector2(0.06f, 0.82f), new Vector2(0.94f, 0.90f),
+                new Color(0.22f, 0.18f, 0.14f, 0.90f), Vector2.zero, Vector2.zero);
+            Stretch(interviewInspireHintText.rectTransform, new Vector2(0.05f, 0.84f), new Vector2(0.95f, 0.91f),
                 Vector2.zero, Vector2.zero);
             interviewInspireHintText.text = UiLoc.T("ui.interview.inspire_hint", "点击填入输入框，不会直接发送");
             interviewInspireHintText.enableWordWrapping = true;
@@ -418,20 +421,20 @@ namespace StreetCat.UI
             interviewHintRoot = new GameObject("Chips", typeof(RectTransform), typeof(VerticalLayoutGroup)).transform;
             interviewHintRoot.SetParent(paper.transform, false);
             Stretch(interviewHintRoot.GetComponent<RectTransform>(),
-                new Vector2(0.05f, 0.18f), new Vector2(0.95f, 0.80f),
+                new Vector2(0.04f, 0.16f), new Vector2(0.96f, 0.83f),
                 Vector2.zero, Vector2.zero);
             var vlg = interviewHintRoot.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing = 10f;
+            vlg.spacing = 5f;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childForceExpandWidth = true;
             vlg.childForceExpandHeight = false;
             vlg.childControlWidth = true;
             vlg.childControlHeight = true;
-            vlg.padding = new RectOffset(2, 2, 4, 4);
+            vlg.padding = new RectOffset(2, 2, 2, 2);
 
             interviewCoachTipText = CreateUiText(paper.transform, "CoachTip", 12, TextAnchor.UpperLeft,
                 IvInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(interviewCoachTipText.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.16f),
+            Stretch(interviewCoachTipText.rectTransform, new Vector2(0.05f, 0.02f), new Vector2(0.95f, 0.15f),
                 Vector2.zero, Vector2.zero);
             interviewCoachTipText.text = "";
             interviewCoachTipText.enableWordWrapping = true;
@@ -453,7 +456,7 @@ namespace StreetCat.UI
             shadow.raycastTarget = false;
 
             var paper = CreatePaperFace(host.transform, "Paper");
-            AttachPaperclip(paper.transform, new Vector2(0.08f, 1.06f), 28f, 40f, 18f);
+            // No paperclip — End + tools need the full pad.
 
             interviewActionRoot = new GameObject("Actions", typeof(RectTransform), typeof(VerticalLayoutGroup)).transform;
             interviewActionRoot.SetParent(paper.transform, false);
@@ -569,7 +572,7 @@ namespace StreetCat.UI
             if (interviewTitleSubText != null)
             {
                 interviewTitleSubText.text = UiLoc.T("ui.interview.title_sub", "INTERVIEW");
-                interviewTitleSubText.color = new Color(0.42f, 0.38f, 0.34f, 0.42f);
+                interviewTitleSubText.gameObject.SetActive(false);
             }
             if (interviewInspireHeaderText != null)
                 interviewInspireHeaderText.text = UiLoc.T("ui.interview.inspiration", "提问灵感");
@@ -596,21 +599,22 @@ namespace StreetCat.UI
             if (interviewToolsRow != null) return interviewToolsRow;
             if (interviewActionRoot == null) return null;
 
-            var go = new GameObject("Tools", typeof(RectTransform), typeof(HorizontalLayoutGroup),
+            var go = new GameObject("Tools", typeof(RectTransform), typeof(VerticalLayoutGroup),
                 typeof(LayoutElement));
             go.transform.SetParent(interviewActionRoot, false);
             var le = go.GetComponent<LayoutElement>();
             le.flexibleWidth = 1f;
-            le.minHeight = 40f;
-            le.preferredHeight = 44f;
-            le.flexibleHeight = 1f;
-            var hlg = go.GetComponent<HorizontalLayoutGroup>();
-            hlg.spacing = 5f;
-            hlg.childAlignment = TextAnchor.MiddleCenter;
-            hlg.childControlWidth = true;
-            hlg.childControlHeight = true;
-            hlg.childForceExpandWidth = true;
-            hlg.childForceExpandHeight = true;
+            le.minHeight = 128f;
+            le.preferredHeight = 140f;
+            le.flexibleHeight = 0f;
+            var vlg = go.GetComponent<VerticalLayoutGroup>();
+            vlg.spacing = 5f;
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+            vlg.padding = new RectOffset(0, 0, 0, 0);
             interviewToolsRow = go.transform;
             return interviewToolsRow;
         }
@@ -630,7 +634,7 @@ namespace StreetCat.UI
             go.transform.SetParent(parent, false);
             go.GetComponent<Image>().color = primary
                 ? IvEndAccent
-                : new Color(0.94f, 0.91f, 0.86f, 0.88f);
+                : new Color(0.94f, 0.91f, 0.86f, 0.96f);
             go.GetComponent<Image>().raycastTarget = true;
             go.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -642,30 +646,30 @@ namespace StreetCat.UI
             le.flexibleWidth = 1f;
             if (primary)
             {
-                le.minHeight = 44f;
-                le.preferredHeight = 48f;
+                le.minHeight = 46f;
+                le.preferredHeight = 50f;
             }
             else if (useFull)
             {
-                le.minHeight = 36f;
-                le.preferredHeight = 40f;
+                le.minHeight = 38f;
+                le.preferredHeight = 42f;
             }
             else
             {
-                le.minHeight = 36f;
-                le.preferredHeight = 40f;
-                le.flexibleHeight = 1f;
+                // Stacked tool chips — readable EN labels (Backlog / Notebook / Menu).
+                le.minHeight = 40f;
+                le.preferredHeight = 42f;
+                le.flexibleHeight = 0f;
             }
 
-            // Keep call order: primary end stays above tools without reordering siblings.
-            var labelTx = CreateUiText(go.transform, "L", primary ? 16 : 13, TextAnchor.MiddleCenter,
+            var labelTx = CreateUiText(go.transform, "L", primary ? 17 : 15, TextAnchor.MiddleCenter,
                 primary ? Color.white : IvInk, Vector2.zero, Vector2.zero);
             Stretch(labelTx.rectTransform, new Vector2(0.04f, 0.08f), new Vector2(0.96f, 0.92f),
                 Vector2.zero, Vector2.zero);
             labelTx.text = label;
-            labelTx.fontStyle = primary ? FontStyles.Bold : FontStyles.Normal;
-            labelTx.enableWordWrapping = true;
-            labelTx.overflowMode = TextOverflowModes.Truncate;
+            labelTx.fontStyle = FontStyles.Bold;
+            labelTx.enableWordWrapping = false;
+            labelTx.overflowMode = TextOverflowModes.Overflow;
             labelTx.raycastTarget = false;
             ApplyLetterSpacing(labelTx, 0f);
 
@@ -1490,11 +1494,10 @@ namespace StreetCat.UI
             if (interviewHintRoot == null || string.IsNullOrEmpty(question))
                 return;
 
-            string label = question.Length <= 18 ? question : question.Substring(0, 17) + "…";
+            // Full question — wrap inside widened right column (no mid-word hard truncate).
             var go = new GameObject("Preset", typeof(RectTransform), typeof(Image), typeof(Button),
                 typeof(LayoutElement), typeof(Outline));
             go.transform.SetParent(interviewHintRoot, false);
-            // Soft paper-note chips — fill input only, not primary CTAs.
             go.GetComponent<Image>().color = IvChipFill;
             go.GetComponent<Image>().raycastTarget = true;
             var outline = go.GetComponent<Outline>();
@@ -1502,8 +1505,8 @@ namespace StreetCat.UI
             outline.effectDistance = new Vector2(1.2f, -1.2f);
             outline.useGraphicAlpha = true;
             var le = go.GetComponent<LayoutElement>();
-            le.minHeight = 46f;
-            le.preferredHeight = 50f;
+            le.minHeight = 70f;
+            le.preferredHeight = 78f;
             le.flexibleWidth = 1f;
             string fill = question;
             go.GetComponent<Button>().onClick.AddListener(() =>
@@ -1512,11 +1515,11 @@ namespace StreetCat.UI
                 FillInterviewInput(fill);
             });
 
-            var mark = CreateUiText(go.transform, "Mark", 12, TextAnchor.MiddleCenter,
+            var mark = CreateUiText(go.transform, "Mark", 12, TextAnchor.UpperCenter,
                 IvChipMarkTints[colorIdx % IvChipMarkTints.Length],
                 Vector2.zero, Vector2.zero);
-            Stretch(mark.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(6f, 4f), new Vector2(24f, -4f));
+            Stretch(mark.rectTransform, new Vector2(0f, 0.55f), new Vector2(0f, 1f),
+                new Vector2(4f, 2f), new Vector2(20f, -2f));
             mark.text = IvChipMarks[colorIdx % IvChipMarks.Length];
             mark.fontStyle = FontStyles.Bold;
             mark.raycastTarget = false;
@@ -1524,16 +1527,18 @@ namespace StreetCat.UI
             var tgo = new GameObject("L", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             Stretch(tgo.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(1f, 1f),
-                new Vector2(26f, 4f), new Vector2(-8f, -4f));
+                new Vector2(22f, 5f), new Vector2(-6f, -5f));
             var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
-            tx.fontSize = 12;
-            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
-            tx.color = IvInkMuted;
-            tx.text = label;
+            tx.fontSize = 12.5f;
+            tx.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            tx.color = IvInk;
+            tx.text = question;
             tx.raycastTarget = false;
             tx.enableWordWrapping = true;
             tx.overflowMode = TextOverflowModes.Truncate;
+            tx.maxVisibleLines = 3;
+            tx.lineSpacing = 0f;
             ApplyLetterSpacing(tx, 0f);
             interviewPresetSpawned.Add(go);
         }
@@ -1593,7 +1598,7 @@ namespace StreetCat.UI
             {
                 interviewTitleSubText.font = font;
                 interviewTitleSubText.fontSize = Mathf.RoundToInt(10f * scale);
-                interviewTitleSubText.color = new Color(0.42f, 0.38f, 0.34f, 0.42f);
+                interviewTitleSubText.gameObject.SetActive(false);
             }
             if (interviewInspireHeaderText != null)
             {
@@ -1604,7 +1609,7 @@ namespace StreetCat.UI
             {
                 interviewInspireHintText.font = font;
                 interviewInspireHintText.fontSize = Mathf.RoundToInt(11f * scale);
-                interviewInspireHintText.color = IvInkMuted;
+                interviewInspireHintText.color = new Color(0.22f, 0.18f, 0.14f, 0.90f);
             }
             if (interviewBannerText != null)
             {
@@ -1625,6 +1630,7 @@ namespace StreetCat.UI
             {
                 interviewCoachTipText.font = font;
                 interviewCoachTipText.fontSize = Mathf.RoundToInt(12f * scale);
+                interviewCoachTipText.color = new Color(0.22f, 0.18f, 0.14f, 0.92f);
             }
             ApplyMeterLabelFont(interviewTrustLabel, scale);
             ApplyMeterLabelFont(interviewStressLabel, scale);
@@ -1647,6 +1653,7 @@ namespace StreetCat.UI
                 {
                     ph.font = font;
                     ph.fontSize = Mathf.RoundToInt(16f * scale);
+                    ph.color = new Color(0.28f, 0.24f, 0.20f, 0.78f);
                     ApplyLetterSpacing(ph, 0f);
                 }
             }
@@ -1667,8 +1674,9 @@ namespace StreetCat.UI
         {
             if (tx == null) return;
             tx.font = font;
-            tx.fontSize = Mathf.RoundToInt(12f * scale);
+            tx.fontSize = Mathf.RoundToInt(13f * scale);
             tx.fontStyle = FontStyles.Bold;
+            tx.color = new Color(0.12f, 0.10f, 0.08f, 1f);
             tx.enableWordWrapping = false;
             tx.overflowMode = TextOverflowModes.Overflow;
         }

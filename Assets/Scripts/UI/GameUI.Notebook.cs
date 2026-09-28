@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 using StreetCat.Core;
 using StreetCat.Data;
@@ -113,9 +114,9 @@ namespace StreetCat.UI
             gcrt.pivot = new Vector2(0.5f, 1);
             gcrt.sizeDelta = Vector2.zero;
             var grid = gridContent.GetComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(118f, 128f);
-            grid.spacing = new Vector2(14f, 16f);
-            grid.padding = new RectOffset(8, 8, 8, 8);
+            grid.cellSize = new Vector2(168f, 186f);
+            grid.spacing = new Vector2(16f, 18f);
+            grid.padding = new RectOffset(10, 10, 12, 12);
             grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
             grid.startAxis = GridLayoutGroup.Axis.Horizontal;
             grid.childAlignment = TextAnchor.UpperCenter;
@@ -184,7 +185,8 @@ namespace StreetCat.UI
 
             var detailHost = new GameObject("DetailHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             detailHost.transform.SetParent(notebookPageImage.transform, false);
-            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.06f, 0.22f), new Vector2(0.94f, 0.86f),
+            // Leave clear room at the bottom for Source + Inspiration card (no line-through overlap).
+            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.86f),
                 new Vector2(36f, 0f), new Vector2(-12f, 0f));
             detailHost.GetComponent<Image>().color = new Color(1, 1, 1, 0.001f);
             notebookDetailScroll = detailHost.GetComponent<ScrollRect>();
@@ -269,19 +271,19 @@ namespace StreetCat.UI
             bulb.raycastTarget = false;
 
             notebookInspireHeaderText = CreateUiText(inspireGo.transform, "InspireHeader", 17, TextAnchor.MiddleLeft,
-                Color.white, Vector2.zero, Vector2.zero);
+                new Color(0.10f, 0.07f, 0.04f, 1f), Vector2.zero, Vector2.zero);
             Stretch(notebookInspireHeaderText.rectTransform, new Vector2(0, 0.62f), new Vector2(1, 0.95f),
                 new Vector2(40f, 0f), new Vector2(-28f, -4f));
             notebookInspireHeaderText.fontStyle = FontStyles.Bold;
             notebookInspireHeaderText.text = UiLoc.T("ui.notebook.inspiration", "提问灵感");
 
             notebookInspireBodyText = CreateUiText(inspireGo.transform, "InspireBody", 16, TextAnchor.UpperLeft,
-                new Color(0.18f, 0.12f, 0.06f, 1f), Vector2.zero, Vector2.zero);
+                new Color(0.10f, 0.07f, 0.04f, 1f), Vector2.zero, Vector2.zero);
             Stretch(notebookInspireBodyText.rectTransform, new Vector2(0, 0.05f), new Vector2(1, 0.62f),
                 new Vector2(14f, 8f), new Vector2(-18f, -4f));
             notebookInspireBodyText.enableWordWrapping = true;
             notebookInspireBodyText.overflowMode = TextOverflowModes.Truncate;
-            notebookInspireBodyText.lineSpacing = 25f;
+            notebookInspireBodyText.lineSpacing = 12f;
 
             // Close button
             var closeBtn = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -425,6 +427,13 @@ namespace StreetCat.UI
             Chrome(notebookSourceText, 16);
             Chrome(notebookInspireHeaderText, 17, true);
             Chrome(notebookInspireBodyText, 16);
+            if (notebookInspireHeaderText != null)
+                notebookInspireHeaderText.color = new Color(0.10f, 0.07f, 0.04f, 1f);
+            if (notebookInspireBodyText != null)
+            {
+                notebookInspireBodyText.color = new Color(0.10f, 0.07f, 0.04f, 1f);
+                notebookInspireBodyText.lineSpacing = 8f;
+            }
             if (notebookDetailBodyText != null)
             {
                 notebookDetailBodyText.font = font;
@@ -481,6 +490,9 @@ namespace StreetCat.UI
             notebookTab = 0;
             notebookSelectedTopicId = null;
             RefreshNotebookLocalizedChrome();
+            // TopBar chips (回看/菜单) sit above overlays otherwise and peek through Close.
+            if (hudActionsRoot != null)
+                hudActionsRoot.SetActive(false);
             if (notebookRoot != null)
             {
                 notebookRoot.SetActive(true);
@@ -679,12 +691,18 @@ namespace StreetCat.UI
             }
             icon.raycastTarget = false;
 
-            var label = CreateUiText(go.transform, "Label", 14, TextAnchor.UpperCenter, NbInk, Vector2.zero, Vector2.zero);
-            Stretch(label.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.34f), Vector2.zero, Vector2.zero);
+            var label = CreateUiText(go.transform, "Label", 12, TextAnchor.UpperCenter,
+                new Color(0.10f, 0.08f, 0.06f, 1f), Vector2.zero, Vector2.zero);
+            // Keep title inside the sticky face — art stickers have decorative margins.
+            Stretch(label.rectTransform, new Vector2(0.10f, 0.04f), new Vector2(0.90f, 0.30f), Vector2.zero, Vector2.zero);
             label.text = HardTextLoc.T(topic.title);
             label.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
             label.enableWordWrapping = true;
-            label.overflowMode = TextOverflowModes.Truncate;
+            label.overflowMode = TextOverflowModes.Ellipsis;
+            label.enableAutoSizing = true;
+            label.fontSizeMin = 9f;
+            label.fontSizeMax = 12f;
+            label.raycastTarget = false;
 
             string id = topic.id;
             go.GetComponent<Button>().targetGraphic = face;
@@ -759,15 +777,7 @@ namespace StreetCat.UI
                 }
             }
 
-            string source = nb.SourcesLine(t);
-            if (!string.IsNullOrEmpty(source) && source.StartsWith("来源："))
-            {
-                var rest = source.Substring("来源：".Length);
-                source = UiLoc.T("ui.notebook.source_prefix", "来源：") + HardTextLoc.T(rest);
-            }
-            else if (string.IsNullOrEmpty(source))
-                source = "";
-
+            string source = LocalizeNotebookSourcesLine(nb.SourcesLine(t));
             SetNotebookPageContent(HardTextLoc.T(t.title), LocalizedStatusLabel(t.status), sb.ToString().TrimEnd(), source);
             UpdateInspirationForTopic(t);
         }
@@ -840,11 +850,51 @@ namespace StreetCat.UI
         void SetNotebookInspiration(string body, bool clickable)
         {
             if (notebookInspireBodyText != null)
+            {
                 notebookInspireBodyText.text = body ?? "";
+                notebookInspireBodyText.color = new Color(0.10f, 0.07f, 0.04f, 1f);
+            }
+            if (notebookInspireHeaderText != null)
+                notebookInspireHeaderText.color = new Color(0.10f, 0.07f, 0.04f, 1f);
             if (notebookInspirePanel != null)
-                notebookInspirePanel.color = clickable ? NbInspire : Color.Lerp(NbInspire, new Color(0.55f, 0.52f, 0.48f), 0.35f);
+            {
+                // ArtPack sprite already carries its own fill — don't recolor to washed orange.
+                if (notebookInspirePanel.sprite != null)
+                    notebookInspirePanel.color = clickable
+                        ? Color.white
+                        : new Color(0.85f, 0.85f, 0.85f, 1f);
+                else
+                    notebookInspirePanel.color = clickable
+                        ? NbInspire
+                        : Color.Lerp(NbInspire, new Color(0.55f, 0.52f, 0.48f), 0.35f);
+            }
             if (notebookInspireButton != null)
                 notebookInspireButton.interactable = clickable;
+        }
+
+        /// <summary>
+        /// SourcesLine returns "来源：社交媒体 / 现场调查" — localize prefix + each segment.
+        /// </summary>
+        static string LocalizeNotebookSourcesLine(string raw)
+        {
+            if (string.IsNullOrEmpty(raw)) return "";
+            const string zhPrefix = "来源：";
+            string rest = raw;
+            if (raw.StartsWith(zhPrefix, System.StringComparison.Ordinal))
+                rest = raw.Substring(zhPrefix.Length);
+            else if (raw.StartsWith("Source:", System.StringComparison.OrdinalIgnoreCase))
+                rest = raw.Substring("Source:".Length).TrimStart();
+
+            var parts = rest.Split(new[] { " / ", "/", "、" }, System.StringSplitOptions.RemoveEmptyEntries);
+            var localized = new List<string>(parts.Length);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                var p = parts[i].Trim();
+                if (p.Length == 0) continue;
+                localized.Add(HardTextLoc.T(p));
+            }
+            if (localized.Count == 0) return "";
+            return UiLoc.T("ui.notebook.source_prefix", "来源：") + string.Join(" / ", localized.ToArray());
         }
 
         static string LocalizedStatusLabel(TopicStatus s)

@@ -16,14 +16,14 @@ namespace StreetCat.UI
 
         public void ApplyDefaults()
         {
-            speakerName = VnTheme.TextPrimary;
-            dialogue = VnTheme.TextPrimary;
-            narration = VnTheme.TextMuted;
-            inner = VnTheme.TextInner;
-            system = VnTheme.TextSystem;
-            status = VnTheme.TextMuted;
-            clickHint = new Color(VnTheme.TextMuted.r, VnTheme.TextMuted.g, VnTheme.TextMuted.b, 0.55f);
-            choice = VnTheme.TextPrimary;
+            speakerName = new Color(0.02f, 0.02f, 0.02f, 1f);
+            dialogue = Color.black;
+            narration = new Color(0.12f, 0.10f, 0.09f, 1f);
+            inner = new Color(0.10f, 0.12f, 0.16f, 1f);
+            system = new Color(0.35f, 0.16f, 0.05f, 1f);
+            status = new Color(0.12f, 0.10f, 0.09f, 1f);
+            clickHint = new Color(0.12f, 0.10f, 0.09f, 0.85f);
+            choice = Color.black;
         }
     }
 }

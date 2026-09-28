@@ -22,6 +22,21 @@ namespace StreetCat.UI
 
         public static int Revision => _revision;
 
+#if UNITY_EDITOR
+        /// <summary>Last Editor save/remove/delete/restore status for UI feedback.</summary>
+        public static string LastOperationMessage { get; private set; } = "";
+        public static bool LastOperationOk { get; private set; }
+        public static string AssetDiskPath => "Assets/Resources/UILayoutOverrides.asset";
+
+        static void RecordOperation(bool ok, string message)
+        {
+            LastOperationOk = ok;
+            LastOperationMessage = message ?? "";
+            if (ok) Debug.Log("[UI Layout] " + LastOperationMessage);
+            else Debug.LogWarning("[UI Layout] " + LastOperationMessage);
+        }
+#endif
+
         public static string GetPath(Canvas canvas, RectTransform target)
         {
             if (canvas == null || target == null) return null;
@@ -45,12 +60,22 @@ namespace StreetCat.UI
 
         public static bool TryApply(Canvas canvas, RectTransform target)
         {
+            if (target != null && IsProtectedSystemOverlay(target.name))
+                return false;
             var data = Asset;
             if (data == null) return false;
             var entry = data.Find(GetPath(canvas, target));
             if (entry == null) return false;
             Apply(target, entry);
             return true;
+        }
+
+        /// <summary>Full-screen system layers must never be warped by layout overrides.</summary>
+        public static bool IsProtectedSystemOverlay(string objectName)
+        {
+            if (string.IsNullOrEmpty(objectName)) return false;
+            return objectName == "SceneFade"
+                   || objectName == "EventSystem";
         }
 
         public static void Apply(RectTransform target, UILayoutOverrideEntry entry)
@@ -90,6 +115,8 @@ namespace StreetCat.UI
         }
 
 #if UNITY_EDITOR
+        static string Timestamp() => System.DateTime.Now.ToString("HH:mm:ss");
+
         public static UILayoutOverrideData EnsureAsset()
         {
             var existing = Asset;
@@ -104,23 +131,36 @@ namespace StreetCat.UI
             UnityEditor.AssetDatabase.Refresh();
             _cached = asset;
             _revision++;
-            Debug.Log("[UI Layout] created " + path);
+            RecordOperation(true, "created " + path + " @ " + Timestamp());
             return asset;
         }
 
         public static bool Save(Canvas canvas, RectTransform target)
         {
+            if (target != null && IsProtectedSystemOverlay(target.name))
+            {
+                RecordOperation(false, "save blocked — system overlay (" + target.name + ") @ " + Timestamp());
+                return false;
+            }
             var path = GetPath(canvas, target);
-            if (string.IsNullOrEmpty(path)) return false;
+            if (string.IsNullOrEmpty(path))
+            {
+                RecordOperation(false, "save failed — invalid path @ " + Timestamp());
+                return false;
+            }
             var asset = EnsureAsset();
-            if (asset == null) return false;
+            if (asset == null)
+            {
+                RecordOperation(false, "save failed — no asset @ " + Timestamp());
+                return false;
+            }
             UnityEditor.Undo.RecordObject(asset, "Save UI Layout");
             asset.Set(path, target);
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _cached = asset;
             _revision++;
-            Debug.Log("[UI Layout] saved " + path);
+            RecordOperation(true, "saved → " + AssetDiskPath + " | " + path + " @ " + Timestamp());
             return true;
         }
 
@@ -128,29 +168,50 @@ namespace StreetCat.UI
         {
             var asset = Asset;
             var path = GetPath(canvas, target);
-            if (asset == null || string.IsNullOrEmpty(path)) return false;
+            if (asset == null || string.IsNullOrEmpty(path))
+            {
+                RecordOperation(false, "remove failed — no entry @ " + Timestamp());
+                return false;
+            }
             UnityEditor.Undo.RecordObject(asset, "Remove UI Layout");
-            if (!asset.Remove(path)) return false;
+            if (!asset.Remove(path))
+            {
+                RecordOperation(false, "remove failed — not found: " + path + " @ " + Timestamp());
+                return false;
+            }
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _revision++;
-            Debug.Log("[UI Layout] removed " + path);
+            RecordOperation(true, "removed entry " + path + " from " + AssetDiskPath + " @ " + Timestamp());
             return true;
         }
 
         public static bool Delete(Canvas canvas, RectTransform target)
         {
+            if (target != null && IsProtectedSystemOverlay(target.name))
+            {
+                RecordOperation(false, "delete blocked — system overlay (" + target.name + ") @ " + Timestamp());
+                return false;
+            }
             var path = GetPath(canvas, target);
-            if (string.IsNullOrEmpty(path)) return false;
+            if (string.IsNullOrEmpty(path))
+            {
+                RecordOperation(false, "delete failed — invalid path @ " + Timestamp());
+                return false;
+            }
             var asset = EnsureAsset();
-            if (asset == null) return false;
+            if (asset == null)
+            {
+                RecordOperation(false, "delete failed — no asset @ " + Timestamp());
+                return false;
+            }
             UnityEditor.Undo.RecordObject(asset, "Delete UI Component");
             asset.SetDeleted(path, target, true);
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _cached = asset;
             _revision++;
-            Debug.Log("[UI Layout] deleted " + path);
+            RecordOperation(true, "deleted (hidden) " + path + " @ " + Timestamp());
             return true;
         }
 
@@ -158,13 +219,17 @@ namespace StreetCat.UI
         {
             var asset = Asset;
             var entry = asset != null ? asset.Find(path) : null;
-            if (entry == null || !entry.deleted) return false;
+            if (entry == null || !entry.deleted)
+            {
+                RecordOperation(false, "restore failed — " + (path ?? "?") + " @ " + Timestamp());
+                return false;
+            }
             UnityEditor.Undo.RecordObject(asset, "Restore UI Component");
             entry.deleted = false;
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _revision++;
-            Debug.Log("[UI Layout] restored " + path);
+            RecordOperation(true, "restored " + path + " @ " + Timestamp());
             return true;
         }
 
@@ -185,7 +250,7 @@ namespace StreetCat.UI
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _revision++;
-            Debug.Log("[UI Layout] restored " + count + " deleted component(s)");
+            RecordOperation(true, "restored " + count + " deleted component(s) @ " + Timestamp());
             return count;
         }
 #endif

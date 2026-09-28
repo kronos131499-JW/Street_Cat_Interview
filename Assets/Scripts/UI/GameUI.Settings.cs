@@ -452,6 +452,8 @@ namespace StreetCat.UI
                 menuTitleText.text = UiLoc.T("ui.menu");
             if (backlogTitleText != null)
                 backlogTitleText.text = UiLoc.T("ui.backlog.title", "对话回看");
+            if (backlogCloseLabel != null)
+                backlogCloseLabel.text = UiLoc.T("ui.backlog.close", "关闭");
             if (menuRoot != null)
             {
                 foreach (var tag in menuRoot.GetComponentsInChildren<LocTag>(true))
@@ -461,10 +463,13 @@ namespace StreetCat.UI
                     if (tx != null) tx.text = UiLoc.T(tag.key);
                 }
             }
+            RefreshHudChipLocalizedChrome();
             if (hideDialogueLabel != null)
                 hideDialogueLabel.text = dialogueHidden
                     ? UiLoc.T("ui.show_dialogue")
                     : UiLoc.T("ui.hide_dialogue");
+            if (hideDialogueBtn != null)
+                ApplyHideDialogueArt(hideDialogueBtn, hideDialogueLabel);
             RefreshNotebookLocalizedChrome();
             RefreshWritingMatsLocalizedChrome();
             RefreshInterviewMeterLabels();
@@ -472,6 +477,24 @@ namespace StreetCat.UI
                 RebuildTitleActionsOnly();
             else if (IsSkippableDialogueContext())
                 RebuildSkippableDialogueActions();
+            else if (mode == Mode.Investigate && investigateHotspotsVisible)
+                ShowInvestigationMode();
+        }
+
+        /// <summary>Top-right Skip / Backlog / Menu chips — UiLoc TMP in EN, icons-only in ZH.</summary>
+        void RefreshHudChipLocalizedChrome()
+        {
+            if (hudActionsRoot == null) return;
+            foreach (var tag in hudActionsRoot.GetComponentsInChildren<LocTag>(true))
+            {
+                if (tag == null || string.IsNullOrEmpty(tag.key)) continue;
+                var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<TextMeshProUGUI>();
+                if (tx == null) continue;
+                tx.text = UiLoc.T(tag.key);
+                var btn = tag.GetComponent<Button>();
+                if (btn != null)
+                    ApplyHudChipArt(btn, tag.key, tx);
+            }
         }
 
         void RebuildTitleActionsOnly()

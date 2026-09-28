@@ -10,6 +10,10 @@ namespace StreetCat.UI
         public static bool SnapEnabled { get => EditorPrefs.GetBool(Prefix + "Snap", true); set => EditorPrefs.SetBool(Prefix + "Snap", value); }
         public static float GridSize { get => EditorPrefs.GetFloat(Prefix + "Grid", 10f); set => EditorPrefs.SetFloat(Prefix + "Grid", value); }
         public static bool ShowAllFrames { get => EditorPrefs.GetBool(Prefix + "ShowAll", true); set => EditorPrefs.SetBool(Prefix + "ShowAll", value); }
+        /// <summary>When true, Game-view clicks will not change the current selection.</summary>
+        public static bool LockSelection { get => EditorPrefs.GetBool(Prefix + "LockSel", false); set => EditorPrefs.SetBool(Prefix + "LockSel", value); }
+        /// <summary>Skip near-fullscreen dimmers / catchers when picking.</summary>
+        public static bool SkipFullscreenCatchers { get => EditorPrefs.GetBool(Prefix + "SkipFS", true); set => EditorPrefs.SetBool(Prefix + "SkipFS", value); }
     }
 }
 #endif

@@ -26,9 +26,12 @@ namespace StreetCat.UI
 
         const float SocialFadeDuration = 0.32f;
         /// <summary>Fallback when SocialLayout.asset is missing.</summary>
-        const float SocialDefaultWidth = 520f;
-        const float SocialDefaultHeight = 854f;
-        const float SocialDefaultDetailScale = 1.08f;
+        const float SocialDefaultWidth = 480f;
+        const float SocialDefaultHeight = 700f;
+        const float SocialDefaultDetailScale = 1.06f;
+        /// <summary>Normalized gap above the dialogue parchment / below top HUD.</summary>
+        const float SocialDialogueClearance = 0.022f;
+        const float SocialTopClearance = 0.012f;
         bool socialShowingDetail;
 
         static bool IsSocialHideCue(string cue)
@@ -45,18 +48,32 @@ namespace StreetCat.UI
             float w = d != null && d.width > 40f ? d.width : SocialDefaultWidth;
             float h = d != null && d.height > 40f ? d.height : SocialDefaultHeight;
             float ax = d != null ? d.anchorX : 0.5f;
-            float ay = d != null ? d.anchorY : 0.58f;
+            float ay = d != null ? d.anchorY : 0.62f;
             float detailScale = d != null && d.detailScale > 0.1f ? d.detailScale : SocialDefaultDetailScale;
-
-            // Keep the phone below the top HUD / letterbox (avoid status-bar mush in the bar).
             float scale = detail ? detailScale : 1f;
-            float halfHNorm = (h * scale) / 1080f * 0.5f;
-            float maxAy = VnTheme.TopHudBottom - halfHNorm - 0.008f;
-            if (ay > maxAy)
-                ay = maxAy;
-            float minAy = halfHNorm * 0.2f + VnTheme.LetterboxH;
-            if (ay < minAy)
-                ay = minAy;
+
+            // Keep the whole phone between the dialogue box and the top HUD.
+            float dialogueTop = VnTheme.DialogueTop;
+            if (dialoguePanel != null)
+                dialogueTop = Mathf.Max(dialogueTop, dialoguePanel.rectTransform.anchorMax.y);
+            float botLimit = dialogueTop + SocialDialogueClearance;
+            float topLimit = VnTheme.TopHudBottom - SocialTopClearance;
+            float availNorm = Mathf.Max(0.28f, topLimit - botLimit);
+            float maxPhonePx = availNorm * 1080f;
+            float phonePx = h * scale;
+            if (phonePx > maxPhonePx && h > 1f)
+            {
+                scale *= maxPhonePx / phonePx;
+                phonePx = h * scale;
+            }
+
+            float halfHNorm = phonePx / 1080f * 0.5f;
+            float minAy = botLimit + halfHNorm;
+            float maxAy = topLimit - halfHNorm;
+            if (minAy > maxAy)
+                ay = (botLimit + topLimit) * 0.5f;
+            else
+                ay = Mathf.Clamp(ay, minAy, maxAy);
 
             socialPhoneRt.anchorMin = socialPhoneRt.anchorMax = new Vector2(ax, ay);
             socialPhoneRt.pivot = new Vector2(0.5f, 0.5f);

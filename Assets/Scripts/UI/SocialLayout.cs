@@ -43,6 +43,10 @@ namespace StreetCat.UI
         }
 
 #if UNITY_EDITOR
+        public static string LastSaveMessage { get; private set; } = "";
+        public static bool LastSaveOk { get; private set; }
+        public static string AssetDiskPath => "Assets/Resources/SocialLayout.asset";
+
         public static SocialLayoutData EnsureAsset()
         {
             var existing = Asset;
@@ -59,22 +63,27 @@ namespace StreetCat.UI
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
             _cached = asset;
-            Debug.Log("[SocialLayout] created " + path);
+            RecordSave(true, "created " + path + " @ " + Timestamp());
             return asset;
         }
 
         public static void SaveCurrent()
         {
             var asset = EnsureAsset();
-            if (asset == null) return;
+            if (asset == null)
+            {
+                RecordSave(false, "save failed — no asset @ " + Timestamp());
+                return;
+            }
             asset.Clamp();
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _cached = asset;
-            Debug.Log("[SocialLayout] saved "
-                      + asset.width.ToString("F0") + "×" + asset.height.ToString("F0")
-                      + " @ (" + asset.anchorX.ToString("F3") + ", " + asset.anchorY.ToString("F3") + ")"
-                      + " detail×" + asset.detailScale.ToString("F2"));
+            RecordSave(true, "saved → " + AssetDiskPath
+                      + " | " + asset.width.ToString("F0") + "×" + asset.height.ToString("F0")
+                      + " @(" + asset.anchorX.ToString("F3") + "," + asset.anchorY.ToString("F3") + ")"
+                      + " detail×" + asset.detailScale.ToString("F2")
+                      + " @ " + Timestamp());
         }
 
         public static void ResetToDefaults()
@@ -83,6 +92,16 @@ namespace StreetCat.UI
             if (asset == null) return;
             asset.ApplyDefaults();
             SaveCurrent();
+        }
+
+        static string Timestamp() => System.DateTime.Now.ToString("HH:mm:ss");
+
+        static void RecordSave(bool ok, string message)
+        {
+            LastSaveOk = ok;
+            LastSaveMessage = message ?? "";
+            if (ok) Debug.Log("[SocialLayout] " + LastSaveMessage);
+            else Debug.LogWarning("[SocialLayout] " + LastSaveMessage);
         }
 #endif
     }

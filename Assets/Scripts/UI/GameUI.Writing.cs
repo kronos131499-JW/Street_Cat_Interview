@@ -742,7 +742,9 @@ namespace StreetCat.UI
             for (int i = 0; i < writingDotImages.Count; i++)
             {
                 if (writingDotImages[i] == null) continue;
-                writingDotImages[i].color = i < selected ? WmOrange : new Color(0.55f, 0.52f, 0.48f, 1f);
+                ApplyWritingDotArt(writingDotImages[i], i < selected);
+                if (writingDotImages[i].sprite == null)
+                    writingDotImages[i].color = i < selected ? WmOrange : new Color(0.55f, 0.52f, 0.48f, 1f);
             }
 
             RefreshWritingParagraphRows();

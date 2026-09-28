@@ -96,6 +96,7 @@ namespace StreetCat.UI
         GameObject notebookRoot;
         GameObject saveLoadRoot;
         TextMeshProUGUI backlogTitleText;
+        TextMeshProUGUI backlogCloseLabel;
         TextMeshProUGUI backlogText;
         ScrollRect backlogScroll;
         TextMeshProUGUI notebookTitleText;
@@ -177,9 +178,10 @@ namespace StreetCat.UI
         Image letterboxBottom;
         /// <summary>TopBar 回看/菜单 chips — hidden during free interview (local toolbar only).</summary>
         GameObject hudActionsRoot;
-        const float HudToolButtonWidth = 64f;
-        const float HudToolButtonHeight = 40f;
-        const float HudToolButtonSpacing = 8f;
+        const float HudToolButtonWidth = 56f;
+        const float HudToolButtonHeight = 58f;
+        const float HudToolButtonSpacing = 6f;
+        GameObject hudSkipChip;
         Image choiceHostImage;
         CanvasGroup portraitFade;
         Image atmosphereWash;
@@ -324,11 +326,17 @@ namespace StreetCat.UI
             if (bodyText != null)
             {
                 bodyText.font = font;
-                bodyText.fontSize = Mathf.RoundToInt(24f * scale);
+                bodyText.fontSize = Mathf.RoundToInt((artPackParchmentActive ? 26f : 24f) * scale);
                 bodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
                 bodyText.enableWordWrapping = true;
-                bodyText.overflowMode = TextOverflowModes.Overflow;
+                bodyText.overflowMode = artPackParchmentActive
+                    ? TextOverflowModes.Truncate
+                    : TextOverflowModes.Overflow;
+                bodyText.lineSpacing = artPackParchmentActive ? 4f : 20f;
+                bodyText.extraPadding = true;
                 ApplyLetterSpacing(bodyText, 0f);
+                if (artPackParchmentActive)
+                    SharpenDialogueTmp(bodyText);
                 var contentRt = bodyText.rectTransform;
                 if (dialogueScroll != null && dialogueScroll.viewport != null)
                 {
@@ -348,8 +356,9 @@ namespace StreetCat.UI
                 nameText.fontSize = Mathf.RoundToInt(20f * scale);
                 nameText.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 nameText.enableWordWrapping = false;
-                nameText.color = VnTheme.TextPrimary;
                 ApplyLetterSpacing(nameText, spacing * 0.35f);
+                if (artPackParchmentActive)
+                    SharpenDialogueTmp(nameText);
             }
             if (statusText != null)
             {
@@ -432,7 +441,7 @@ namespace StreetCat.UI
             var canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 10;
-            canvas.pixelPerfect = true;
+            canvas.pixelPerfect = false;
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920, 1080);
@@ -461,14 +470,16 @@ namespace StreetCat.UI
             vignetteImage.color = Color.white;
             vignetteImage.raycastTarget = false;
 
-            // Letterboxes for cinematic immersion
+            // Letterboxes kept as inactive layer anchors (no cinematic bars over stage art).
             var lbTop = CreateImage(canvasGo.transform, "LetterboxTop", VnTheme.Letterbox);
             Stretch(lbTop.rectTransform, new Vector2(0, 1f - VnTheme.LetterboxH), new Vector2(1, 1), Vector2.zero, Vector2.zero);
             lbTop.raycastTarget = false;
+            lbTop.gameObject.SetActive(false);
             letterboxTop = lbTop;
             var lbBot = CreateImage(canvasGo.transform, "LetterboxBottom", VnTheme.Letterbox);
             Stretch(lbBot.rectTransform, new Vector2(0, 0), new Vector2(1, VnTheme.LetterboxH), Vector2.zero, Vector2.zero);
             lbBot.raycastTarget = false;
+            lbBot.gameObject.SetActive(false);
             letterboxBottom = lbBot;
 
             // Top HUD — sits in letterbox band, never over stage
@@ -704,7 +715,7 @@ namespace StreetCat.UI
             hart.pivot = new Vector2(1, 0.5f);
             hart.anchoredPosition = new Vector2(-28, 0);
             hart.sizeDelta = new Vector2(
-                HudToolButtonWidth * 3f + HudToolButtonSpacing * 2f,
+                HudToolButtonWidth * 4f + HudToolButtonSpacing * 3f,
                 HudToolButtonHeight);
             var hhlg = hudActionsRoot.GetComponent<HorizontalLayoutGroup>();
             hhlg.spacing = HudToolButtonSpacing;
@@ -714,8 +725,9 @@ namespace StreetCat.UI
             hhlg.childControlWidth = true;
             hhlg.childControlHeight = true;
             BuildHideDialogueControl(hudActionsRoot.transform);
-            SpawnHudChip(hudActionsRoot.transform, "回看", OpenBacklog);
-            SpawnHudChip(hudActionsRoot.transform, "菜单", OpenMenu);
+            hudSkipChip = SpawnHudChip(hudActionsRoot.transform, "ui.skip", TrySkipDialogue);
+            SpawnHudChip(hudActionsRoot.transform, "ui.backlog", OpenBacklog);
+            SpawnHudChip(hudActionsRoot.transform, "ui.menu", OpenMenu);
             EnsureTopHudClickable();
 
             BuildInvestigateOverlay(canvasGo.transform);
@@ -778,7 +790,21 @@ namespace StreetCat.UI
             sceneFadeCg.blocksRaycasts = false;
             sceneFadeCg.interactable = false;
             sceneFadeImage.gameObject.SetActive(true);
+            EnsureSceneFadeFullScreen();
             sceneFadeImage.transform.SetAsLastSibling();
+        }
+
+        void EnsureSceneFadeFullScreen()
+        {
+            if (sceneFadeImage == null) return;
+            var rt = sceneFadeImage.rectTransform;
+            StretchFull(rt);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = Vector2.zero;
+            rt.localScale = Vector3.one;
+            sceneFadeImage.color = Color.black;
+            sceneFadeImage.type = Image.Type.Simple;
+            sceneFadeImage.preserveAspect = false;
         }
 
         /// <summary>1–2s blackout around scene switches; BGM crossfades via BgmController.</summary>
@@ -801,6 +827,7 @@ namespace StreetCat.UI
             SetDialogueHidden(false);
             if (sceneFadeImage != null)
             {
+                EnsureSceneFadeFullScreen();
                 sceneFadeImage.transform.SetAsLastSibling();
                 sceneFadeImage.raycastTarget = true;
             }
@@ -970,7 +997,7 @@ namespace StreetCat.UI
             var ihr = investigateIntelHint.GetComponent<RectTransform>();
             ihr.anchorMin = ihr.anchorMax = new Vector2(0, 0.5f);
             ihr.pivot = new Vector2(0, 0.5f);
-            investigateIntelHint.text = "点击场景中的物件调查";
+            investigateIntelHint.text = HardTextLoc.T("点击场景中的物件调查");
 
             investigateHoverLabel = CreateUiText(investigateRoot.transform, "HoverLabel", 18, TextAnchor.MiddleCenter,
                 VnTheme.TextPrimary, Vector2.zero, new Vector2(280, 36));
@@ -1001,9 +1028,10 @@ namespace StreetCat.UI
 
         // BuildInterviewOverlay → GameUI.Interview.cs (scrapbook redesign)
 
-        void SpawnHudChip(Transform parent, string label, UnityEngine.Events.UnityAction action)
+        GameObject SpawnHudChip(Transform parent, string locKey, UnityEngine.Events.UnityAction action)
         {
-            var go = new GameObject("Hud_" + label, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            var label = UiLoc.T(locKey);
+            var go = new GameObject("Hud_" + locKey, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
             go.transform.SetParent(parent, false);
             go.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.14f, 0.9f);
             var le = go.GetComponent<LayoutElement>();
@@ -1023,7 +1051,11 @@ namespace StreetCat.UI
             tx.color = VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
-            ApplyHudChipArt(go.GetComponent<Button>(), label, tx);
+            var tag = go.AddComponent<LocTag>();
+            tag.key = locKey;
+            tag.target = tx;
+            ApplyHudChipArt(go.GetComponent<Button>(), locKey, tx);
+            return go;
         }
 
         static void ConfigureHudToolLayout(LayoutElement element)
@@ -1272,8 +1304,6 @@ namespace StreetCat.UI
                 var go = new GameObject("Slot", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
                 go.transform.SetParent(saveLoadList, false);
                 go.GetComponent<Image>().color = info.empty ? new Color(0.12f, 0.12f, 0.14f, 0.9f) : VnTheme.Button;
-                ApplyMissingArtPlaceholder(go.GetComponent<Image>(), "存读档界面", "存档槽位",
-                    "存读档界面/存档槽位（空、已有存档、悬停）");
                 go.GetComponent<LayoutElement>().preferredHeight = 72;
                 go.GetComponent<Button>().onClick.AddListener(() => OnSlotClicked(captured));
 
@@ -1421,16 +1451,11 @@ namespace StreetCat.UI
             cbrt.sizeDelta = new Vector2(100, 36);
             closeBtn.GetComponent<Image>().color = VnTheme.Button;
             closeBtn.GetComponent<Button>().onClick.AddListener(CloseBacklog);
-            var ct = new GameObject("T", typeof(RectTransform));
-            ct.transform.SetParent(closeBtn.transform, false);
-            StretchFull(ct.GetComponent<RectTransform>());
-            var ctx = ct.AddComponent<TextMeshProUGUI>();
-            ctx.font = font;
-            ctx.fontSize = 18;
-            ctx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
-            ctx.color = VnTheme.TextPrimary;
-            ctx.text = "关闭";
-            ctx.raycastTarget = false;
+            backlogCloseLabel = CreateUiText(closeBtn.transform, "T", 18, TextAnchor.MiddleCenter,
+                VnTheme.TextPrimary, Vector2.zero, Vector2.zero);
+            StretchFull(backlogCloseLabel.rectTransform);
+            backlogCloseLabel.text = UiLoc.T("ui.backlog.close", "关闭");
+            backlogCloseLabel.raycastTarget = false;
 
             backlogRoot.SetActive(false);
         }
@@ -1556,19 +1581,8 @@ namespace StreetCat.UI
             titleTaglineCleared = false;
 
             BuildTitleDeskProps(titleRoot.transform);
-            if (ApplyArtPackImage(desk, "菜单界面/背景", "主菜单", "背景"))
-            {
+            if (TryApplyArtPackTitleBackground(desk, mag.gameObject, left, contentsHeader, titleContentsLabel))
                 shadow.gameObject.SetActive(false);
-                mag.gameObject.SetActive(false);
-                left.SetActive(false);
-                contentsHeader.gameObject.SetActive(false);
-                titleContentsLabel.gameObject.SetActive(false);
-                foreach (var propName in new[] { "PropTranslator", "PropNotes", "PropPolaroidA", "PropPolaroidB", "PropScraps" })
-                {
-                    var prop = titleRoot.transform.Find(propName);
-                    if (prop != null) prop.gameObject.SetActive(false);
-                }
-            }
             ApplyTitleLanguageVisuals();
         }
 
@@ -1914,8 +1928,11 @@ namespace StreetCat.UI
             if (string.IsNullOrEmpty(label)) return false;
             return label == UiLoc.T("ui.backlog")
                 || label == UiLoc.T("ui.menu")
-                || label == "回看" || label == "Backlog"
-                || label == "菜单" || label == "Menu";
+                || label == UiLoc.T("ui.skip")
+                || (artPackNotebookTabActive && (label == UiLoc.T("ui.notebook") || label == "笔记" || label == "Notebook"))
+                || label == "回看" || label == "Backlog" || label == "Review"
+                || label == "菜单" || label == "Menu"
+                || label == "跳过" || label == "Skip";
         }
 
         void SpawnTitleMenuButton(string label, UnityEngine.Events.UnityAction action, bool primary)
@@ -2037,7 +2054,7 @@ namespace StreetCat.UI
             tx.raycastTarget = false;
             StyleTitleMenuText(tx, primary ? 24 : 21, true);
 
-            if (ApplyTitleButtonArt(btn, index))
+            if (ApplyTitleButtonArt(btn, label))
             {
                 tx.gameObject.SetActive(false);
                 var oldIcon = go.transform.Find("Icon");
@@ -2132,7 +2149,7 @@ namespace StreetCat.UI
                 check.fontStyle = FontStyles.Bold;
                 check.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 check.color = new Color(0.78f, 0.92f, 0.80f, 1f);
-                check.text = "已";
+                check.text = HardTextLoc.T("已");
                 check.raycastTarget = false;
             }
 
@@ -2317,9 +2334,23 @@ namespace StreetCat.UI
             tx.font = font;
             tx.fontSize = wide ? 22 : 17;
             tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
-            tx.color = wide ? DialogueFontColors.Current.choice : VnTheme.TextPrimary;
+            tx.color = wide
+                ? (artPackParchmentActive ? ArtPackInk : DialogueFontColors.Current.choice)
+                : VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
+            if (!wide)
+            {
+                // Footer chips: size to label, never mid-word wrap into the notebook tab.
+                tx.enableWordWrapping = false;
+                tx.overflowMode = TextOverflowModes.Overflow;
+                float pad = primary ? 40f : 34f;
+                float need = Mathf.Ceil(tx.GetPreferredValues(label).x) + pad;
+                float w = Mathf.Max(minW, need);
+                le.minWidth = w;
+                le.preferredWidth = w;
+                le.flexibleWidth = 0f;
+            }
 
             if (wide)
                 ApplyDialogueChoiceArt(btn);
@@ -2368,6 +2399,8 @@ namespace StreetCat.UI
                 objectiveText.gameObject.SetActive(false);
             if (hudActionsRoot != null)
                 hudActionsRoot.SetActive(!showTitle && !interviewHud);
+            if (hudSkipChip != null)
+                hudSkipChip.SetActive(!showTitle && !interviewHud && IsSkippableDialogueContext());
             if (interviewRoot != null && mode != Mode.Interview)
                 interviewRoot.SetActive(false);
             if (investigateRoot != null && mode != Mode.Investigate)
@@ -2420,6 +2453,8 @@ namespace StreetCat.UI
             // Interview toolbar owns 回看/菜单 — hide TopBar chips; restore on leave.
             if (hudActionsRoot != null)
                 hudActionsRoot.SetActive(!on);
+            if (hudSkipChip != null)
+                hudSkipChip.SetActive(!on && IsSkippableDialogueContext());
             if (chapterChip != null)
                 chapterChip.gameObject.SetActive(false);
             if (objectiveText != null)
@@ -2757,12 +2792,14 @@ namespace StreetCat.UI
 
         IEnumerator FadeDialogue()
         {
-            dialogueFade.alpha = 0.35f;
+            // Parchment ink looks washed if the whole panel starts too transparent.
+            float from = artPackParchmentActive ? 0.85f : 0.35f;
+            dialogueFade.alpha = from;
             float t = 0;
-            while (t < 0.25f)
+            while (t < 0.18f)
             {
                 t += Time.unscaledDeltaTime;
-                dialogueFade.alpha = Mathf.Lerp(0.35f, 1f, t / 0.25f);
+                dialogueFade.alpha = Mathf.Lerp(from, 1f, t / 0.18f);
                 yield return null;
             }
             dialogueFade.alpha = 1f;
@@ -2945,7 +2982,7 @@ namespace StreetCat.UI
             dialogueInkKind = kind;
             ApplyDialogueBodyColor(kind);
             if (nameText != null)
-                nameText.color = DialogueFontColors.Current.speakerName;
+                nameText.color = artPackParchmentActive ? ArtPackInk : DialogueFontColors.Current.speakerName;
         }
 
         void ApplyPortrait(string name, LineSpeaker kind, string portraitTag, string lineText = null)
@@ -3005,6 +3042,9 @@ namespace StreetCat.UI
                 StopCoroutine(typewriterCo);
                 typewriterCo = null;
             }
+
+            // Parchment skin: re-assert ink every line (font/material swaps can reset vertex color).
+            ApplyDialogueBodyColor(dialogueInkKind);
 
             bool useTypewriter = mode == Mode.Dialogue || mode == Mode.Talk || mode == Mode.Epilogue
                 || (mode == Mode.Investigate && !investigateHotspotsVisible);
@@ -3266,6 +3306,8 @@ namespace StreetCat.UI
 
         void AddStandardDialogueActions(bool includeSkip)
         {
+            if (hudSkipChip != null)
+                hudSkipChip.SetActive(includeSkip && mode != Mode.Title && mode != Mode.Interview);
             if (includeSkip)
                 AddAction(UiLoc.T("ui.skip"), TrySkipDialogue);
             AddAction(UiLoc.T("ui.backlog"), OpenBacklog);
@@ -3275,6 +3317,8 @@ namespace StreetCat.UI
 
         void RebuildSkippableDialogueActions()
         {
+            if (hudSkipChip != null)
+                hudSkipChip.SetActive(IsSkippableDialogueContext() && mode != Mode.Title && mode != Mode.Interview);
             if (!IsSkippableDialogueContext()) return;
             ClearButtons();
             AddStandardDialogueActions(includeSkip: true);
@@ -3880,9 +3924,9 @@ namespace StreetCat.UI
                     SetInvestigateChrome(false);
                     ShowPostInterviewTalk();
                 }, true);
-            AddInvestigateAction("回看", OpenBacklog);
-            AddInvestigateAction("笔记", OpenNotebook);
-            AddInvestigateAction("菜单", OpenMenu);
+            AddInvestigateAction(UiLoc.T("ui.backlog"), OpenBacklog);
+            AddInvestigateAction(UiLoc.T("ui.notebook"), OpenNotebook);
+            AddInvestigateAction(UiLoc.T("ui.menu"), OpenMenu);
         }
 
         readonly List<InspectBeat> inspectQueue = new List<InspectBeat>();
@@ -4102,8 +4146,8 @@ namespace StreetCat.UI
                 else
                     ShowInvestigationMode();
             }, true);
-            AddAction("回看", OpenBacklog);
-            AddAction("菜单", OpenMenu);
+            AddAction(UiLoc.T("ui.backlog"), OpenBacklog);
+            AddAction(UiLoc.T("ui.menu"), OpenMenu);
         }
 
         void StartWaitForDafuOutro()

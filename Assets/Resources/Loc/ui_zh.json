@@ -23,6 +23,7 @@
     { "key": "ui.skip", "value": "跳过" },
     { "key": "ui.backlog", "value": "回看" },
     { "key": "ui.backlog.title", "value": "对话回看" },
+    { "key": "ui.backlog.close", "value": "关闭" },
     { "key": "ui.notebook", "value": "笔记" },
     { "key": "ui.hide_dialogue", "value": "隐藏对白" },
     { "key": "ui.show_dialogue", "value": "显示对白" },

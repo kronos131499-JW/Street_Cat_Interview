@@ -10,7 +10,7 @@ namespace StreetCat.Editor
         public static void Open()
         {
             var win = GetWindow<SocialLayoutEditorWindow>("社交帖子布局");
-            win.minSize = new Vector2(360f, 320f);
+            win.minSize = new Vector2(360f, 380f);
         }
 
         [MenuItem("街角专访/切换社交帖子编辑模式")]
@@ -84,6 +84,8 @@ namespace StreetCat.Editor
             if (GUILayout.Button("保存到 asset"))
                 StreetCat.UI.SocialLayout.SaveCurrent();
 
+            DrawSocialSaveStatus();
+
             if (Application.isPlaying && StreetCat.UI.GameUI.Instance != null)
             {
                 EditorGUILayout.Space(6);
@@ -97,11 +99,21 @@ namespace StreetCat.Editor
             }
         }
 
-        void OnInspectorUpdate()
+        static void DrawSocialSaveStatus()
         {
-            if (Application.isPlaying)
-                Repaint();
+            var msg = StreetCat.UI.SocialLayout.LastSaveMessage;
+            if (string.IsNullOrEmpty(msg))
+            {
+                EditorGUILayout.HelpBox(
+                    "尚未保存 — 拖动松手或点「保存到 asset」后这里显示路径与时间。",
+                    MessageType.None);
+                return;
+            }
+            var ok = StreetCat.UI.SocialLayout.LastSaveOk;
+            EditorGUILayout.HelpBox((ok ? "✓ " : "✗ ") + msg, ok ? MessageType.Info : MessageType.Error);
         }
+
+        void OnInspectorUpdate() => Repaint();
     }
 }
 #endif

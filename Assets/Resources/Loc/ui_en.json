@@ -93,6 +93,10 @@
       "value": "Dialogue Backlog"
     },
     {
+      "key": "ui.backlog.close",
+      "value": "Close"
+    },
+    {
       "key": "ui.notebook",
       "value": "Notebook"
     },
@@ -766,7 +770,7 @@
     },
     {
       "key": "ui.interview.inspiration",
-      "value": "Ask ideas"
+      "value": "Ask Ideas"
     },
     {
       "key": "ui.interview.inspire_hint",

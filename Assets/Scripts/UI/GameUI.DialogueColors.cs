@@ -1,5 +1,6 @@
 using StreetCat.Narrative;
 using TMPro;
+using UnityEngine;
 
 namespace StreetCat.UI
 {
@@ -9,6 +10,11 @@ namespace StreetCat.UI
 
         public void RefreshDialogueFontColors()
         {
+            if (artPackParchmentActive)
+            {
+                ApplyParchmentDialogueColors();
+                return;
+            }
             var colors = DialogueFontColors.Current;
             if (colors == null) return;
             if (nameText != null) nameText.color = colors.speakerName;
@@ -23,9 +29,46 @@ namespace StreetCat.UI
             }
         }
 
+        void ApplyParchmentDialogueColors()
+        {
+            // Solid near-black on cream — no washed mid-grays.
+            if (nameText != null) nameText.color = ArtPackInk;
+            ApplyDialogueBodyColor(dialogueInkKind);
+            if (statusText != null) statusText.color = ArtPackInkMuted;
+            if (clickHintText != null)
+                clickHintText.color = new Color(ArtPackInkMuted.r, ArtPackInkMuted.g, ArtPackInkMuted.b, 0.85f);
+            if (choiceRoot != null)
+            {
+                var labels = choiceRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+                for (var i = 0; i < labels.Length; i++)
+                    if (labels[i] != null) labels[i].color = ArtPackInk;
+            }
+        }
+
         void ApplyDialogueBodyColor(LineSpeaker kind)
         {
             if (bodyText == null) return;
+            if (artPackParchmentActive)
+            {
+                // All speaker kinds stay dark enough to read on parchment.
+                switch (kind)
+                {
+                    case LineSpeaker.Narration:
+                        bodyText.color = ArtPackInkMuted;
+                        break;
+                    case LineSpeaker.Inner:
+                        bodyText.color = ArtPackInkInner;
+                        break;
+                    case LineSpeaker.System:
+                        bodyText.color = ArtPackInkSystem;
+                        break;
+                    default:
+                        bodyText.color = ArtPackInk;
+                        break;
+                }
+                bodyText.ForceMeshUpdate(true);
+                return;
+            }
             var colors = DialogueFontColors.Current;
             switch (kind)
             {

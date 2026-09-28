@@ -17,6 +17,7 @@ namespace StreetCat.UI
         const int ResizeTL = 4;
         const int ResizeTR = 5;
         const float CornerPixels = 22f;
+        const float FullscreenAreaRatio = 0.82f;
 
         readonly List<RectTransform> _rects = new List<RectTransform>(512);
         readonly Vector3[] _corners = new Vector3[4];
@@ -34,14 +35,35 @@ namespace StreetCat.UI
         string _lastDeletedPath;
         RectTransform _lastDeletedTarget;
         Canvas _lastDeletedCanvas;
+        bool _dirty;
+        string _statusLine = "";
+        bool _statusOk = true;
 
         public bool HasSelection => _selected != null;
+        public bool IsDirty => _dirty;
         public bool CanRestoreLastDeleted => !string.IsNullOrEmpty(_lastDeletedPath);
         public string LastDeletedDisplayName => string.IsNullOrEmpty(_lastDeletedPath) ? "无" : _lastDeletedPath;
         public bool SelectionControlledByLayout => IsControlledByLayout(_selected);
         public string SelectedDisplayName => _selected != null
             ? UILayoutOverrides.GetPath(_targetCanvas, _selected)
-            : "未选择";
+            : "未选择 / None";
+        public string StatusLine => !string.IsNullOrEmpty(_statusLine)
+            ? _statusLine
+            : UILayoutOverrides.LastOperationMessage;
+        public bool StatusOk => string.IsNullOrEmpty(_statusLine)
+            ? UILayoutOverrides.LastOperationOk
+            : _statusOk;
+        public bool SelectionHasSavedOverride
+        {
+            get
+            {
+                if (_selected == null || _targetCanvas == null) return false;
+                var data = UILayoutOverrides.Asset;
+                if (data == null) return false;
+                var entry = data.Find(UILayoutOverrides.GetPath(_targetCanvas, _selected));
+                return entry != null && !entry.deleted;
+            }
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Install()
@@ -77,6 +99,17 @@ namespace StreetCat.UI
             if (Input.GetKeyDown(KeyCode.F7))
                 _panelVisible = !_panelVisible;
 
+            // L = toggle selection lock (ignore when Ctrl/Alt held to avoid OS shortcuts).
+            if (Input.GetKeyDown(KeyCode.L) &&
+                !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl) &&
+                !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
+            {
+                UILayoutEditMode.LockSelection = !UILayoutEditMode.LockSelection;
+                SetStatus(true, UILayoutEditMode.LockSelection
+                    ? "锁定选中 ON / Lock ON — 点击不会改选"
+                    : "锁定选中 OFF / Lock OFF — 可重新点选");
+            }
+
             if (Time.unscaledTime >= _nextRefresh)
             {
                 _nextRefresh = Time.unscaledTime + 0.15f;
@@ -98,6 +131,7 @@ namespace StreetCat.UI
             if (delta != Vector2.zero)
             {
                 _selected.anchoredPosition += delta;
+                _dirty = true;
                 SaveSelection();
             }
         }
@@ -136,7 +170,10 @@ namespace StreetCat.UI
         {
             if (_selected != null && (!_selected.gameObject.activeInHierarchy ||
                 _targetCanvas == null || !_selected.IsChildOf(_targetCanvas.transform)))
+            {
                 _selected = null;
+                _dirty = false;
+            }
 
             if (_targetCanvas != null && _targetCanvas.gameObject.activeInHierarchy)
                 PopulateTargets(_targetCanvas);
@@ -183,13 +220,29 @@ namespace StreetCat.UI
         public void PointerDown(PointerEventData eventData)
         {
             if (!UILayoutEditMode.Enabled) return;
+
+            // Selection lock: keep current pick; only drag if click hits it (or a corner handle).
+            if (UILayoutEditMode.LockSelection && _selected != null)
+            {
+                var onSelected = ContainsScreenPoint(_selected, eventData.position);
+                var mode = PickDragMode(_selected, eventData.position);
+                // Outside body and not near a corner → ignore (do not re-select).
+                if (!onSelected && mode == Move)
+                {
+                    _dragMode = 0;
+                    return;
+                }
+                BeginDragOnSelected(eventData);
+                return;
+            }
+
             var canvas = FindBestCanvas(eventData.position);
             if (canvas != _targetCanvas)
             {
                 _targetCanvas = canvas;
                 PopulateTargets(canvas);
             }
-            var picked = PickSmallest(eventData.position);
+            var picked = PickBest(eventData.position);
             if (picked == null) return;
             picked = ResolveEditableTarget(picked, true);
 
@@ -199,19 +252,28 @@ namespace StreetCat.UI
                 if (parent != null && parent != _targetCanvas.transform)
                     picked = ResolveEditableTarget(parent, false);
             }
+
+            if (_selected != picked)
+                _dirty = false;
             _selected = picked;
-            _dragMode = PickDragMode(picked, eventData.position);
+            BeginDragOnSelected(eventData);
+            UnityEditor.Selection.activeGameObject = picked.gameObject;
+        }
+
+        void BeginDragOnSelected(PointerEventData eventData)
+        {
+            if (_selected == null) return;
+            _dragMode = PickDragMode(_selected, eventData.position);
             _dragCamera = eventData.pressEventCamera;
-            var parentRect = picked.parent as RectTransform;
+            var parentRect = _selected.parent as RectTransform;
             if (parentRect == null || !RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     parentRect, eventData.position, _dragCamera, out _dragStartLocal))
             {
                 _dragMode = 0;
                 return;
             }
-            _dragStartPosition = picked.anchoredPosition;
-            _dragStartSize = picked.rect.size;
-            UnityEditor.Selection.activeGameObject = picked.gameObject;
+            _dragStartPosition = _selected.anchoredPosition;
+            _dragStartSize = _selected.rect.size;
         }
 
         RectTransform ResolveEditableTarget(RectTransform picked, bool releaseFromLayout)
@@ -258,6 +320,7 @@ namespace StreetCat.UI
             if (parentRect == null || !RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     parentRect, eventData.position, _dragCamera, out var current)) return;
             var delta = current - _dragStartLocal;
+            _dirty = true;
 
             if (_dragMode == Move)
             {
@@ -305,16 +368,52 @@ namespace StreetCat.UI
             _dragMode = 0;
         }
 
-        public void SaveSelection()
+        public bool SaveSelection()
         {
-            if (_selected == null || _targetCanvas == null) return;
-            UILayoutOverrides.Save(_targetCanvas, _selected);
+            if (_selected == null || _targetCanvas == null)
+            {
+                SetStatus(false, "保存失败 — 无选中 / Save failed — nothing selected");
+                return false;
+            }
+            var ok = UILayoutOverrides.Save(_targetCanvas, _selected);
+            _dirty = !ok;
+            _statusLine = UILayoutOverrides.LastOperationMessage;
+            _statusOk = ok;
+            return ok;
+        }
+
+        public bool RevertSelection()
+        {
+            if (_selected == null || _targetCanvas == null)
+            {
+                SetStatus(false, "还原失败 — 无选中");
+                return false;
+            }
+            var path = UILayoutOverrides.GetPath(_targetCanvas, _selected);
+            var data = UILayoutOverrides.Asset;
+            var entry = data != null ? data.Find(path) : null;
+            if (entry == null || entry.deleted)
+            {
+                SetStatus(false, "还原失败 — 无已保存条目 / no saved override");
+                return false;
+            }
+            UILayoutOverrides.Apply(_selected, entry);
+            _dirty = false;
+            SetStatus(true, "已还原到已保存布局 / reverted " + path);
+            return true;
         }
 
         public void RemoveSelectionOverride()
         {
-            if (_selected == null || _targetCanvas == null) return;
-            UILayoutOverrides.Remove(_targetCanvas, _selected);
+            if (_selected == null || _targetCanvas == null)
+            {
+                SetStatus(false, "删除布局失败 — 无选中");
+                return;
+            }
+            var ok = UILayoutOverrides.Remove(_targetCanvas, _selected);
+            _statusLine = UILayoutOverrides.LastOperationMessage;
+            _statusOk = ok;
+            _dirty = false;
         }
 
         public void RequestDeleteSelection()
@@ -330,20 +429,33 @@ namespace StreetCat.UI
 
             var target = _selected;
             var canvas = _targetCanvas;
-            if (!UILayoutOverrides.Delete(canvas, target)) return;
+            if (!UILayoutOverrides.Delete(canvas, target))
+            {
+                _statusLine = UILayoutOverrides.LastOperationMessage;
+                _statusOk = false;
+                return;
+            }
             _lastDeletedPath = path;
             _lastDeletedTarget = target;
             _lastDeletedCanvas = canvas;
             _selected = null;
+            _dirty = false;
             target.gameObject.SetActive(false);
             PopulateTargets(canvas);
+            _statusLine = UILayoutOverrides.LastOperationMessage;
+            _statusOk = true;
         }
 
         public void RestoreLastDeleted()
         {
             if (string.IsNullOrEmpty(_lastDeletedPath)) return;
             var restoredPath = _lastDeletedPath;
-            if (!UILayoutOverrides.Restore(restoredPath)) return;
+            if (!UILayoutOverrides.Restore(restoredPath))
+            {
+                _statusLine = UILayoutOverrides.LastOperationMessage;
+                _statusOk = false;
+                return;
+            }
             if (_lastDeletedTarget != null)
             {
                 _lastDeletedTarget.gameObject.SetActive(true);
@@ -355,7 +467,10 @@ namespace StreetCat.UI
             _lastDeletedPath = null;
             _lastDeletedTarget = null;
             _lastDeletedCanvas = null;
+            _dirty = false;
             RefreshRestoredTargets(new HashSet<string> { restoredPath });
+            _statusLine = UILayoutOverrides.LastOperationMessage;
+            _statusOk = true;
         }
 
         public void RestoreAllDeleted()
@@ -371,11 +486,26 @@ namespace StreetCat.UI
                         deletedPaths.Add(entry.path);
                 }
             }
-            if (UILayoutOverrides.RestoreAllDeleted() <= 0) return;
+            if (UILayoutOverrides.RestoreAllDeleted() <= 0)
+            {
+                SetStatus(false, "没有可恢复的已删除组件");
+                return;
+            }
             _lastDeletedPath = null;
             _lastDeletedTarget = null;
             _lastDeletedCanvas = null;
+            _dirty = false;
             RefreshRestoredTargets(deletedPaths);
+            _statusLine = UILayoutOverrides.LastOperationMessage;
+            _statusOk = true;
+        }
+
+        void SetStatus(bool ok, string message)
+        {
+            _statusOk = ok;
+            _statusLine = message ?? "";
+            if (ok) Debug.Log("[UI Layout] " + _statusLine);
+            else Debug.LogWarning("[UI Layout] " + _statusLine);
         }
 
         void RefreshRestoredTargets(HashSet<string> restoredPaths)
@@ -405,26 +535,95 @@ namespace StreetCat.UI
             RefreshTargets();
         }
 
-        RectTransform PickSmallest(Vector2 screenPoint)
+        /// <summary>
+        /// Prefer the deepest / most specific editable RectTransform under the cursor.
+        /// Skips named catchers/dimmers and near-fullscreen overlays when possible.
+        /// </summary>
+        RectTransform PickBest(Vector2 screenPoint)
         {
-            RectTransform result = null;
-            var bestArea = float.MaxValue;
-            var bestSibling = -1;
+            RectTransform best = null;
+            var bestScore = float.MinValue;
+            var canvasArea = EstimateCanvasScreenArea();
+
             for (var i = 0; i < _rects.Count; i++)
             {
                 var target = _rects[i];
-                if (!ContainsScreenPoint(target, screenPoint)) continue;
+                if (target == null || !ContainsScreenPoint(target, screenPoint)) continue;
+                if (IsIgnorablePick(target)) continue;
+
                 var screenRect = GetScreenRect(target);
                 var area = Mathf.Abs(screenRect.width * screenRect.height);
-                var sibling = target.GetSiblingIndex();
-                if (area < bestArea - 0.1f || (Mathf.Abs(area - bestArea) < 0.1f && sibling > bestSibling))
+                if (area < 4f) continue;
+
+                if (UILayoutEditMode.SkipFullscreenCatchers && canvasArea > 1f &&
+                    area >= canvasArea * FullscreenAreaRatio)
+                    continue;
+
+                // Smaller + deeper wins. Depth outweighs mild area differences.
+                var depth = 0;
+                for (var t = target.transform; t != null && t != _targetCanvas.transform; t = t.parent)
+                    depth++;
+                var score = depth * 100000f - area;
+                if (score > bestScore)
                 {
-                    result = target;
-                    bestArea = area;
-                    bestSibling = sibling;
+                    best = target;
+                    bestScore = score;
                 }
             }
-            return result;
+
+            // Fallback: allow fullscreen targets if nothing else hit.
+            if (best == null)
+            {
+                var fallbackArea = float.MaxValue;
+                var fallbackDepth = -1;
+                for (var i = 0; i < _rects.Count; i++)
+                {
+                    var target = _rects[i];
+                    if (target == null || !ContainsScreenPoint(target, screenPoint)) continue;
+                    if (IsIgnorablePick(target)) continue;
+                    var screenRect = GetScreenRect(target);
+                    var area = Mathf.Abs(screenRect.width * screenRect.height);
+                    var depth = 0;
+                    for (var t = target.transform; t != null && t != _targetCanvas.transform; t = t.parent)
+                        depth++;
+                    if (area < fallbackArea - 0.1f || (Mathf.Abs(area - fallbackArea) < 0.1f && depth > fallbackDepth))
+                    {
+                        best = target;
+                        fallbackArea = area;
+                        fallbackDepth = depth;
+                    }
+                }
+            }
+            return best;
+        }
+
+        float EstimateCanvasScreenArea()
+        {
+            if (_targetCanvas == null) return Screen.width * (float)Screen.height;
+            var pr = _targetCanvas.pixelRect;
+            return Mathf.Max(1f, pr.width * pr.height);
+        }
+
+        static bool IsIgnorablePick(RectTransform target)
+        {
+            if (target == null) return true;
+            var n = target.name;
+            if (string.IsNullOrEmpty(n)) return false;
+            if (UILayoutOverrides.IsProtectedSystemOverlay(n)) return true;
+            // Common full-screen input/dim layers that steal the "smallest" or only hit.
+            if (ContainsIgnoreToken(n, "Catcher")) return true;
+            if (ContainsIgnoreToken(n, "Dimmer")) return true;
+            if (n.Equals("Dim", System.StringComparison.OrdinalIgnoreCase)) return true;
+            if (ContainsIgnoreToken(n, "Blocker")) return true;
+            if (ContainsIgnoreToken(n, "Backdrop")) return true;
+            if (ContainsIgnoreToken(n, "ModalBg")) return true;
+            if (ContainsIgnoreToken(n, "HitArea") && target.GetComponent<Selectable>() == null) return true;
+            return false;
+        }
+
+        static bool ContainsIgnoreToken(string name, string token)
+        {
+            return name.IndexOf(token, System.StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         int PickDragMode(RectTransform target, Vector2 screenPoint)
@@ -483,38 +682,70 @@ namespace StreetCat.UI
                 for (var i = 0; i < _rects.Count; i++)
                 {
                     var target = _rects[i];
-                    if (target != null && target != _selected)
+                    if (target != null && target != _selected && !IsIgnorablePick(target))
                         DrawOutline(ToGuiRect(GetScreenRect(target)), new Color(0.15f, 0.75f, 1f, 0.16f), 1f);
                 }
             }
             if (_selected != null)
             {
                 var rect = ToGuiRect(GetScreenRect(_selected));
-                DrawOutline(rect, new Color(0.1f, 0.9f, 1f, 1f), 2f);
-                DrawHandle(rect.xMin, rect.yMin);
-                DrawHandle(rect.xMax, rect.yMin);
-                DrawHandle(rect.xMin, rect.yMax);
-                DrawHandle(rect.xMax, rect.yMax);
-                GUI.Label(new Rect(rect.x + 3f, rect.y + 2f, Mathf.Max(100f, rect.width), 22f),
-                    _selected.name, new GUIStyle(GUI.skin.label) { normal = { textColor = Color.cyan } });
+                var locked = UILayoutEditMode.LockSelection;
+                var outline = locked
+                    ? new Color(1f, 0.55f, 0.1f, 1f)
+                    : new Color(0.1f, 0.9f, 1f, 1f);
+                DrawOutline(rect, outline, locked ? 3f : 2f);
+                DrawHandle(rect.xMin, rect.yMin, locked);
+                DrawHandle(rect.xMax, rect.yMin, locked);
+                DrawHandle(rect.xMin, rect.yMax, locked);
+                DrawHandle(rect.xMax, rect.yMax, locked);
+                var labelColor = locked ? new Color(1f, 0.7f, 0.25f) : Color.cyan;
+                var label = (locked ? "[锁定 LOCK] " : "") + (_dirty ? "* " : "") + _selected.name;
+                GUI.Label(new Rect(rect.x + 3f, rect.y + 2f, Mathf.Max(140f, rect.width), 22f),
+                    label, new GUIStyle(GUI.skin.label) { normal = { textColor = labelColor } });
             }
 
             if (_panelVisible)
             {
-                var panelHeight = _selected == null ? 82f : (SelectionControlledByLayout ? 134f : 112f);
-                var panel = new Rect(12f, 12f, 350f, panelHeight);
-                GUI.Box(panel, "通用 UI 布局 (F7 隐藏)");
-                GUI.Label(new Rect(22f, 38f, 330f, 22f), "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
-                GUI.Label(new Rect(22f, 60f, 330f, 22f), "松手自动保存 · 方向键微调 · Delete 删除");
+                var locked = UILayoutEditMode.LockSelection;
+                var extra = 0f;
+                if (_selected != null) extra += 22f;
+                if (SelectionControlledByLayout) extra += 22f;
+                if (!string.IsNullOrEmpty(StatusLine)) extra += 36f;
+                var panel = new Rect(12f, 12f, 380f, 118f + extra);
+                GUI.Box(panel, locked ? "通用 UI 布局 · 已锁定 (F7 隐藏)" : "通用 UI 布局 (F7 隐藏)");
+                GUI.Label(new Rect(22f, 36f, 360f, 20f),
+                    "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
+                GUI.Label(new Rect(22f, 54f, 360f, 20f),
+                    "松手自动保存 · 方向键微调 · Delete 删除 · L 锁定选中");
+
+                var y = 76f;
+                var lockNext = GUI.Toggle(new Rect(22f, y, 360f, 20f), locked,
+                    locked ? "锁定选中 / Lock selection  (ON · 按 L 解锁)" : "锁定选中 / Lock selection  (按 L)");
+                if (lockNext != locked)
+                    UILayoutEditMode.LockSelection = lockNext;
+                y += 22f;
+
                 if (_selected != null)
                 {
-                    GUI.Label(new Rect(22f, 82f, 330f, 22f), "当前：" + _selected.name);
+                    var dirtyMark = _dirty ? " *" : "";
+                    GUI.Label(new Rect(22f, y, 360f, 20f), "当前：" + _selected.name + dirtyMark);
+                    y += 22f;
                     if (SelectionControlledByLayout)
                     {
                         var warning = new GUIStyle(GUI.skin.label);
                         warning.normal.textColor = new Color(1f, 0.72f, 0.2f);
-                        GUI.Label(new Rect(22f, 102f, 330f, 22f), "父级 LayoutGroup 会接管位置，请 Alt+点击选择父级", warning);
+                        GUI.Label(new Rect(22f, y, 360f, 20f), "父级 LayoutGroup 会接管位置，请 Alt+点击选择父级", warning);
+                        y += 22f;
                     }
+                }
+
+                if (!string.IsNullOrEmpty(StatusLine))
+                {
+                    var statusStyle = new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 11 };
+                    statusStyle.normal.textColor = StatusOk
+                        ? new Color(0.35f, 0.95f, 0.45f)
+                        : new Color(1f, 0.45f, 0.35f);
+                    GUI.Label(new Rect(22f, y, 360f, 36f), StatusLine, statusStyle);
                 }
             }
         }
@@ -544,9 +775,9 @@ namespace StreetCat.UI
             GUI.color = Color.white;
         }
 
-        static void DrawHandle(float x, float y)
+        static void DrawHandle(float x, float y, bool locked)
         {
-            GUI.color = Color.cyan;
+            GUI.color = locked ? new Color(1f, 0.55f, 0.15f) : Color.cyan;
             GUI.DrawTexture(new Rect(x - 5f, y - 5f, 10f, 10f), Texture2D.whiteTexture);
             GUI.color = Color.white;
         }

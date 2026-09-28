@@ -25,6 +25,10 @@
       "en": "Backlog"
     },
     {
+      "zh": "关闭",
+      "en": "Close"
+    },
+    {
       "zh": "大福",
       "en": "Dafu"
     },
@@ -67,6 +71,30 @@
     {
       "zh": "保安亭",
       "en": "Guard booth"
+    },
+    {
+      "zh": "已",
+      "en": "✓"
+    },
+    {
+      "zh": "自动贩卖机",
+      "en": "Vending machine"
+    },
+    {
+      "zh": "木质长椅",
+      "en": "Wooden bench"
+    },
+    {
+      "zh": "快递柜",
+      "en": "Parcel lockers"
+    },
+    {
+      "zh": "柜顶有橘色猫毛，大福常趴在这里。",
+      "en": "Orange fur on top — Dafu often rests here."
+    },
+    {
+      "zh": "咖啡只卖六块，公司楼下要十八。",
+      "en": "Coffee is only ¥6 here; ¥18 downstairs at the office."
     },
     {
       "zh": "可以。",
@@ -166,7 +194,7 @@
     },
     {
       "zh": "结束交谈",
-      "en": "End conversation"
+      "en": "End talk"
     },
     {
       "zh": "谁说的？",

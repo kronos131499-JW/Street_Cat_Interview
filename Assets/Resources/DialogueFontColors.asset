@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 866fd7d3f6934e349a6341023f334d1d, type: 3}
   m_Name: DialogueFontColors
   m_EditorClassIdentifier: 
-  speakerName: {r: 0.7604593, g: 0.7125693, b: 0.6167893, a: 1}
+  speakerName: {r: 0.02, g: 0.02, b: 0.02, a: 1}
   dialogue: {r: 0, g: 0, b: 0, a: 1}
-  narration: {r: 0.043806255, g: 0.03918063, b: 0.030700315, a: 1}
-  inner: {r: 0.76, g: 0.84, b: 0.9, a: 1}
-  system: {r: 0.24856424, g: 0.23250777, b: 0.185944, a: 1}
-  status: {r: 0.16981119, g: 0.16134617, b: 0.14441612, a: 1}
-  clickHint: {r: 0.17768657, g: 0.17722498, b: 0.1763018, a: 0.55}
-  choice: {r: 0.16193593, g: 0.12708229, b: 0.05737499, a: 1}
+  narration: {r: 0.12, g: 0.10, b: 0.09, a: 1}
+  inner: {r: 0.10, g: 0.12, b: 0.16, a: 1}
+  system: {r: 0.35, g: 0.16, b: 0.05, a: 1}
+  status: {r: 0.12, g: 0.10, b: 0.09, a: 1}
+  clickHint: {r: 0.12, g: 0.10, b: 0.09, a: 0.85}
+  choice: {r: 0, g: 0, b: 0, a: 1}

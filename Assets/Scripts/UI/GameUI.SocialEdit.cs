@@ -92,7 +92,7 @@ namespace StreetCat.UI
             if (!socialEditPanelVisible) return;
 
             const float w = 300f;
-            float h = Mathf.Min(Screen.height - 24f, 420f);
+            float h = Mathf.Min(Screen.height - 24f, 480f);
             var outer = new Rect(Screen.width - w - 12f, 12f, w, h);
             _socialEditPanelScreenRect = outer;
             GUI.Box(outer, "社交帖子布局 (F8 隐藏)");
@@ -138,14 +138,29 @@ namespace StreetCat.UI
 
             GUILayout.Space(6);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("保存"))
+            if (GUILayout.Button("保存 / Save"))
                 SocialLayout.SaveCurrent();
-            if (GUILayout.Button("默认"))
+            if (GUILayout.Button("默认 / Reset"))
             {
                 SocialLayout.ResetToDefaults();
                 RefreshSocialLayoutFromAsset();
             }
             GUILayout.EndHorizontal();
+
+            if (!string.IsNullOrEmpty(SocialLayout.LastSaveMessage))
+            {
+                var statusStyle = new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 11 };
+                statusStyle.normal.textColor = SocialLayout.LastSaveOk
+                    ? new Color(0.35f, 0.95f, 0.45f)
+                    : new Color(1f, 0.45f, 0.35f);
+                GUILayout.Label((SocialLayout.LastSaveOk ? "✓ " : "✗ ") + SocialLayout.LastSaveMessage,
+                    statusStyle);
+            }
+            else
+            {
+                GUILayout.Label("松手或点保存后显示写入结果",
+                    new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 11 });
+            }
 
             GUILayout.Space(4);
             GUILayout.BeginHorizontal();

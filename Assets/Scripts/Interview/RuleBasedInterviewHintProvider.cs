@@ -116,9 +116,10 @@ namespace StreetCat.Interview
                 if (chips.Count >= MaxChips) return;
                 if (string.IsNullOrWhiteSpace(q)) return;
                 q = q.Trim();
-                if (chips.Contains(q)) return;
                 if (IsAlreadyAsked(ctx, q, chipIntent)) return;
-                chips.Add(q);
+                var display = InterviewLoc.LocalizeAskQuestion(q);
+                if (chips.Contains(display)) return;
+                chips.Add(display);
             }
 
             // 1) Immediate follow-up from last reply / story beat.
