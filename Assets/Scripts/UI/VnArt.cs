@@ -382,6 +382,21 @@ namespace StreetCat.UI
                 return cached;
 
             var sprite = Resources.Load<Sprite>(resourcesPath);
+            if (sprite != null && sprite.texture != null)
+            {
+                // UI mockups / stage plates: prefer crisp sampling once loaded.
+                // Import settings should also be uncompressed; this covers stale caches.
+                bool uiOrBg = resourcesPath.StartsWith("VnArt/UI/", System.StringComparison.Ordinal)
+                              || resourcesPath.StartsWith("VnArt/Backgrounds/", System.StringComparison.Ordinal)
+                              || resourcesPath.StartsWith("VnArt/KeyArt/", System.StringComparison.Ordinal);
+                if (uiOrBg)
+                {
+                    sprite.texture.filterMode = FilterMode.Bilinear;
+                    sprite.texture.anisoLevel = 2;
+                    // Avoid mip blur if any importer left mips on.
+                    sprite.texture.mipMapBias = -0.5f;
+                }
+            }
             Cache[resourcesPath] = sprite;
             return sprite;
         }

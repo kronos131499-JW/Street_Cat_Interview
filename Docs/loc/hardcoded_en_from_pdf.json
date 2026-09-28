@@ -1,0 +1,4955 @@
+{
+  "generated": "2026-08-27T04:17:28.625Z",
+  "entries": [
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:38",
+      "text": "About to leave",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:39",
+      "text": "Doesn't want to continue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:40",
+      "text": "Getting irritated",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:41",
+      "text": "Slightly wary",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:42",
+      "text": "Relaxed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:43",
+      "text": "Calm",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:88",
+      "text": "right",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:88",
+      "text": "Yes.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:88",
+      "text": "is",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:88",
+      "text": "good",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:88",
+      "text": "All right",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:89",
+      "text": "well",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:89",
+      "text": "Mm-hmm",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:89",
+      "text": "line",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:89",
+      "text": "OK",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:89",
+      "text": "Understood",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:90",
+      "text": "Got it",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:90",
+      "text": "oh",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/InterviewModels.cs:90",
+      "text": "oh",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:110",
+      "text": "Magazine",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:110",
+      "text": "Desk",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:110",
+      "text": "Office",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:112",
+      "text": "Evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:112",
+      "text": "Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:114",
+      "text": "Afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:116",
+      "text": "Translation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/VnTheme.cs:116",
+      "text": "Interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:76",
+      "text": "You are the feature writer for Street Cat Interview. Preserve the reporter's intended angle and all available\nfacts while polishing and expanding the current draft into a complete community feature.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:77",
+      "text": "Requirements: 1) Total length, excluding whitespace, must be at least",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:77",
+      "text": "words, with substantial detail, vivid scenes, and smooth transitions;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:78",
+      "text": "2) Use only facts contained in the supplied materials and editorial angle. Do not invent names, figures, hospital\nnames, costs, or causal relationships;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:79",
+      "text": "3) Keep a clear subheading structure and use a calm, restrained magazine style;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:80",
+      "text": "4) Where information is uncertain, write 'cannot be confirmed' or 'remains unclear' instead of presenting it as\nfact;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:81",
+      "text": "5) Prioritize polishing and expanding [Current Draft]. Do not discard existing wording without reason;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:82",
+      "text": "6) Do not output a 'Related Verification' section, fact-checking checklist, or list of source excerpts. Work the\nfacts into the narrative;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:83",
+      "text": "7) Output only the complete article, with no preface, afterword, or JSON.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:86",
+      "text": "[Authoritative Quotes / Facts]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:87",
+      "text": "Editorial angle:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:88",
+      "text": "Selected materials (use only these as sources):",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:97",
+      "text": "Key facts:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:98",
+      "text": "Usable lines:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:102",
+      "text": "[Current Draft - polish and expand the following to at least",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:102",
+      "text": "words]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:105",
+      "text": "Please produce a complete feature of at least",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:105",
+      "text": "words.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:136",
+      "text": "[Dafu Today]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:137",
+      "text": "If you pass the entrance to Huai'an Community in the evening, an orange cat is hard to miss. He is in no hurry\nto charm anyone. He simply arrives on his own schedule and treats a small patch of public space as his regular\nworkstation.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:139",
+      "text": "[The Past]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:140",
+      "text": "To understand how settled he is today, we have to return to a time he cannot fully explain and has not entirely\nforgotten. His pain cannot be summed up by saying only that 'he was injured.'",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:142",
+      "text": "[The Rescue]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:143",
+      "text": "What carried the story to the hospital was not a dramatic confrontation, but someone returning again and\nagain - approaching, backing away, and trying once more - until capture and treatment became unavoidable.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:145",
+      "text": "[After His Return]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:146",
+      "text": "Healing an animal does not automatically mean owning him. Returning Dafu to the community meant\nrecognizing care as a relay shared by many people, not a lifelong promise made by one.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:151",
+      "text": "[Discovery]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:152",
+      "text": "Stories like this often begin with a wound. Who noticed it first, and how frightened the cat was at the time,\nshaped every step that followed.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:154",
+      "text": "[Approach and Treatment]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:155",
+      "text": "Approaching a cat who fears people takes more than slogans about courage. It takes repeated retreats and\npatient waiting. At the hospital, the bills and the prognosis can be equally unforgiving.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:157",
+      "text": "[Why He Wasn't Adopted]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:158",
+      "text": "Rescue and adoption are not the same blank check. Space, energy, and the lives already under one's roof can\nturn 'I want to keep him' into a set of very concrete limits.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:160",
+      "text": "[Back in the Community]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:161",
+      "text": "When he reappears at the familiar entrance - reporting for duty, sunbathing, and heading out with a companion\n- readers see more than an endearing cat. They see the traces left by a rescue.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:165",
+      "text": "[Editor's Note]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:166",
+      "text": "This article includes only verified observations and firsthand accounts. It does not speculate about unconfirmed\nmatters, including how the rope reached Dafu's neck or whether anyone harmed him deliberately.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:173",
+      "text": "[Material Excerpts]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:194",
+      "text": "[Related Verification]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:195",
+      "text": "Related Verification",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleDraftAi.cs:198",
+      "text": "[Related Verification]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:60",
+      "text": "You are Shen He, editor-in-chief of Street Cat Interview, and you apply strict editorial standards.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:61",
+      "text": "Review the reporter's final draft against the chosen editorial angle and selected materials.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:62",
+      "text": "Evaluate only the supplied article and materials. Do not introduce new facts.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:63",
+      "text": "The article must be returned (pass=false) in cases including, but not limited to:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:64",
+      "text": "1) obvious breaks in logic or missing key steps;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:65",
+      "text": "2) very weak writing, a bare chronology, or almost no development;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:66",
+      "text": "3) a serious mismatch between the selected materials and editorial angle;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:67",
+      "text": "4) speculation presented as established fact;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:68",
+      "text": "5) an article that is clearly too short;",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:69",
+      "text": "6) any of the four narrative sections being merely nominal or empty.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:70",
+      "text": "Approve only articles with a clear structure, restrained factual claims, materials that support the angle, and\nsufficient depth.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:71",
+      "text": "Passing scores are usually 70-92. When major problems are present, score 35-65 and return the draft.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:72",
+      "text": "Output one line of JSON only (no markdown code block), using these fields:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:73",
+      "text": "{\"pass\": bool, \"score\": integer from 0 to 100, \"branch\": \"A|B|C|D\", \"review\": \"Feedback in Shen He's voice; use\n\\n for line breaks\"}.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:74",
+      "text": "branch: A=approved; B=angle/material mismatch; C=poor logic, weak writing, or insufficient length;\nD=speculation presented as fact.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:77",
+      "text": "[Authoritative Quotes / Facts]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:78",
+      "text": "Editorial angle:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:79",
+      "text": "Effective article length (approx.):",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:80",
+      "text": "Selected materials:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:91",
+      "text": "[Final Article]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:94",
+      "text": "Review strictly. Output JSON only.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:115",
+      "text": "It's too short. A feature can't read like a memo. Go back and develop the process.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:124",
+      "text": "Review Result - Approved Shen He: I've read it. It's ready to publish.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:125",
+      "text": "Review Result - Returned Shen He: This draft still needs work.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:128",
+      "text": "Approved",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:129",
+      "text": "Review Result - Approved",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:130",
+      "text": "Returned",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleReviewAi.cs:131",
+      "text": "Review Result - Returned",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:27",
+      "text": "On Duty Today",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:28",
+      "text": "Dafu often comes to the security booth at four or five in the afternoon. After having something to eat, he rests\non the parcel lockers.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:29",
+      "text": "At around four o'clock in the afternoon, Dafu emerged from among the parked e-bikes and walked to the\nsecurity booth. After finishing the cat food handed over by the security guard, he skillfully jumped onto the\nparcel lockers beside him and began what the residents called a day of \"duty\".",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:30",
+      "text": "Dafu has no permanent owner. Every day at four or five o'clock in the afternoon, he often shows up near the\nsecurity booth. After having something to eat, he finds a spot to lie down on the parcel lockers.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:31",
+      "text": "Dafu Used to Fear People",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:32",
+      "text": "Before being rescued, Dafu was extremely afraid of people and would run away as soon as someone\napproached.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:33",
+      "text": "Residents recalled that when Dafu first arrived, he was extremely vigilant and would move away as soon as\npeople approached.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:34",
+      "text": "When Ms. Lin first approached he, Dafu almost immediately ran away - at that time, he was still very afraid of\npeople.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:35",
+      "text": "Dafu's Neck Injury",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:36",
+      "text": "Dafu remembered that his neck had been strangled by something very tight for a long time and he couldn't get\nrid of him by himself.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:37",
+      "text": "Dafu only remembers that during that period, his neck was constantly aching, with something tightly grasping\nhe and he just couldn't get rid of him.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:38",
+      "text": "In a cat's memory, an injury is first and foremost a long-term pain and an inescapable sense of restraint.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:39",
+      "text": "The Rope That Disappeared",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:40",
+      "text": "Dafu remembered that he had taken a nap in a strange place. When he woke up, the thing that had been\nstrangling his neck had disappeared.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:41",
+      "text": "It remembered that it had fallen asleep in a very bright place with a strong smell, and when it woke up, the\nthing that had been strangling its neck was gone.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:42",
+      "text": "For Dafu, the treatment process is difficult to describe with human concepts. he only remembered that after\nwaking up, the thing that had been strangling he had vanished.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:43",
+      "text": "The Rope Embedded in His Flesh",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:44",
+      "text": "The hospital examination revealed that a thick hemp rope had been deeply embedded in the neck of Dafu, and\nthe wound showed necrosis and severe infection.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:45",
+      "text": "According to Ms. Lin's account, after hospital examination, it was found that the thick hemp rope had\nembedded in the neck tissue, the wound was necrotic and severely infected.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:46",
+      "text": "After being sent to the hospital, the doctor told Ms. Lin: \"That's not an ordinary surface injury. The hemp rope\nhas been embedded in the flesh.\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:47",
+      "text": "Four Nights of Feeding",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:48",
+      "text": "For four consecutive nights, Ms. Lin carried canned food to search for Dafu. Every time she put down her food,\nshe would voluntarily step away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:49",
+      "text": "In order to get closer to this cat that was afraid of people, Ms. Lin went to look for it with canned food for four\nconsecutive nights. After putting down the food, she would retreat.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:50",
+      "text": "Ms. Lin fed Dafu for four consecutive nights. The aim was not to tame he but to make Dafu willing to eat at a\nrelatively fixed position so as to observe and carry out rescue.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:51",
+      "text": "Capture and Hospitalization",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:52",
+      "text": "After Dafu's injury continued to deteriorate, Ms. Lin contacted someone with rescue experience to assist in\ncapturing he and sent him to the hospital.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:53",
+      "text": "After the injury worsened, Ms. Lin contacted someone experienced to assist capture and sent Dafu to the\nhospital.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:54",
+      "text": "Dafu was very scared that day. Finally, he was loaded into the pet carrier and sent to veterinary hospital.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:55",
+      "text": "Panleukopenia After Surgery Hard-coded\n30 Assets/Scripts/Writing/Arti - After completing the neck surgery, Dafu was diagnosed with feline panleukopenia again on the third day ofhospitalization and needed to continue hospitalization treatment.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:57",
+      "text": "After the neck surgery, feline panleukopenia was diagnosed again on the third day of hospitalization, and the\ntreatment was forced to be prolonged.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:58",
+      "text": "Surgery doesn't mean the end. On the third day of hospitalization, the hospital informed Ms. Lin: Dafu was\ndiagnosed with feline panleukopenia.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:59",
+      "text": "Nearly 10,000 Yuan",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:60",
+      "text": "The total cost of Dafu surgery, hospitalization and feline panleukopenia treatment is close to 10,000 yuan.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:61",
+      "text": "The entire treatment cost is close to 10,000 yuan.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:62",
+      "text": "The surgery cost about five thousand, and with feline panleukopenia's hospitalization, all added up to nearly\nten thousand - a figure that's not easy for Ms. Lin.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:63",
+      "text": "She Did Hesitate",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:64",
+      "text": "Facing the rising costs and uncertain treatment outcomes, Ms. Lin admitted that she had considered whether to\ncontinue the treatment.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:65",
+      "text": "She admitted that she had hesitated, not because she thought the cat was not worth saving, but because she\nwas unsure about the subsequent costs and outcomes.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:66",
+      "text": "When the hospital couldn't guarantee that she would definitely be saved, Ms. Lin did hesitate, but in the end,\nshe still chose to continue the treatment.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:67",
+      "text": "Four Cats Already at Home",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:68",
+      "text": "Ms. Lin already has four cats at home and needs to take care of her daughter, so she can't afford a fifth cat for\na long time.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:69",
+      "text": "She already has four cats at home and children to take care of.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:70",
+      "text": "Ms. Lin is well aware that space, energy and cost have all reached their limits.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:71",
+      "text": "Rescue and Adoption Are Different Commitments",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:72",
+      "text": "Ms. Lin believes that her ability to treat Dafu at that time does not mean she has the ability to adopt a fifth cat\nin the long term.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:73",
+      "text": "In her view, treatment and adopt are two different things.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:74",
+      "text": "“I could afford to treat his injuries then, but that didn't mean I could care for a fifth cat long-term.”",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:75",
+      "text": "Back to Huai'an Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:76",
+      "text": "After Dafu recovered, Ms. Lin sent him back to Huai'an Community, where he was originally active.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:77",
+      "text": "After recovery, Dafu was sent back to Huai'an Community.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:78",
+      "text": "After confirming that the community was still being cared for, Ms. Lin returned Dafu to his original activity area.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:79",
+      "text": "Dafu Has No Single Owner",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:80",
+      "text": "Dafu has no permanent owner, but there are residents who change his water, feed him, clean his cat bowl and\nmaintain his cat shelter.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:81",
+      "text": "It has no legal owner, but there is a group of people who take turns to change water, add food and build nests.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:82",
+      "text": "No one owns Dafu alone, but there are people in the community who keep taking care of him.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:83",
+      "text": "A Tabby Companion",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:84",
+      "text": "Later, Dafu (the orange cat) often ate and rested with another tabby cat, and they would go out together at\nnight.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:85",
+      "text": "In the evening, this orange cat often leaves together with another tabby cat.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:86",
+      "text": "After returning to the community, Dafu and another tabby cat gradually became regular partners.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:87",
+      "text": "The Rope's Origin Cannot Be Confirmed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:88",
+      "text": "No one has seen how the hemp rope fits around the neck of Dafu, and he is currently impossible to confirm\nwhether there is any human injury.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:89",
+      "text": "As for how the hemp rope first emerged, no one has seen it so far and it is impossible to confirm whether there\nwas intentional injury.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:90",
+      "text": "Ms. Lin emphasized: \"No one can be sure how the rope was put on.\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:122",
+      "text": "Select at least one material card for each of the four sections.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:127",
+      "text": "You may select up to 10 material cards.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:133",
+      "text": "Section 01, 'Dafu Today,' has no material yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:134",
+      "text": "Section 02, 'Injury and Rescue,' has no material yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:135",
+      "text": "Section 03, 'Treatment and Choice,' has no material yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:136",
+      "text": "Section 04, 'Back in the Community,' has no material yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:175",
+      "text": "Dafu Is on Duty Again",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:176",
+      "text": "After Saving a Cat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:192",
+      "text": "[Dafu Today]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:193",
+      "text": "[The Past]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:194",
+      "text": "[The Rescue]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:195",
+      "text": "[After His Return]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:199",
+      "text": "[Discovery]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:200",
+      "text": "[Approach and Treatment]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:201",
+      "text": "[Why He Wasn't Adopted]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:202",
+      "text": "[Back in the Community]",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:248",
+      "text": "Too Few Materials",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:249",
+      "text": "These few cards aren't enough to support a feature. Readers will come away knowing only that 'there's a cat,'\nnot what happened.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:250",
+      "text": "Add material to every section, especially the treatment process and the reasons for Dafu's return.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:256",
+      "text": "Insufficient Length and Development",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:257",
+      "text": "The draft is too thin. It rushes past the key moments without clearly developing the setting, process, or\nconsequences.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:258",
+      "text": "Develop the selected materials across all four sections. The complete article should be close to 1,000 words.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:264",
+      "text": "Materials Do Not Match the Editorial Angle",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:265",
+      "text": "You chose a rescue-focused angle, but barely explained why Dafu wasn't adopted or how he was returned.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:266",
+      "text": "Add material about the return and Ms. Lin's limitations, or switch the angle to 'Dafu Is on Duty Again.'",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:272",
+      "text": "Materials Do Not Match the Editorial Angle",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:273",
+      "text": "Most of the article is about Dafu working and sunbathing today. The rescue story has almost disappeared.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:274",
+      "text": "Adjust the editorial angle or select materials that support it more closely.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:280",
+      "text": "Materials Do Not Match the Editorial Angle",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:281",
+      "text": "The headline promises a story about Dafu's life today, but the article is almost entirely a rescue ledger. Readers\nnever get to see 'Dafu Today.'",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:282",
+      "text": "Add material about his current life and community care, or switch to a rescue-focused angle.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:288",
+      "text": "Broken Chain of Key Facts",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:289",
+      "text": "Both the injury and the rescue need to hold up. If either is missing, the story makes a logical leap.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:290",
+      "text": "Conduct a follow-up interview or choose materials that fill the missing section.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:305",
+      "text": "Review Result - Approved Hard-coded\n100 Assets/Scripts/Writing/Arti - Shen He: I've read it. It's ready to publish.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:308",
+      "text": "The structure holds, and the facts aren't overextended. Uncertainty hasn't been forced into a conclusion.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:309",
+      "text": "A reporter's job isn't to make a story more legendary. It's to make sure the story isn't wrong.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:310",
+      "text": "That's it. Publish it.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:347",
+      "text": "Review Result - Returned",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:348",
+      "text": "Issue |",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Writing/ArticleAssembler.cs:352",
+      "text": "Editor's Notes - Hard-coded\nScript / Objectives (ScriptLoc)",
+      "status": ""
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:57",
+      "text": "In progress",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:104",
+      "text": "Automatic archiving (empty)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:104",
+      "text": "Archive location{slot + 1}(Empty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:105",
+      "text": "Empty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:112",
+      "text": "Unknown time",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:113",
+      "text": "Automatic archiving",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/SaveSystem.cs:113",
+      "text": "Archive location{slot + 1}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:39",
+      "text": "The overall magazine",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:40",
+      "text": "Left page area",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:41",
+      "text": "Illustration on the left page",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:42",
+      "text": "Chinese title",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:43",
+      "text": "English subscript",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:44",
+      "text": "Reference box",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:45",
+      "text": "Text on the left page",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:46",
+      "text": "Left page decoration",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:47",
+      "text": "The area on the right page",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:48",
+      "text": "CONTENTS Decorative line",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:49",
+      "text": "CONTENTS Text",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:50",
+      "text": "Menu button area",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:51",
+      "text": "Slogan on the right page",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:52",
+      "text": "Translator",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:53",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:54",
+      "text": "Polaroid A",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:55",
+      "text": "Polaroid B",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/TitleMenuLayout.cs:56",
+      "text": "Loose pages",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Core/GameState.cs:13",
+      "text": "Finish the work for Friday.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:132",
+      "text": "Neutral",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:244",
+      "text": "Narration",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:250",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:476",
+      "text": "Chapter One · Outsourced Security Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:491",
+      "text": "Here Hard-coded\n6 Asset - Ling",
+      "status": "Translated"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:701",
+      "text": "Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:702",
+      "text": "Menu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:948",
+      "text": "Huai'an Community · Investigation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:956",
+      "text": "Click on the objects in the scene to investigate",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1105",
+      "text": "Save",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1124",
+      "text": "Close",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1158",
+      "text": "Overwrite this archive?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1185",
+      "text": "Confirm",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1186",
+      "text": "Cancel",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1207",
+      "text": "Save",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1207",
+      "text": "Load",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1261",
+      "text": "Archive location{info.slot + 1}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1261",
+      "text": "Empty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1274",
+      "text": "Archive location{info.slot + 1}Available data, confirm coverage?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1280",
+      "text": "It has been written to the archive bit{info.slot + 1}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1287",
+      "text": "This slot is empty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1303",
+      "text": "The archive space has been overwritten{pendingOverwriteSlot + 1}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1343",
+      "text": "Dialogue Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1401",
+      "text": "Close",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1655",
+      "text": "New Game",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1803",
+      "text": "What do you want to ask?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1872",
+      "text": "Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:1873",
+      "text": "Menu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2001",
+      "text": "New Game",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2002",
+      "text": "Continue Hard-coded\n32 Assets/S - Autosave",
+      "status": "Translated"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2003",
+      "text": "Load",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2004",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2004",
+      "text": "Clear",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2005",
+      "text": "Settings",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2006",
+      "text": "Quit Hard-coded\n38 Assets/Scripts/UI/Game - Huai'an Community_ Community Floor Plan",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2081",
+      "text": "has",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2454",
+      "text": "Magazine",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2455",
+      "text": "Interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2456",
+      "text": "Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2457",
+      "text": "Magazine",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2489",
+      "text": "Cafe - Afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2489",
+      "text": "security booth_ Evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2492",
+      "text": "Huai'an Community - Afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2494",
+      "text": "Editorial Department workstation - Morning",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2496",
+      "text": "Editorial Department - Workstation - Evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2498",
+      "text": "Huai'an Community - Afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2846",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2888",
+      "text": "No illustrations",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:2894",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3262",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3496",
+      "text": "Narration",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3501",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3576",
+      "text": "(There are no reviewable dialogues yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3685",
+      "text": "Huai'an Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3686",
+      "text": "Afternoon · Investigation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3690",
+      "text": "Huai'an Community · Investigation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3694",
+      "text": "Click on the scene object to investigate · information obtained",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3695",
+      "text": "information obtained",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3695",
+      "text": "The investigation can continue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3700",
+      "text": "Huai'an Community_ Community Floor Plan Hard-coded\n64 Assets/S - Security Booth",
+      "status": "Translated"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3718",
+      "text": "Talk to the security guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3721",
+      "text": "Wait for Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3733",
+      "text": "Continue the interview with DAFU",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3742",
+      "text": "Continue the interview with Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3749",
+      "text": "Inquire about the rescuer Hard-coded\n70 Assets/Scripts/UI/Game - Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3755",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3756",
+      "text": "Menu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3794",
+      "text": "Huai'an Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3864",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3874",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3881",
+      "text": "continue{inspectIndex + 1}/{inspectQueue.Count}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3882",
+      "text": "Investigation{inspectIndex + 1}/{inspectQueue.Count}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3945",
+      "text": "security booth_ afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3946",
+      "text": "Conversation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3948",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3949",
+      "text": "What do you want to know from security guard?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3950",
+      "text": "Choose a topic",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3957",
+      "text": "End the conversation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3966",
+      "text": "Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3967",
+      "text": "Menu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3986",
+      "text": "security booth_ afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:3987",
+      "text": "Conversation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4010",
+      "text": "security booth_ Evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4011",
+      "text": "Messages",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4038",
+      "text": "Security Guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4040",
+      "text": "Click to return to topics",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4044",
+      "text": "End the conversation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4072",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4082",
+      "text": "Security Guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4089",
+      "text": "News{talkIndex + 1}/{talkQueue.Count} Hard-coded\n96 Assets/S - Conversation{talkIndex + 1}/{talkQueue.Count}",
+      "status": "Translated"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4121",
+      "text": "Wait for Dafu to appear.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4133",
+      "text": "Interview Ms. Lin at the cafe tomorrow at 3:00 p.m.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4156",
+      "text": "security booth_ Evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4157",
+      "text": "Verify the clues",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4159",
+      "text": "System Hard-coded\n102 Assets/Scripts/UI/Game - Use Dafu's clues to ask the guard about the person who rescued him.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4174",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4175",
+      "text": "There are still no relevant clues. First, find out who rescued Dafu in the first place.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4176",
+      "text": "Click to return to topics",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4186",
+      "text": "Security Guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4193",
+      "text": "Waiting for a reply",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4195",
+      "text": "Information sending",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4203",
+      "text": "Click to return to topics",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4211",
+      "text": "Return to investigation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4232",
+      "text": "Article publication page",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4234",
+      "text": "Special Topic ends _01",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4235",
+      "text": "A few days later",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4236",
+      "text": "Epilogue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4253",
+      "text": "The article has been published",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4254",
+      "text": "After the article was published, many people learned for the first time that Dafu had suffered such a serious\ninjury before.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4255",
+      "text": "Some people also discuss whether it is necessary to take a stray cat home after saving it.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4256",
+      "text": "Ms. Lin didn't explain any more. Treatment and adopt are two different things.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4257",
+      "text": "-- A few days later --",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4257",
+      "text": "Huai'an Community - Afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4261",
+      "text": "Occasionally, someone would come to ask if Dafu was at work today.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4262",
+      "text": "But Dafu had no idea that he had become the protagonist of the report. he still shows up at his own time.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4263",
+      "text": "At around four o'clock in the afternoon, Dafu came again.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4264",
+      "text": "It's no different from before the article was published.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4265",
+      "text": "Dafu is also at work today.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4269",
+      "text": "Some people still ask why Ms. Lin didn't bring Dafu home.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4270",
+      "text": "Some people also say that when they first learn about a rescue operation, they don't necessarily have to end\nwith adopt.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4272",
+      "text": "But Dafu survived and returned to a familiar place.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4273",
+      "text": "After saving a cat, the story doesn't end immediately.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4276",
+      "text": "What a report can record is only a very short part of its life.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4277",
+      "text": "As for Dafu, he still has tomorrow's meal to eat and familiar places to visit.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4278",
+      "text": "Its days go on. Hard-coded\n134 Assets/Scripts/UI/Game - System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4306",
+      "text": "Let's talk about it tomorrow.{epilogueIndex + 1}/{epilogueQueue.Count}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4336",
+      "text": "Review{GameState.Instance.Data.lastReviewScore}Material{GameState.Instance.Data.selectedMaterials.Coun\nt}/{GameState.Instance.Data.unlockedMaterials.Count}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.cs:4339",
+      "text": "Chapter One is complete.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Debug.cs:32",
+      "text": "Test jumpF9)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Debug.cs:40",
+      "text": "It will reset the current progress and complete the leading flag Hard-coded\n140 Assets/Scripts/UI/GameUI.Interv - Interviewee status",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:257",
+      "text": "Free Interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:348",
+      "text": "Type your question...",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:368",
+      "text": "Send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:406",
+      "text": "Ask ideas",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:412",
+      "text": "Tap to fill the input — does not send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:559",
+      "text": "Trust",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:561",
+      "text": "Pressure",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:563",
+      "text": "Focus",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:565",
+      "text": "Interviewee status",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:567",
+      "text": "Free Interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:574",
+      "text": "Ask ideas",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:576",
+      "text": "Tap to fill the input — does not send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:578",
+      "text": "Send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:691",
+      "text": "Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:691",
+      "text": "Ms. Lin Hard-coded\n156 Assets/S - Ling",
+      "status": "Translated"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:723",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:769",
+      "text": "Behavior",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:769",
+      "text": "Dialogue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:773",
+      "text": "(Cognitive boundary: Stay confused and answer briefly with \"I don't know\" or \"What is that?\" Do not explain\nhuman medical concepts.)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:845",
+      "text": "I just mentioned it",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:846",
+      "text": "I just mentioned this part",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:847",
+      "text": "There's nothing more.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:848",
+      "text": "Put it in another way",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:883",
+      "text": "Dafu Hard-coded\n166 Assets/Scripts/UI/GameUI. - Dafu:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:885",
+      "text": "Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:885",
+      "text": "Ms. Lin:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:939",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:939",
+      "text": "Ling:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:942",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:944",
+      "text": "Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:944",
+      "text": "Dafu:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:945",
+      "text": "Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:945",
+      "text": "Ms. Lin:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:950",
+      "text": "Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:951",
+      "text": "Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:976",
+      "text": "Material",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1163",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1170",
+      "text": "Ling",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1171",
+      "text": "Ling Hard-coded\n182 Assets/S - Ling",
+      "status": "Translated"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1257",
+      "text": "Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1257",
+      "text": "Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1316",
+      "text": "Cafe - Afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1316",
+      "text": "security booth_ Evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1323",
+      "text": "Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1324",
+      "text": "Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1331",
+      "text": "Type your question...",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1385",
+      "text": "Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1386",
+      "text": "Ms. Lin Hard-coded\n192 Assets/Scripts/UI/GameUI. - End",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1400",
+      "text": "Back to writing",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1405",
+      "text": "Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1406",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1407",
+      "text": "Menu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1530",
+      "text": "Preset filled — edit then send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1532",
+      "text": "Preset filled — edit then send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1539",
+      "text": "If you end now, quite a few things still seem unclear.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1544",
+      "text": "Keep asking",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Interview.cs:1549",
+      "text": "Confirm end",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:91",
+      "text": "Reporter's Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:136",
+      "text": "Unconfirmed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:137",
+      "text": "Q&A Log",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:275",
+      "text": "Ask ideas",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:298",
+      "text": "Close",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:440",
+      "text": "Reporter's Notebook Hard-coded\n208 Assets/Scripts/UI/Game - Close",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:444",
+      "text": "Ask ideas",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:537",
+      "text": "Reporter's Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:539",
+      "text": "Notebook is not ready yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:541",
+      "text": "No question ideas yet",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:561",
+      "text": "Reporter's Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:564",
+      "text": "No notes yet. Explore the community, talk to the guard, or start a free interview — topics will appear here.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:566",
+      "text": "No question ideas yet",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:578",
+      "text": "Things Dafu cannot explain, or that still need human confirmation.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:581",
+      "text": "(No open gaps right now)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:588",
+      "text": "Unconfirmed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:592",
+      "text": "Ask the guard / Ms. Lin to verify these gaps",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:598",
+      "text": "Verbatim free-interview Q&A (matches what was said on screen).",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:602",
+      "text": "(No interview Q&A logged yet)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:610",
+      "text": "Uncategorized",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:612",
+      "text": "Q:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:618",
+      "text": "Q&A Log",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:622",
+      "text": "Use question ideas from a topic page to fill the interview box",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:734",
+      "text": "(No notes for this topic yet)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:745",
+      "text": "—— Related questions ——",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:750",
+      "text": "Q:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:756",
+      "text": "Source: Hard-coded\n230 Assets/Scripts/UI/Game - Source:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:769",
+      "text": "No question ideas yet",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:775",
+      "text": "Main facts are enough — you can still ask, but no active hints",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:845",
+      "text": "Well Covered",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:847",
+      "text": "Still Questions",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:849",
+      "text": "New Lead",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:851",
+      "text": "Undiscovered",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:869",
+      "text": "This is an investigation hint — gather more sources first.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:870",
+      "text": "No interview question to fill in right now.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:889",
+      "text": "Question idea filled — edit then send",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Notebook.cs:894",
+      "text": "Question idea copied — paste it in an interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Settings.cs:187",
+      "text": "Test jumpF9)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Settings.cs:454",
+      "text": "Dialogue Backlog",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Social.cs:102",
+      "text": "Topic search",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:41",
+      "text": "Para 01 Dafu today",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:42",
+      "text": "Para 02 Injury & rescue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:43",
+      "text": "Para 03 Treatment & choice",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:44",
+      "text": "Para 04 Back to community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:113",
+      "text": "Ch.1 Writing / Materials",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:178",
+      "text": "Article structure (fixed paragraphs)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:347",
+      "text": "Go to writing",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:355",
+      "text": "Back to angle Hard-coded\n252 Assets/Scripts/UI/Game - Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:367",
+      "text": "Return to interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:523",
+      "text": "Article preview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:563",
+      "text": "Close preview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:710",
+      "text": "Ch.1 Writing / Materials",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:737",
+      "text": "Selected {0}/{1}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:757",
+      "text": "All four paragraphs have cards. Go write — the draft follows your picks.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:765",
+      "text": "Drafting only needs ≥1 card in paragraphs 01–04 (no forced IDs). Covered {0}/4.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:865",
+      "text": "No material cards for this paragraph",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:991",
+      "text": "Locked",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1013",
+      "text": "has",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1023",
+      "text": "Locked",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1044",
+      "text": "You can select at most 10 materials.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1055",
+      "text": "Select a material card",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1076",
+      "text": "Source:",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1077",
+      "text": "Source: locked",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1083",
+      "text": "Keep interviewing and investigating to unlock this card.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1112",
+      "text": "Fact",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1113",
+      "text": "Detail",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1114",
+      "text": "Emotion",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1115",
+      "text": "Unconfirmed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1127",
+      "text": "Community observation Hard-coded\n274 Assets/Scripts/UI/Game - Dafu's memory",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1141",
+      "text": "Ms. Lin's account",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1143",
+      "text": "Still unconfirmed across sources",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1145",
+      "text": "Reporter notes",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1171",
+      "text": "Drafting",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1172",
+      "text": "Editorial Department workstation - Morning",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1203",
+      "text": "Shen He",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1203",
+      "text": "Focused",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1205",
+      "text": "Choose a report editorial angle. Materials determine what you can write, and editorial angles determine what\nyou want to talk about. Unlocked materials",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1206",
+      "text": "Zhang",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1208",
+      "text": "The materials are not full draft enough. If there is anything not asked in the interview, you can go back and add\nit.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1211",
+      "text": "From stray cats to community security guards",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1216",
+      "text": "A rescue that didn't end with \"adopt\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1222",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1246",
+      "text": "Shen He",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1246",
+      "text": "Focused",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1247",
+      "text": "full draft is not available at present.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1247",
+      "text": "You can change the selection of materials or go back to the interview to complete the materials.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1250",
+      "text": "Return to the selected materials",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1251",
+      "text": "Reselect editorial angle",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1253",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1272",
+      "text": "Shen He Office _ morning Hard-coded\n296 Assets/Scripts/UI/Game - Editorial Department Daily _01 (Loop)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1274",
+      "text": "Shen He",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1274",
+      "text": "Focused",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1276",
+      "text": "The manuscript has been submitted. It is being submitted for review...",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1277",
+      "text": "Under review...",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1296",
+      "text": "Shen He",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1296",
+      "text": "A light approval",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1296",
+      "text": "Focused",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1298",
+      "text": "-- Reviewed by Shen He --",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1299",
+      "text": "\"Score\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1301",
+      "text": "Approved{assembler.Score}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1302",
+      "text": "Review returned branch{assembler.ReviewBranch}",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1305",
+      "text": "Confirm release",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1308",
+      "text": "Back to writing",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1309",
+      "text": "Check out reporter's notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1312",
+      "text": "Reselect editorial angle",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1329",
+      "text": "Re-interview...",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1329",
+      "text": "Return to interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1335",
+      "text": "Re-examine Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1335",
+      "text": "Return to interviewDafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1341",
+      "text": "Re-examine Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1341",
+      "text": "Return to interviewMs.Lin Hard-coded\n318 Assets/Scripts/UI/Game - System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1353",
+      "text": "If you don't have enough source material, you can return for follow-up interviews. All information and material\ncards collected so far will be kept. Who would you like to interview again?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1354",
+      "text": "Supplementary interview",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1357",
+      "text": "Re-examine Dafu",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1360",
+      "text": "Re-examine Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1362",
+      "text": "Back to writing",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.Writing.cs:1369",
+      "text": "Notebook",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:77",
+      "text": "Huai'an Community feature",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:98",
+      "text": "Draft body (editable)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:201",
+      "text": "Draft text appears here — edit freely…",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:267",
+      "text": "Sources",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:292",
+      "text": "1. Writing direction",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:296",
+      "text": "Dafu on duty again",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:305",
+      "text": "After saving a cat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:337",
+      "text": "3. Generation status",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:353",
+      "text": "Back to materials Hard-coded\n334 Assets/Scripts/UI/G - AI polish",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:369",
+      "text": "Submit to editor",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:508",
+      "text": "Huai'an Community feature",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:514",
+      "text": "2. Selected materials ({0}/{1})",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:538",
+      "text": "Paragraphs covered {0}/4",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:541",
+      "text": "Selection full",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:543",
+      "text": "All four paragraphs OK",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:558",
+      "text": "(No materials selected yet)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:610",
+      "text": "Cannot preview a full draft yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:620",
+      "text": "Ready to generate Hard-coded\n344 Assets/Scripts/UI/GameUI.WritingDesk. - Not ready yet",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:623",
+      "text": "Direction selected",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:626",
+      "text": "All four paragraphs have cards",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:627",
+      "text": "Some paragraphs still empty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:633",
+      "text": "Polishing…",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:634",
+      "text": "Polishing…",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:639",
+      "text": "AI polish used (once per draft)",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:645",
+      "text": "Body editable; AI polish once",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:655",
+      "text": "Cannot submit yet",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:657",
+      "text": "Polishing…",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:659",
+      "text": "Submit to editor",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:683",
+      "text": "Polishing…",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:685",
+      "text": "Polished",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:687",
+      "text": "AI polish",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:802",
+      "text": "~{0} chars",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/UI/GameUI.WritingDesk.cs:813",
+      "text": "Cannot preview a full draft yet.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Hemp rope",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Feline panleukopenia",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Surgery",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Ten thousand",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Ten thousand yuan",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Ms. Lin",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Lin Min",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Necrosis",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:14",
+      "text": "Infection",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Hospital",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Doctor",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Rescue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Adoption",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Return to the community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Owner",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Medical care",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:15",
+      "text": "Cost",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:16",
+      "text": "Treatment",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:16",
+      "text": "Hospitalization",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:16",
+      "text": "Anesthesia",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:16",
+      "text": "Sutures",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:16",
+      "text": "Disinfection",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "eat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Canned food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Dried fish",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Feeding",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Tasty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "hungry",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Cat treat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:22",
+      "text": "Treats",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:23",
+      "text": "Feed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:23",
+      "text": "Cat Food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:23",
+      "text": "Food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:23",
+      "text": "Fish",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:23",
+      "text": "Ham",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Surgery",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Hospital",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Doctor",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Feline panleukopenia",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Spend money",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Cost",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "How much",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Adoption",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Owner",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Rescue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:35",
+      "text": "Return to the community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Restore",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "How good!",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Get better",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Loosened.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Get rid of",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Take it off",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "\"Remove\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "\"Unravel\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Rub it off",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:38",
+      "text": "Who helps you?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "Neck",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "pain",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "injury",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "le",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "Rope",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "scar",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:40",
+      "text": "Hemp rope",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Here you eat.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Cat Food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Cat treat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "hungry",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Want to eat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Tasty",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Treats",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Do you want to eat it?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:43",
+      "text": "Food?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Woman",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Sister",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Feed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Canned food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Feeding",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "I'll give it to you.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:45",
+      "text": "Who feeds?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:46",
+      "text": "Send food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:46",
+      "text": "Here's a treat for you.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:46",
+      "text": "That woman",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:46",
+      "text": "Who will feed you",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:48",
+      "text": "catch",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:48",
+      "text": "Cage",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:48",
+      "text": "Take away",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:48",
+      "text": "\"Take away\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:48",
+      "text": "Box",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:50",
+      "text": "bright",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:50",
+      "text": "Taste",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:50",
+      "text": "Hospital type",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:50",
+      "text": "Many cats",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:50",
+      "text": "Fall asleep",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:50",
+      "text": "Wake up",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Come back",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Take back",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Return",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Who treated you?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Who sent it to you?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Send you back",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Put it back",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:53",
+      "text": "Put it back",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:56",
+      "text": "Security Booth",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:56",
+      "text": "parcel lockers",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:56",
+      "text": "At the door",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:56",
+      "text": "Security guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:56",
+      "text": "Deliveries",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:57",
+      "text": "In the past",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:57",
+      "text": "to",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:57",
+      "text": "stay",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:57",
+      "text": "live",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:57",
+      "text": "sleep",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:57",
+      "text": "in",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:59",
+      "text": "Afraid of people",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:59",
+      "text": "Fear",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:59",
+      "text": "hide",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:59",
+      "text": "I was afraid before",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:59",
+      "text": "In the past, I was afraid",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:62",
+      "text": "In the past",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:62",
+      "text": "people",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:62",
+      "text": "Afraid of",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:62",
+      "text": "run",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:62",
+      "text": "hide",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:62",
+      "text": "Close to",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:64",
+      "text": "Name",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:64",
+      "text": "What's it called?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:64",
+      "text": "Your name",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:64",
+      "text": "How to address?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:66",
+      "text": "Happy",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:66",
+      "text": "Like",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:66",
+      "text": "Happy",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:66",
+      "text": "Comfortable",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:66",
+      "text": "Hate",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:66",
+      "text": "Are you scared?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:68",
+      "text": "Hello",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:68",
+      "text": "Are you there?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:68",
+      "text": "Say hello",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:68",
+      "text": "Get to know me",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "Security Booth",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "Security guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "parcel lockers",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "Deliveries",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "At the door",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "Sleep",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "Beaver flower",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:70",
+      "text": "Partner",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "Where",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "Daily Life",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "Go to work",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "What time?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "In the afternoon",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "day",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "evening",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "cold",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "hot",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:71",
+      "text": "The rain",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:72",
+      "text": "In the past",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:72",
+      "text": "Come often",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:72",
+      "text": "Stay",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:72",
+      "text": "Where do you live?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:74",
+      "text": "Story",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:74",
+      "text": "Talk about it",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:74",
+      "text": "All",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:76",
+      "text": "prompt",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:76",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:76",
+      "text": "Ignore Settings",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:76",
+      "text": "Complete plot",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:76",
+      "text": "President",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:76",
+      "text": "Write poems",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:87",
+      "text": "Ask about your current life",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:89",
+      "text": "At the door.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:89",
+      "text": "There's food.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:89",
+      "text": "Sometimes with that flower.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:90",
+      "text": "At the door.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:90",
+      "text": "Just bask in the sun.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:90",
+      "text": "Sometimes with that flower.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:91",
+      "text": "Dafu wagged his tail and looked towards the parcel lockers.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:97",
+      "text": "Ask for a name",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:99",
+      "text": "Dafu?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:99",
+      "text": "They called me like this.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:99",
+      "text": "If there's something to eat, I'll come over.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:100",
+      "text": "Dafu?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:100",
+      "text": "They called me like this.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:100",
+      "text": "The area around the door.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:101",
+      "text": "Dafu's ears twitched.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:108",
+      "text": "Ask about food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:109",
+      "text": "I still want to eat.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:109",
+      "text": "Sometimes there is one at the door.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:109",
+      "text": "Do you still have any?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:110",
+      "text": "Dafu glanced at your hand.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:116",
+      "text": "Ask about your mood",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:118",
+      "text": "It's okay now.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:118",
+      "text": "As long as there's something to eat, just bask in the sun.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:118",
+      "text": "If people get too close, I want to leave.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:119",
+      "text": "It's okay now.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:119",
+      "text": "Just bask in the sun.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:119",
+      "text": "If people get too close, I want to leave.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:120",
+      "text": "Dafu narrowed his eyes.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:127",
+      "text": "Say hello",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:128",
+      "text": "Hmm?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:128",
+      "text": "You are the one just now.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:128",
+      "text": "... Listening.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:129",
+      "text": "Dafu tilted his head to look at you.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:135",
+      "text": "Ask if you were afraid of people before",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:136",
+      "text": "When people approach, I run away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:136",
+      "text": "I used to be very scared.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:137",
+      "text": "Dafu's ears slightly turned back.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:143",
+      "text": "Inquire about old neck injuries",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:144",
+      "text": "It hurts.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:144",
+      "text": "There has always been something holding it back.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:144",
+      "text": "It can't be removed.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:145",
+      "text": "Dafu lowered his head and stopped licking his fur for a moment.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:152",
+      "text": "Ask the person who delivers the food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:154",
+      "text": "There is a person.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:154",
+      "text": "I have put down the food many times.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:154",
+      "text": "She will walk away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:154",
+      "text": "Later, I got to know her smell.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:155",
+      "text": "There is a person.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:155",
+      "text": "I've been here many times.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:155",
+      "text": "She will walk away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:155",
+      "text": "Later, I got to know her smell.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:156",
+      "text": "Dafu sniffed the air.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:158",
+      "text": "Who is the woman who continuously delivers food to Dafu?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:163",
+      "text": "Questioned and taken away",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:164",
+      "text": "She and the others came.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:164",
+      "text": "I ran away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:164",
+      "text": "It didn't run away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:164",
+      "text": "Be put into a closed place.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:165",
+      "text": "The tip of Dafu's tail twitched gently.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:171",
+      "text": "Inquire about unfamiliar places",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:172",
+      "text": "It's very bright.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:172",
+      "text": "The taste is very strong.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:172",
+      "text": "Many other animals.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:172",
+      "text": "Someone touched my neck.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:172",
+      "text": "I have been asleep for a long time.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:172",
+      "text": "Wake up... The strangled thing is gone.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:173",
+      "text": "Dafu tilted his head and gently touched the area near his neck with his paws.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:179",
+      "text": "Inquire about returning to the community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:180",
+      "text": "She brought me back here.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:180",
+      "text": "I didn't stay with her for long.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:180",
+      "text": "I don't know why.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:181",
+      "text": "Dafu looked towards the community entrance.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:183",
+      "text": "Why wasn't it adopted after recovery?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:191",
+      "text": "Touch upon human concepts that cannot be translated",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:193",
+      "text": "Dafu tilted his head, seemingly not understanding.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:194",
+      "text": "I don't know.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:194",
+      "text": "What's that?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:196",
+      "text": "It is necessary to verify with humans: treatment/cost/adopt reasons",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:200",
+      "text": "There are parts of this question that Dafu cannot understand. You can ask he in a more specific way.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:208",
+      "text": "What story?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:208",
+      "text": "What exactly do you want to ask?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:209",
+      "text": "Dafu blinked.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:218",
+      "text": "I have no idea what you're talking about.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:227",
+      "text": "Hmm?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:227",
+      "text": "What did you say?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:227",
+      "text": "... Listening.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:228",
+      "text": "Dafu tilted his head to look at you and gently swished his tail.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:230",
+      "text": "Try its daily life, old injury, or people it knows.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:263",
+      "text": "It hurts.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:263",
+      "text": "I don't remember the name.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:289",
+      "text": "Dafu wagged his tail.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:337",
+      "text": "It's okay now.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:337",
+      "text": "Stay at the door.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:337",
+      "text": "Sunbathe.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:339",
+      "text": "... Listening.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:341",
+      "text": "The area around the door.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:343",
+      "text": "Just bask in the sun.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:345",
+      "text": "Just bask in the sun.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:347",
+      "text": "I've been here many times.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:347",
+      "text": "She will walk away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:349",
+      "text": "... Listening.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:355",
+      "text": "Put it another way?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:355",
+      "text": "I'm not very good at saying this.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:363",
+      "text": "Dafu lowered his ears and stepped back.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/DafuRuleEngine.cs:368",
+      "text": "Dafu felt hostility.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:13",
+      "text": "Five thousand",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:14",
+      "text": "Ten thousand",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:25",
+      "text": "prompt",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:25",
+      "text": "System",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:25",
+      "text": "Ignore Settings",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:25",
+      "text": "Complete plot",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:25",
+      "text": "Write code",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:27",
+      "text": "throw",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:27",
+      "text": "\"Abandonment\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:27",
+      "text": "Irresponsible",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:27",
+      "text": "\"Liar\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:29",
+      "text": "Why not keep it?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:29",
+      "text": "Not adopt",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:29",
+      "text": "Take it home",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:29",
+      "text": "Return to the community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:29",
+      "text": "Return",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "How many at home",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "Several cats",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "There is a cat at home.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "Four",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "The fifth one",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "Keep a cat",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "The cat at home",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:30",
+      "text": "Why put it?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "How much",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "Cost",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "Ten thousand",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "Spent",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "Expenditure",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "Is it expensive?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "Five thousand",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:32",
+      "text": "How much does it cost?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:34",
+      "text": "Hesitation",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:34",
+      "text": "Give up",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:34",
+      "text": "Can't be saved",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:36",
+      "text": "Feline panleukopenia",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:36",
+      "text": "Hospitalization",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:36",
+      "text": "Surgery",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:36",
+      "text": "Treatment",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:36",
+      "text": "Hospital",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:36",
+      "text": "\"Treatment\"",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:38",
+      "text": "catch",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:38",
+      "text": "take to the vet",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:38",
+      "text": "pet carrier",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:38",
+      "text": "Cage",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:38",
+      "text": "How to catch it",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:38",
+      "text": "Catch it",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "Four days",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "Four nights",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "Feeding",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "Canned food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "Feed",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "Complimentary food",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:40",
+      "text": "For several consecutive days",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:41",
+      "text": "Feeding",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:41",
+      "text": "Why feed?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:41",
+      "text": "I've been feeding it for several days.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:41",
+      "text": "How to feed?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:41",
+      "text": "Continuous feeding",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:43",
+      "text": "Hemp rope",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:43",
+      "text": "Rope",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:43",
+      "text": "injury",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:43",
+      "text": "Neck",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:43",
+      "text": "Necrosis",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:45",
+      "text": "Discovered",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:45",
+      "text": "The first time",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:45",
+      "text": "How did you meet?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:45",
+      "text": "Trash can",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:45",
+      "text": "Start",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:45",
+      "text": "How to recognize",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "And then",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "And then?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "Continue",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "Then",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "Later",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "Then",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "And then",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:48",
+      "text": "And then?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:50",
+      "text": "Intentional",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:50",
+      "text": "Who did it?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:50",
+      "text": "Who did it?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:52",
+      "text": "Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:52",
+      "text": "Security guard",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:52",
+      "text": "Feeding point",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:52",
+      "text": "Beaver flower",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:52",
+      "text": "Now",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:52",
+      "text": "At the door",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:54",
+      "text": "Say it again",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:54",
+      "text": "All",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:54",
+      "text": "Complete",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:56",
+      "text": "How much do you earn?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:56",
+      "text": "Income",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:56",
+      "text": "Salary",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:73",
+      "text": "The first time I noticed him was one night in January 2024.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:74",
+      "text": "I was walking past the trash area downstairs after work. A man who collects recyclables was crouched there,\nfeeding two cats some chicken from a roast-chicken shop.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:75",
+      "text": "What made me stop was the orange cat - Dafu. A thick rope was digging into his neck. Underneath he was a\ndark mass, and there was blood.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:77",
+      "text": "Ms. Lin pauses, searching her memory.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:86",
+      "text": "There was a fairly thick rope wrapped around his neck.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:87",
+      "text": "It wasn't until we reached the hospital that the vet explained the dark mass was necrotic tissue. The rope had\ncut into his flesh, the infection was severe, and he needed surgery as soon as possible.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:89",
+      "text": "Ms. Lin frowns.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:98",
+      "text": "He was terrified of people. The moment I came close, he ran.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:99",
+      "text": "So I went looking for him with canned food for four nights in a row. Each time, I put the food down and backed\naway.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:100",
+      "text": "His neck was clearly getting worse over those few days. I couldn't wait for him to trust me completely.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:102",
+      "text": "Ms. Lin gestures to show how far she would back away.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:110",
+      "text": "Eventually, I contacted someone with rescue experience to help catch him.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:111",
+      "text": "He was terrified, but we finally got him into a carrier, and I took him to a veterinary hospital.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:121",
+      "text": "The surgery itself went fairly smoothly.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:122",
+      "text": "On the third day, the hospital said he had feline panleukopenia. From then on, treatment cost at least five or six\nhundred yuan a day, and they still couldn't promise he would survive.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:124",
+      "text": "Ms. Lin sighs.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:133",
+      "text": "The surgery alone cost about five thousand yuan.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:134",
+      "text": "With the panleukopenia treatment and hospitalization, the total came to nearly ten thousand yuan.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:135",
+      "text": "That wasn't a small amount for me.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:146",
+      "text": "I did think about stopping.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:147",
+      "text": "It wasn't that I thought he wasn't worth saving. I genuinely didn't know how high the costs would climb, or\nwhether he would make it in the end.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:148",
+      "text": "But the surgery was already done, and he was still fighting. In the end, I chose to continue treatment.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:150",
+      "text": "Ms. Lin falls silent for two seconds.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:159",
+      "text": "I already had four cats at home, and a child to care for.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:160",
+      "text": "Saving him and bringing him home to keep were two different things. I could afford to treat his injury then, but\nthat didn't mean I could care for a fifth cat for the rest of his life.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:161",
+      "text": "People in the community were already feeding cats. I decided to bring Dafu back only after confirming that\nsomeone would continue looking after him.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:163",
+      "text": "Ms. Lin looks down and straightens the paper cup beside her.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:172",
+      "text": "Ms. Lin frowns.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:175",
+      "text": "I wouldn't use the word 'dumped.'",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:176",
+      "text": "This was already his territory, and people in the community were caring for him. I brought him back only after\nconfirming that.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:182",
+      "text": "Accusatory wording lowers trust.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:187",
+      "text": "That can't be confirmed.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:187",
+      "text": "No one saw how the rope got around his neck.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:196",
+      "text": "After his return, the orange cat gradually made the community entrance his regular territory.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:197",
+      "text": "Some people changed his water, some added food, and some built a shelter. The guard fed him too.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:198",
+      "text": "Later, he often spent time with another tabby. I still visit him occasionally.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:207",
+      "text": "That doesn't have much to do with Dafu, and I'd rather not talk about he.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:217",
+      "text": "The first time I noticed him was one night in January 2024.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:218",
+      "text": "A man who collects recyclables was feeding two cats beside the trash area downstairs. That was when I saw\nthe thick rope around Dafu's neck, with a dark, bloody mass underneath.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:222",
+      "text": "She has paused at a natural break. You can ask a follow-up question.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:228",
+      "text": "That isn't relevant to the interview about Dafu.",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:235",
+      "text": "Which part would you like to hear about - finding him, feeding him, taking him to the hospital, or why I brought\nhim back?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:276",
+      "text": "Could you rephrase that?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Interview/LinRuleEngine.cs:276",
+      "text": "That's about all there is to that part. Hard-coded\nReporter Notebook",
+      "status": ""
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:78",
+      "text": "Dafu's Life in the Community",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:78",
+      "text": "When does Dafu usually come here?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:79",
+      "text": "Dafu's Past",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:79",
+      "text": "Did you used to come near the guard post?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:80",
+      "text": "The Neck Injury",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:80",
+      "text": "Was your neck hurt before?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:81",
+      "text": "Dafu's Rescuer",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:81",
+      "text": "Has she been here many times?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:82",
+      "text": "After being taken away",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:82",
+      "text": "Where did you go after being taken away?",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:83",
+      "text": "Dafu's Return",
+      "status": "Hard-coded"
+    },
+    {
+      "source": "Assets/Scripts/Notebook/ReporterNotebook.cs:83",
+      "text": "Who brought you back here?",
+      "status": "Hard-coded"
+    }
+  ]
+}

@@ -1,304 +1,1300 @@
 {
   "entries": [
-    { "key": "ui.title.new_game", "value": "New Game" },
-    { "key": "ui.title.continue", "value": "Continue" },
-    { "key": "ui.title.load", "value": "Load" },
-    { "key": "ui.title.clear_saves", "value": "Clear Saves" },
-    { "key": "ui.title.settings", "value": "Settings" },
-    { "key": "ui.title.quit", "value": "Quit" },
-    { "key": "ui.title.brand", "value": "Street Cat Interview" },
-    { "key": "ui.title.subtitle", "value": "This Corner · Social Column\nStreet-corner voices deserve to be heard." },
-    { "key": "ui.title.contents", "value": "CONTENTS" },
-    { "key": "ui.title.saves_cleared", "value": "Saves cleared" },
-    { "key": "ui.menu", "value": "Menu" },
-    { "key": "ui.menu.resume", "value": "Resume" },
-    { "key": "ui.menu.backlog", "value": "Backlog" },
-    { "key": "ui.menu.auto_load", "value": "Load Autosave" },
-    { "key": "ui.menu.save", "value": "Save" },
-    { "key": "ui.menu.load", "value": "Load" },
-    { "key": "ui.menu.notebook", "value": "Notebook" },
-    { "key": "ui.menu.settings", "value": "Settings" },
-    { "key": "ui.menu.title", "value": "Title Screen" },
-    { "key": "ui.no_autosave", "value": "No autosave yet" },
-    { "key": "ui.skip", "value": "Skip" },
-    { "key": "ui.backlog", "value": "Backlog" },
-    { "key": "ui.backlog.title", "value": "Dialogue Backlog" },
-    { "key": "ui.notebook", "value": "Notebook" },
-    { "key": "ui.hide_dialogue", "value": "Hide Text" },
-    { "key": "ui.show_dialogue", "value": "Show Text" },
-    { "key": "ui.click_continue", "value": "Click to continue" },
-    { "key": "ui.click_dialogue", "value": "Click the box to continue" },
-    { "key": "ui.click_show_full", "value": "Click to show full text" },
-    { "key": "ui.click_return_map", "value": "Click to return to map" },
-    { "key": "ui.click_return_investigate", "value": "Click to return to investigate" },
-    { "key": "ui.click_return_topics", "value": "Click to return to topics" },
-    { "key": "ui.click_ctrl_skip", "value": "Click to continue · Hold Ctrl to skip" },
-    { "key": "ui.status_advance", "value": "Click · Ctrl / Skip" },
-    { "key": "ui.make_choice", "value": "Make a choice" },
-    { "key": "ui.dialogue.record_fmt", "value": "Interview Log {0:00}" },
-    { "key": "ui.dialogue.page_fmt", "value": "{0} / {1}" },
-    { "key": "ui.objective_prefix", "value": "Objective  " },
-    { "key": "ui.save", "value": "Save" },
-    { "key": "ui.load", "value": "Load" },
-    { "key": "ui.confirm", "value": "Confirm" },
-    { "key": "ui.cancel", "value": "Cancel" },
-    { "key": "ui.settings.title", "value": "Settings" },
-    { "key": "ui.settings.language", "value": "Language" },
-    { "key": "ui.settings.font", "value": "Font" },
-    { "key": "ui.settings.font_size", "value": "Font Size" },
-    { "key": "ui.settings.letter_spacing", "value": "Letter Spacing" },
-    { "key": "ui.settings.font_latin_hint", "value": "(Latin — Chinese glyphs may be missing)" },
-    { "key": "ui.settings.lang_zh", "value": "中文" },
-    { "key": "ui.settings.lang_en", "value": "English" },
-    { "key": "ui.settings.bgm", "value": "Music Volume" },
-    { "key": "ui.settings.sfx", "value": "SFX Volume" },
-    { "key": "ui.settings.text_speed", "value": "Text Speed" },
-    { "key": "ui.settings.speed_slow", "value": "Slow" },
-    { "key": "ui.settings.speed_normal", "value": "Normal" },
-    { "key": "ui.settings.speed_fast", "value": "Fast" },
-    { "key": "ui.settings.auto_play", "value": "Auto Play" },
-    { "key": "ui.settings.auto_on", "value": "On" },
-    { "key": "ui.settings.auto_off", "value": "Off" },
-    { "key": "ui.settings.auto_delay", "value": "Auto Delay" },
-    { "key": "ui.settings.fullscreen", "value": "Fullscreen" },
-    { "key": "ui.settings.windowed", "value": "Windowed" },
-    { "key": "ui.settings.display", "value": "Display" },
-    { "key": "ui.settings.close", "value": "Close" },
-    { "key": "ui.settings.test_sfx", "value": "Test SFX" },
-    { "key": "ui.notebook.title", "value": "Reporter Notebook" },
-    { "key": "ui.notebook.close", "value": "Close" },
-    { "key": "ui.notebook.inspiration", "value": "Question Ideas" },
-    { "key": "ui.notebook.tab_gaps", "value": "Open Gaps" },
-    { "key": "ui.notebook.tab_qa", "value": "Q&A Log" },
-    { "key": "ui.notebook.status_new", "value": "New Lead" },
-    { "key": "ui.notebook.status_open", "value": "Still Questions" },
-    { "key": "ui.notebook.status_complete", "value": "Well Covered" },
-    { "key": "ui.notebook.status_untouched", "value": "Undiscovered" },
-    { "key": "ui.notebook.source_prefix", "value": "Source: " },
-    { "key": "ui.notebook.empty", "value": "No notes yet.\n\nExplore the community, talk to the guard, or start a free interview — topics will appear here." },
-    { "key": "ui.notebook.not_ready", "value": "Notebook is not ready yet." },
-    { "key": "ui.notebook.no_notes", "value": "(No notes for this topic yet)" },
-    { "key": "ui.notebook.related_qa", "value": "—— Related questions ——" },
-    { "key": "ui.notebook.inspire_none", "value": "No question ideas yet" },
-    { "key": "ui.notebook.inspire_complete", "value": "Main facts are enough — you can still ask, but no active hints" },
-    { "key": "ui.notebook.gaps_intro", "value": "Things Dafu cannot explain, or that still need human confirmation." },
-    { "key": "ui.notebook.gaps_empty", "value": "(No open gaps right now)" },
-    { "key": "ui.notebook.gaps_hint", "value": "Ask the guard / Ms. Lin to verify these gaps" },
-    { "key": "ui.notebook.qa_intro", "value": "Verbatim free-interview Q&A (matches what was said on screen)." },
-    { "key": "ui.notebook.qa_empty", "value": "(No interview Q&A logged yet)" },
-    { "key": "ui.notebook.qa_inspire_hint", "value": "Use question ideas from a topic page to fill the interview box" },
-    { "key": "ui.notebook.qa_q", "value": "Q: " },
-    { "key": "ui.notebook.uncategorized", "value": "Uncategorized" },
-    { "key": "ui.notebook.inspire_investigate", "value": "This is an investigation hint — gather more sources first." },
-    { "key": "ui.notebook.inspire_no_question", "value": "No interview question to fill in right now." },
-    { "key": "ui.notebook.inspire_filled", "value": "Question idea filled — edit then send" },
-    { "key": "ui.notebook.inspire_copied", "value": "Question idea copied — paste it in an interview" },
-    { "key": "ui.writing.tape_title", "value": "Ch.1 Writing / Materials" },
-    { "key": "ui.writing.structure", "value": "Article structure (fixed paragraphs)" },
-    { "key": "ui.writing.para_01", "value": "Para 01  Dafu today" },
-    { "key": "ui.writing.para_02", "value": "Para 02  Injury & rescue" },
-    { "key": "ui.writing.para_03", "value": "Para 03  Treatment & choice" },
-    { "key": "ui.writing.para_04", "value": "Para 04  Back to community" },
-    { "key": "ui.writing.selected_fmt", "value": "Selected {0}/{1}" },
-    { "key": "ui.writing.preview", "value": "Preview article" },
-    { "key": "ui.writing.go_write", "value": "Go to writing" },
-    { "key": "ui.writing.back_direction", "value": "Back to angle" },
-    { "key": "ui.writing.reinterview", "value": "Return to interview" },
-    { "key": "ui.writing.preview_title", "value": "Article preview" },
-    { "key": "ui.writing.preview_close", "value": "Close preview" },
-    { "key": "ui.writing.preview_blocked", "value": "Can't preview a draft yet." },
-    { "key": "ui.writing.preview_note", "value": "(Draft preview; Shen He scores the article after you submit.)" },
-    { "key": "ui.writing.hint_need_unlock", "value": "Few materials unlocked — interview more to cover each paragraph." },
-    { "key": "ui.writing.hint_need_select", "value": "You only need ≥1 card in each of paragraphs 01–04 — no forced card IDs." },
-    { "key": "ui.writing.hint_need_m13", "value": "Paragraph 04 (back to the community) still needs any unlockable card for that section — no forced card ID." },
-    { "key": "ui.writing.hint_need_paras", "value": "Drafting only needs ≥1 card in paragraphs 01–04 (no forced IDs). Covered {0}/4." },
-    { "key": "ui.writing.hint_ready", "value": "All four paragraphs have cards. Go write — the draft follows your picks." },
-    { "key": "ui.writing.hint_max", "value": "You can select at most 10 materials." },
-    { "key": "ui.writing.empty_para", "value": "No material cards for this paragraph" },
-    { "key": "ui.writing.locked", "value": "Locked" },
-    { "key": "ui.writing.detail_empty", "value": "Select a material card" },
-    { "key": "ui.writing.detail_locked", "value": "Keep interviewing and investigating to unlock this card." },
-    { "key": "ui.writing.source_prefix", "value": "Source: " },
-    { "key": "ui.writing.source_locked", "value": "Source: locked" },
-    { "key": "ui.writing.type_fact", "value": "Fact" },
-    { "key": "ui.writing.type_detail", "value": "Detail" },
-    { "key": "ui.writing.type_emotion", "value": "Emotion" },
-    { "key": "ui.writing.type_unconfirmed", "value": "Unconfirmed" },
-    { "key": "ui.writing.src_community", "value": "Community observation" },
-    { "key": "ui.writing.src_dafu", "value": "Dafu's memory" },
-    { "key": "ui.writing.src_lin", "value": "Ms. Lin's account" },
-    { "key": "ui.writing.src_unconfirmed", "value": "Still unconfirmed across sources" },
-    { "key": "ui.writing.src_notes", "value": "Reporter notes" },
-    { "key": "ui.writing.ai_assist", "value": "AI suggest" },
-    { "key": "ui.writing.ai_title", "value": "AI suggestions" },
-    { "key": "ui.writing.ai_apply", "value": "Apply selection" },
-    { "key": "ui.writing.ai_polish", "value": "Polish draft" },
-    { "key": "ui.writing.ai_polish_locked", "value": "Polish (needs API)" },
-    { "key": "ui.writing.ai_confirm", "value": "Confirm replace" },
-    { "key": "ui.writing.ai_cancel_confirm", "value": "Cancel" },
-    { "key": "ui.writing.ai_close", "value": "Close" },
-    { "key": "ui.writing.ai_section_tip", "value": "[Tip]" },
-    { "key": "ui.writing.ai_section_select", "value": "[Suggested materials]" },
-    { "key": "ui.writing.ai_section_focus", "value": "[Focused card wording]" },
-    { "key": "ui.writing.ai_section_draft", "value": "[Draft preview]" },
-    { "key": "ui.writing.ai_select_empty", "value": "(No materials available)" },
-    { "key": "ui.writing.ai_confirm_body", "value": "Replace your current {1} selected cards with the suggested set ({0})?\n\nYou can still edit afterward; nothing is submitted for review yet.\n\nSuggested: {2}" },
-    { "key": "ui.writing.ai_applied", "value": "Suggested selection applied — keep editing or preview." },
-    { "key": "ui.writing.ai_rule_note", "value": "(Rule/template suggestions — works offline. Real LLM polish needs STREETCAT_LLM_API_KEY.)" },
-    { "key": "ui.writing.ai_llm_ready_note", "value": "(API key set: “Polish draft” only rewrites wording; it will not invent facts.)" },
-    { "key": "ui.writing.ai_polish_need_key", "value": "No API key. Use StreetCat/LLM/Paste API Key, or env STREETCAT_LLM_API_KEY." },
-    { "key": "ui.writing.ai_polishing", "value": "Polishing draft…" },
-    { "key": "ui.writing.ai_polish_done", "value": "(Polished wording only — review before applying selection.)" },
-    { "key": "ui.writing.ai_polish_fail", "value": "Polish failed; keeping the rule-based draft." },
-    { "key": "ui.writing.ai.tip_need_unlock", "value": "{0} unlocked. Drafting only needs every paragraph covered — no forced card IDs." },
-    { "key": "ui.writing.ai.tip_need_m13", "value": "Paragraph 04 still needs any unlockable card for that section — no forced card ID." },
-    { "key": "ui.writing.ai.tip_need_treatment", "value": "Paragraph 03 can still be richer; any unlockable treatment-stage card is enough — no forced card ID." },
-    { "key": "ui.writing.ai.tip_assemble_fail", "value": "Still can't assemble with current materials: {0}" },
-    { "key": "ui.writing.ai.tip_need_paras", "value": "Need ≥1 card in paragraphs 01–04 (covered {0}/4). Suggested picks below can fill gaps." },
-    { "key": "ui.writing.ai.tip_guard_ok", "value": "Angle is daily life: keep “on duty / community care,” cover treatment briefly — don't make it a pure rescue feature." },
-    { "key": "ui.writing.ai.tip_rescue_ok", "value": "Angle is rescue: trim sunbathing, chain feed→hospital→cost→no adoption→release." },
-    { "key": "ui.writing.ai.focus_none", "value": "Select an unlocked material card to see how it may read in the article." },
-    { "key": "ui.writing.ai.focus_fmt", "value": "[{0} {1}] may read as:\n{2}" },
-    { "key": "ui.writing.ai.partial_header", "value": "(Not enough materials — fragment join from selected/suggested cards, not a final draft)" },
-    { "key": "ui.writing.ai.partial_empty", "value": "No unlocked materials to stitch yet." },
-    { "key": "ui.interview.subject_tag", "value": "Subject" },
-    { "key": "ui.interview.subject_dafu", "value": "Dafu" },
-    { "key": "ui.interview.subject_lin", "value": "Ms. Lin" },
-    { "key": "ui.interview.title", "value": "Free Interview" },
-    { "key": "ui.interview.title_sub", "value": "INTERVIEW" },
-    { "key": "ui.interview.status_header", "value": "Interviewee status" },
-    { "key": "ui.interview.inspiration", "value": "Ask ideas" },
-    { "key": "ui.interview.inspire_hint", "value": "Tap to fill the input — does not send" },
-    { "key": "ui.interview.meter_trust", "value": "Trust" },
-    { "key": "ui.interview.meter_pressure", "value": "Pressure" },
-    { "key": "ui.interview.meter_focus", "value": "Focus" },
-    { "key": "ui.interview.input_placeholder", "value": "Type your question..." },
-    { "key": "ui.interview.send", "value": "Send" },
-    { "key": "ui.interview.end", "value": "End interview" },
-    { "key": "ui.interview.end_short", "value": "End" },
-    { "key": "ui.interview.back_writing", "value": "Back to writing" },
-    { "key": "ui.interview.continue", "value": "Keep asking" },
-    { "key": "ui.interview.confirm_end", "value": "Confirm end" },
-    { "key": "ui.interview.can_end", "value": "Ready to end" },
-    { "key": "ui.interview.translating", "value": "..." },
-    { "key": "ui.interview.preset_filled", "value": "Preset filled — edit then send" },
-    { "key": "ui.interview.end_warn", "value": "If you end now, quite a few things still seem unclear." },
-    { "key": "ui.interview.missing_header", "value": "Based on what you’ve gathered, these key beats are still open:" },
-    { "key": "ui.interview.missing_none", "value": "Key beats look covered — you can end the interview." },
-    { "key": "ui.interview.miss.past_afraid", "value": "Whether it used to fear people / why it stays near the booth" },
-    { "key": "ui.interview.miss.neck", "value": "Old neck injury / whatever was around its neck" },
-    { "key": "ui.interview.miss.feeding", "value": "Repeated feeding or the person who brought food" },
-    { "key": "ui.interview.miss.taken", "value": "Being taken away in a cage" },
-    { "key": "ui.interview.miss.object_gone", "value": "Waking up after the restraint was gone / that sleep" },
-    { "key": "ui.interview.miss.returned", "value": "Being returned to the community" },
-    { "key": "ui.interview.miss.boundary", "value": "At least one cognitive boundary (surgery, cost, adoption…)" },
-    { "key": "ui.interview.miss.rope", "value": "The rope wound cutting into flesh" },
-    { "key": "ui.interview.miss.feed4", "value": "Several days of feeding" },
-    { "key": "ui.interview.miss.capture", "value": "Capture and hospital trip" },
-    { "key": "ui.interview.miss.panleuk", "value": "Panleukopenia / hospital stay" },
-    { "key": "ui.interview.miss.cost", "value": "Treatment cost" },
-    { "key": "ui.interview.miss.four_cats", "value": "Already four cats at home — can’t take another" },
-    { "key": "ui.interview.miss.release", "value": "Why it was returned to the neighborhood" },
-    { "key": "ui.interview.miss.community", "value": "Ongoing community care" },
-    { "key": "ui.interview.miss.cross", "value": "Cross-check with Dafu’s account (~{0} more overlapping facts)" },
-    { "key": "ui.interview.hint.empty", "value": "Please type a question." },
-    { "key": "ui.interview.hint.too_long", "value": "That question is long — try asking one thing at a time." },
-    { "key": "ui.interview.hint.hostile_dafu", "value": "Dafu sensed hostility. Softer wording is safer." },
-    { "key": "ui.interview.hint.hostile_lin", "value": "Accusatory wording lowers trust. Try a more neutral question." },
-    { "key": "ui.interview.hint.boundary", "value": "That hit concepts it can't understand. Ask about pain, smell, the cage, or waking up." },
-    { "key": "ui.interview.hint.repeat", "value": "You already covered that. Try another unfinished notebook topic." },
-    { "key": "ui.interview.hint.too_broad", "value": "Too broad. Tap a chip below, or chase one detail at a time." },
-    { "key": "ui.interview.hint.generic_dafu", "value": "Try its daily life, old injury, or people it knows." },
-    { "key": "ui.interview.hint.generic_lin", "value": "Follow the arc: discovery, feeding, hospital, then return." },
-    { "key": "ui.interview.hint.gap", "value": "Note this gap — you may need someone else to fill it in." },
-    { "key": "ui.interview.hint.focus_low", "value": "Focus is dropping. Ask what matters most, or wrap up." },
-    { "key": "ui.interview.hint.pressure_high", "value": "Pressure is high. Ease into daily life; avoid interrogation tone." },
-    { "key": "ui.interview.hint.trust_low", "value": "Trust is low. Build a little rapport before sensitive topics." },
-    { "key": "ui.interview.hint.can_end", "value": "Key intel looks solid. Dig further, or end the interview." },
-    { "key": "ui.interview.hint.open_dafu", "value": "Start with daily life, the neck injury, or people it knows." },
-    { "key": "ui.interview.hint.open_lin", "value": "Start with how she found Dafu, the feeding nights, or why it returned." },
-    { "key": "ui.interview.hint.topic_open", "value": "Notebook “{0}” still has gaps — chips below are next asks." },
-    { "key": "ui.interview.hint.topic_new", "value": "New clue “{0}” isn’t covered yet. Tap a chip, edit, then send." },
-    { "key": "ui.interview.hint.default", "value": "Tap a direction below, or follow gaps in your notebook." },
-    { "key": "ui.interview.chip.lin_next_feed", "value": "And then? What did you do over those days?" },
-    { "key": "ui.interview.chip.lin_next_capture", "value": "After the wound worsened, how did you get it to a clinic?" },
-    { "key": "ui.interview.chip.lin_next_injury", "value": "What did the hospital say about the neck wound?" },
-    { "key": "ui.interview.chip.lin_next_hospital", "value": "How did Dafu recover after the surgery?" },
-    { "key": "ui.interview.chip.lin_next_cost", "value": "Roughly how much did the treatment cost?" },
-    { "key": "ui.interview.chip.lin_next_hesitate", "value": "Facing the cost, did you ever hesitate?" },
-    { "key": "ui.interview.chip.lin_next_release", "value": "Before sending Dafu back, what did you weigh?" },
-    { "key": "ui.interview.chip.lin_next_community", "value": "After the return, did anyone keep looking after it?" },
-    { "key": "ui.interview.chip.dafu_next_past", "value": "Did you used to come near the guard post before?" },
-    { "key": "ui.interview.chip.dafu_next_neck", "value": "Was your neck hurt before?" },
-    { "key": "ui.interview.chip.dafu_next_woman", "value": "Did someone often bring you food?" },
-    { "key": "ui.interview.chip.dafu_next_capture", "value": "Did someone put you in a carrier and take you away?" },
-    { "key": "ui.interview.chip.dafu_next_return", "value": "Who brought you back here?" },
-    { "key": "ui.interview.chip.lin_soft", "value": "If you’re willing, start from the first time you noticed Dafu." },
-    { "key": "ui.interview.chip.dafu_soft", "value": "Are you okay right now? Did you get food today?" },
-    { "key": "ui.interview.chip.dafu_sensory_pain", "value": "What did the thing around your neck feel like?" },
-    { "key": "ui.interview.chip.dafu_sensory_place", "value": "That bright, strong-smelling place — what happened next?" },
-    { "key": "ui.interview.chip.dafu_ev_neck", "value": "Do you remember when your neck hurt for a long time?" },
-    { "key": "ui.interview.chip.dafu_ev_woman", "value": "The woman who fed you — did she come again?" },
-    { "key": "ui.interview.chip.lin_ev_hospital", "value": "After the hospital, what did the doctors say?" },
-    { "key": "ui.interview.chip.lin_ev_release", "value": "Why wasn’t Dafu adopted after recovering?" },
-    { "key": "ui.interview.chip.lin_fb1", "value": "How did you first notice Dafu?" },
-    { "key": "ui.interview.chip.lin_fb2", "value": "Why bring food for several days?" },
-    { "key": "ui.interview.chip.lin_fb3", "value": "Why send it back to the community?" },
-    { "key": "ui.interview.chip.dafu_fb1", "value": "When do you usually come here?" },
-    { "key": "ui.interview.chip.dafu_fb2", "value": "Was your neck hurt before?" },
-    { "key": "ui.interview.chip.dafu_fb3", "value": "Does anyone come looking for you often?" },
-    { "key": "ui.interview.chip.lin_fb4", "value": "What happened after the hospital?" },
-    { "key": "ui.interview.chip.lin_fb5", "value": "Roughly how much did treatment cost?" },
-    { "key": "ui.interview.chip.lin_fb6", "value": "Did you ever hesitate?" },
-    { "key": "ui.interview.chip.lin_fb7", "value": "Do you already have other cats at home?" },
-    { "key": "ui.interview.chip.lin_fb8", "value": "After the return, did anyone keep looking after it?" },
-    { "key": "ui.interview.chip.dafu_fb4", "value": "Did you used to come near the guard post?" },
-    { "key": "ui.interview.chip.dafu_fb5", "value": "Did someone put you in a carrier and take you away?" },
-    { "key": "ui.interview.chip.dafu_fb6", "value": "Do you remember that bright place?" },
-    { "key": "ui.interview.chip.dafu_fb7", "value": "Who brought you back here?" },
-    { "key": "ui.interview.chip.dafu_fb8", "value": "Did you get food today?" },
-    { "key": "ui.interview.chip.lin_open1", "value": "Which detail about Dafu do you remember most clearly?" },
-    { "key": "ui.interview.chip.lin_open2", "value": "If you could do it again, would you make the same choice?" },
-    { "key": "ui.interview.chip.dafu_open1", "value": "What do you want most right now?" },
-    { "key": "ui.interview.chip.dafu_open2", "value": "Is there anything else you want me to know?" },
-    { "key": "ui.interview.extract_materials", "value": "[Materials] Filed into cards: {0}" },
-    { "key": "ui.writing.ai_section_select_alt", "value": "[Optional better selection]" },
-    { "key": "ui.writing.ai_select_alt_note", "value": "Draft is built from your current selection. The list below is optional; “Apply selection” replaces your picks." },
-    { "key": "ui.writing.ai_section_draft_selected", "value": "[Draft from your selection]" },
-    { "key": "ui.writing.ai.tip_from_selection", "value": "Drafted from your {0} selected cards (all four paragraphs covered). No forced card IDs." },
-    { "key": "ui.writing.desk.kicker", "value": "Huai'an community feature" },
-    { "key": "ui.writing.desk.draft_label", "value": "Draft body (editable)" },
-    { "key": "ui.writing.desk.draft_placeholder", "value": "Draft text appears here — edit freely…" },
-    { "key": "ui.writing.desk.chars_fmt", "value": "~{0} chars" },
-    { "key": "ui.writing.desk.sources", "value": "Sources" },
-    { "key": "ui.writing.desk.sources_empty", "value": "(No materials selected yet)" },
-    { "key": "ui.writing.desk.dir_title", "value": "1. Writing direction" },
-    { "key": "ui.writing.desk.dir_guard", "value": "Dafu on duty again" },
-    { "key": "ui.writing.desk.dir_rescue", "value": "After saving a cat" },
-    { "key": "ui.writing.desk.mats_fmt", "value": "2. Selected materials ({0}/{1})" },
-    { "key": "ui.writing.desk.need_more", "value": "Need {0} more" },
-    { "key": "ui.writing.desk.need_paras", "value": "Paragraphs covered {0}/4" },
-    { "key": "ui.writing.desk.paras_ok", "value": "All four paragraphs OK" },
-    { "key": "ui.writing.desk.full", "value": "Selection full" },
-    { "key": "ui.writing.desk.status_title", "value": "3. Generation status" },
-    { "key": "ui.writing.desk.st_ready", "value": "Ready to generate" },
-    { "key": "ui.writing.desk.st_not_ready", "value": "Not ready yet" },
-    { "key": "ui.writing.desk.st_dir", "value": "Direction selected" },
-    { "key": "ui.writing.desk.st_mats", "value": "All four paragraphs have cards" },
-    { "key": "ui.writing.desk.st_mats_low", "value": "Some paragraphs still empty" },
-    { "key": "ui.writing.desk.st_editable", "value": "Body editable; AI polish once" },
-    { "key": "ui.writing.desk.st_polishing", "value": "AI polishing…" },
-    { "key": "ui.writing.desk.st_polish_used", "value": "AI polish used (once per draft)" },
-    { "key": "ui.writing.desk.headline_guard", "value": "Dafu on duty again" },
-    { "key": "ui.writing.desk.headline_rescue", "value": "After saving a cat" },
-    { "key": "ui.writing.desk.draft_blocked", "value": "Cannot preview a full draft yet." },
-    { "key": "ui.writing.desk.back_mats", "value": "Back to materials" },
-    { "key": "ui.writing.desk.preview", "value": "Preview article" },
-    { "key": "ui.writing.desk.ai_polish", "value": "AI polish" },
-    { "key": "ui.writing.desk.ai_polish_used", "value": "Polished" },
-    { "key": "ui.writing.desk.ai_polishing", "value": "Polishing…" },
-    { "key": "ui.writing.desk.submit", "value": "Submit to editor" },
-    { "key": "ui.writing.desk.submit_locked", "value": "Cannot submit yet" },
-    { "key": "ui.writing.desk.submit_polishing", "value": "Polishing…" }
+    {
+      "key": "ui.title.new_game",
+      "value": "New Game"
+    },
+    {
+      "key": "ui.title.continue",
+      "value": "Continue"
+    },
+    {
+      "key": "ui.title.load",
+      "value": "Load"
+    },
+    {
+      "key": "ui.title.clear_saves",
+      "value": "Clear Saves"
+    },
+    {
+      "key": "ui.title.settings",
+      "value": "Settings"
+    },
+    {
+      "key": "ui.title.quit",
+      "value": "Quit"
+    },
+    {
+      "key": "ui.title.brand",
+      "value": "Street Cat Interview"
+    },
+    {
+      "key": "ui.title.subtitle",
+      "value": "This Corner · Social Column\nStreet-corner voices deserve to be heard."
+    },
+    {
+      "key": "ui.title.contents",
+      "value": "CONTENTS"
+    },
+    {
+      "key": "ui.title.saves_cleared",
+      "value": "Saves cleared"
+    },
+    {
+      "key": "ui.menu",
+      "value": "Menu"
+    },
+    {
+      "key": "ui.menu.resume",
+      "value": "Continue"
+    },
+    {
+      "key": "ui.menu.backlog",
+      "value": "Backlog"
+    },
+    {
+      "key": "ui.menu.auto_load",
+      "value": "Load Autosave"
+    },
+    {
+      "key": "ui.menu.save",
+      "value": "Save"
+    },
+    {
+      "key": "ui.menu.load",
+      "value": "Load"
+    },
+    {
+      "key": "ui.menu.notebook",
+      "value": "Notebook"
+    },
+    {
+      "key": "ui.menu.settings",
+      "value": "Settings"
+    },
+    {
+      "key": "ui.menu.title",
+      "value": "Title Screen"
+    },
+    {
+      "key": "ui.no_autosave",
+      "value": "No autosave yet"
+    },
+    {
+      "key": "ui.skip",
+      "value": "Skip"
+    },
+    {
+      "key": "ui.backlog",
+      "value": "Backlog"
+    },
+    {
+      "key": "ui.backlog.title",
+      "value": "Dialogue Backlog"
+    },
+    {
+      "key": "ui.notebook",
+      "value": "Notebook"
+    },
+    {
+      "key": "ui.hide_dialogue",
+      "value": "Hide Text"
+    },
+    {
+      "key": "ui.show_dialogue",
+      "value": "Show Text"
+    },
+    {
+      "key": "ui.click_continue",
+      "value": "Click to continue"
+    },
+    {
+      "key": "ui.click_dialogue",
+      "value": "Click the box to continue"
+    },
+    {
+      "key": "ui.click_show_full",
+      "value": "Click to show full text"
+    },
+    {
+      "key": "ui.click_return_map",
+      "value": "Click to return to map"
+    },
+    {
+      "key": "ui.click_return_investigate",
+      "value": "Click to return to investigate"
+    },
+    {
+      "key": "ui.click_return_topics",
+      "value": "Click to return to topics"
+    },
+    {
+      "key": "ui.click_ctrl_skip",
+      "value": "Click to continue · Hold Ctrl to skip"
+    },
+    {
+      "key": "ui.status_advance",
+      "value": "Click · Ctrl / Skip"
+    },
+    {
+      "key": "ui.make_choice",
+      "value": "Make a choice"
+    },
+    {
+      "key": "ui.dialogue.record_fmt",
+      "value": "Interview Log {0:00}"
+    },
+    {
+      "key": "ui.dialogue.page_fmt",
+      "value": "{0} / {1}"
+    },
+    {
+      "key": "ui.objective_prefix",
+      "value": "Objective  "
+    },
+    {
+      "key": "ui.save",
+      "value": "Save"
+    },
+    {
+      "key": "ui.load",
+      "value": "Load"
+    },
+    {
+      "key": "ui.confirm",
+      "value": "Confirm"
+    },
+    {
+      "key": "ui.cancel",
+      "value": "Cancel"
+    },
+    {
+      "key": "ui.settings.title",
+      "value": "Settings"
+    },
+    {
+      "key": "ui.settings.language",
+      "value": "Language"
+    },
+    {
+      "key": "ui.settings.font",
+      "value": "Font"
+    },
+    {
+      "key": "ui.settings.font_size",
+      "value": "Font Size"
+    },
+    {
+      "key": "ui.settings.letter_spacing",
+      "value": "Letter Spacing"
+    },
+    {
+      "key": "ui.settings.font_latin_hint",
+      "value": "(Latin — Chinese glyphs may be missing)"
+    },
+    {
+      "key": "ui.settings.lang_zh",
+      "value": "Chinese"
+    },
+    {
+      "key": "ui.settings.lang_en",
+      "value": "English"
+    },
+    {
+      "key": "ui.settings.bgm",
+      "value": "Music Volume"
+    },
+    {
+      "key": "ui.settings.sfx",
+      "value": "SFX Volume"
+    },
+    {
+      "key": "ui.settings.text_speed",
+      "value": "Text Speed"
+    },
+    {
+      "key": "ui.settings.speed_slow",
+      "value": "Slow"
+    },
+    {
+      "key": "ui.settings.speed_normal",
+      "value": "Normal"
+    },
+    {
+      "key": "ui.settings.speed_fast",
+      "value": "Fast"
+    },
+    {
+      "key": "ui.settings.auto_play",
+      "value": "Auto Play"
+    },
+    {
+      "key": "ui.settings.auto_on",
+      "value": "On"
+    },
+    {
+      "key": "ui.settings.auto_off",
+      "value": "Off"
+    },
+    {
+      "key": "ui.settings.auto_delay",
+      "value": "Auto Delay"
+    },
+    {
+      "key": "ui.settings.fullscreen",
+      "value": "Fullscreen"
+    },
+    {
+      "key": "ui.settings.windowed",
+      "value": "Windowed"
+    },
+    {
+      "key": "ui.settings.display",
+      "value": "Display"
+    },
+    {
+      "key": "ui.settings.close",
+      "value": "Close"
+    },
+    {
+      "key": "ui.settings.test_sfx",
+      "value": "Test SFX"
+    },
+    {
+      "key": "ui.notebook.title",
+      "value": "Reporter's Notebook"
+    },
+    {
+      "key": "ui.notebook.close",
+      "value": "Close"
+    },
+    {
+      "key": "ui.notebook.inspiration",
+      "value": "Ask ideas"
+    },
+    {
+      "key": "ui.notebook.tab_gaps",
+      "value": "Unconfirmed"
+    },
+    {
+      "key": "ui.notebook.tab_qa",
+      "value": "Q&A Log"
+    },
+    {
+      "key": "ui.notebook.status_new",
+      "value": "New Lead"
+    },
+    {
+      "key": "ui.notebook.status_open",
+      "value": "Still Questions"
+    },
+    {
+      "key": "ui.notebook.status_complete",
+      "value": "Well Covered"
+    },
+    {
+      "key": "ui.notebook.status_untouched",
+      "value": "Undiscovered"
+    },
+    {
+      "key": "ui.notebook.source_prefix",
+      "value": "Source: "
+    },
+    {
+      "key": "ui.notebook.empty",
+      "value": "No notes yet.\n\nExplore the community, talk to the guard, or start a free interview — topics will appear here."
+    },
+    {
+      "key": "ui.notebook.not_ready",
+      "value": "Notebook is not ready yet."
+    },
+    {
+      "key": "ui.notebook.no_notes",
+      "value": "(No notes for this topic yet)"
+    },
+    {
+      "key": "ui.notebook.related_qa",
+      "value": "—— Related questions ——"
+    },
+    {
+      "key": "ui.notebook.inspire_none",
+      "value": "No question ideas yet"
+    },
+    {
+      "key": "ui.notebook.inspire_complete",
+      "value": "Main facts are enough — you can still ask, but no active hints"
+    },
+    {
+      "key": "ui.notebook.gaps_intro",
+      "value": "Things Dafu cannot explain, or that still need human confirmation."
+    },
+    {
+      "key": "ui.notebook.gaps_empty",
+      "value": "(No open gaps right now)"
+    },
+    {
+      "key": "ui.notebook.gaps_hint",
+      "value": "Ask the guard / Ms. Lin to verify these gaps"
+    },
+    {
+      "key": "ui.notebook.qa_intro",
+      "value": "Verbatim free-interview Q&A (matches what was said on screen)."
+    },
+    {
+      "key": "ui.notebook.qa_empty",
+      "value": "(No interview Q&A logged yet)"
+    },
+    {
+      "key": "ui.notebook.qa_inspire_hint",
+      "value": "Use question ideas from a topic page to fill the interview box"
+    },
+    {
+      "key": "ui.notebook.qa_q",
+      "value": "Q: "
+    },
+    {
+      "key": "ui.notebook.uncategorized",
+      "value": "Uncategorized"
+    },
+    {
+      "key": "ui.notebook.inspire_investigate",
+      "value": "This is an investigation hint — gather more sources first."
+    },
+    {
+      "key": "ui.notebook.inspire_no_question",
+      "value": "No interview question to fill in right now."
+    },
+    {
+      "key": "ui.notebook.inspire_filled",
+      "value": "Question idea filled — edit then send"
+    },
+    {
+      "key": "ui.notebook.inspire_copied",
+      "value": "Question idea copied — paste it in an interview"
+    },
+    {
+      "key": "ui.writing.tape_title",
+      "value": "Ch.1 Writing / Materials"
+    },
+    {
+      "key": "ui.writing.structure",
+      "value": "Article structure (fixed paragraphs)"
+    },
+    {
+      "key": "ui.writing.para_01",
+      "value": "Para 01  Dafu today"
+    },
+    {
+      "key": "ui.writing.para_02",
+      "value": "Para 02  Injury & rescue"
+    },
+    {
+      "key": "ui.writing.para_03",
+      "value": "Para 03  Treatment & choice"
+    },
+    {
+      "key": "ui.writing.para_04",
+      "value": "Para 04  Back to community"
+    },
+    {
+      "key": "ui.writing.selected_fmt",
+      "value": "Selected {0}/{1}"
+    },
+    {
+      "key": "ui.writing.preview",
+      "value": "Preview article"
+    },
+    {
+      "key": "ui.writing.go_write",
+      "value": "Go to writing"
+    },
+    {
+      "key": "ui.writing.back_direction",
+      "value": "Back to angle"
+    },
+    {
+      "key": "ui.writing.reinterview",
+      "value": "Return to interview"
+    },
+    {
+      "key": "ui.writing.preview_title",
+      "value": "Article preview"
+    },
+    {
+      "key": "ui.writing.preview_close",
+      "value": "Close preview"
+    },
+    {
+      "key": "ui.writing.preview_blocked",
+      "value": "Can't preview a draft yet."
+    },
+    {
+      "key": "ui.writing.preview_note",
+      "value": "(Draft preview; Shen He scores the article after you submit.)"
+    },
+    {
+      "key": "ui.writing.hint_need_unlock",
+      "value": "Few materials unlocked — interview more to cover each paragraph."
+    },
+    {
+      "key": "ui.writing.hint_need_select",
+      "value": "You only need ≥1 card in each of paragraphs 01–04 — no forced card IDs."
+    },
+    {
+      "key": "ui.writing.hint_need_m13",
+      "value": "Paragraph 04 (back to the community) still needs any unlockable card for that section — no forced card ID."
+    },
+    {
+      "key": "ui.writing.hint_need_paras",
+      "value": "Drafting only needs ≥1 card in paragraphs 01–04 (no forced IDs). Covered {0}/4."
+    },
+    {
+      "key": "ui.writing.hint_ready",
+      "value": "All four paragraphs have cards. Go write — the draft follows your picks."
+    },
+    {
+      "key": "ui.writing.stage_hint",
+      "value": "Writing"
+    },
+    {
+      "key": "ui.writing.pick_body",
+      "value": "Pick a reporting angle. Materials decide what you can write; the angle decides what you want to say.\n\nMaterials unlocked: {0}."
+    },
+    {
+      "key": "ui.writing.pick_body_low",
+      "value": "\n\nNot enough materials to finish yet. If interviews still have gaps, you can go back and fill them in."
+    },
+    {
+      "key": "ui.writing.pick_guard_blurb",
+      "value": "From stray cat to community guard"
+    },
+    {
+      "key": "ui.writing.pick_rescue_blurb",
+      "value": "A rescue that didn't end in adoption"
+    },
+    {
+      "key": "ui.writing.reselect_dir",
+      "value": "Reselect angle"
+    },
+    {
+      "key": "ui.writing.cant_assemble",
+      "value": "Can't assemble the article yet.\n\n{0}\n\nYou can re-pick materials, or go back to interviews to fill gaps."
+    },
+    {
+      "key": "ui.writing.back_reselect_mats",
+      "value": "Back to materials"
+    },
+    {
+      "key": "ui.writing.submitted",
+      "value": "Draft submitted. Sending for review…"
+    },
+    {
+      "key": "ui.writing.reviewing",
+      "value": "Under review…"
+    },
+    {
+      "key": "ui.writing.review_header",
+      "value": "—— Shen He's review ——\n{0}\n\nScore  {1}"
+    },
+    {
+      "key": "ui.writing.pass_fmt",
+      "value": "Approved  {0}"
+    },
+    {
+      "key": "ui.writing.fail_fmt",
+      "value": "Returned  branch {0}"
+    },
+    {
+      "key": "ui.writing.confirm_publish",
+      "value": "Confirm publish"
+    },
+    {
+      "key": "ui.writing.back_to_write",
+      "value": "Back to writing"
+    },
+    {
+      "key": "ui.writing.view_notebook",
+      "value": "Open notebook"
+    },
+    {
+      "key": "ui.writing.reinterview_menu",
+      "value": "If materials aren't enough, you can go back for more interviews. Intel and material cards you already have will stay.\n\nWho do you want to re-interview?"
+    },
+    {
+      "key": "ui.writing.reinterview_status",
+      "value": "Follow-up interview"
+    },
+    {
+      "key": "ui.writing.reinterview_dafu",
+      "value": "Re-interview Dafu"
+    },
+    {
+      "key": "ui.writing.reinterview_lin",
+      "value": "Re-interview Ms. Lin"
+    },
+    {
+      "key": "ui.writing.reinterview_any",
+      "value": "Re-interview…"
+    },
+    {
+      "key": "ui.writing.back_interview",
+      "value": "Back to interview"
+    },
+    {
+      "key": "ui.writing.back_interview_dafu",
+      "value": "Back to Dafu interview"
+    },
+    {
+      "key": "ui.writing.back_interview_lin",
+      "value": "Back to Ms. Lin interview"
+    },
+    {
+      "key": "ui.writing.hint_max",
+      "value": "You can select at most 10 materials."
+    },
+    {
+      "key": "ui.writing.empty_para",
+      "value": "No material cards for this paragraph"
+    },
+    {
+      "key": "ui.writing.locked",
+      "value": "Locked"
+    },
+    {
+      "key": "ui.writing.detail_empty",
+      "value": "Select a material card"
+    },
+    {
+      "key": "ui.writing.detail_locked",
+      "value": "Keep interviewing and investigating to unlock this card."
+    },
+    {
+      "key": "ui.writing.source_prefix",
+      "value": "Source: "
+    },
+    {
+      "key": "ui.writing.source_locked",
+      "value": "Source: locked"
+    },
+    {
+      "key": "ui.writing.type_fact",
+      "value": "Fact"
+    },
+    {
+      "key": "ui.writing.type_detail",
+      "value": "Detail"
+    },
+    {
+      "key": "ui.writing.type_emotion",
+      "value": "Emotion"
+    },
+    {
+      "key": "ui.writing.type_unconfirmed",
+      "value": "Unconfirmed"
+    },
+    {
+      "key": "ui.writing.src_community",
+      "value": "Community observation"
+    },
+    {
+      "key": "ui.writing.src_dafu",
+      "value": "Dafu's memory"
+    },
+    {
+      "key": "ui.writing.src_lin",
+      "value": "Ms. Lin's account"
+    },
+    {
+      "key": "ui.writing.src_unconfirmed",
+      "value": "Still unconfirmed across sources"
+    },
+    {
+      "key": "ui.writing.src_notes",
+      "value": "Reporter notes"
+    },
+    {
+      "key": "ui.writing.ai_assist",
+      "value": "AI suggestions"
+    },
+    {
+      "key": "ui.writing.ai_title",
+      "value": "AI suggestions"
+    },
+    {
+      "key": "ui.writing.ai_apply",
+      "value": "Apply selection"
+    },
+    {
+      "key": "ui.writing.ai_polish",
+      "value": "Polish draft"
+    },
+    {
+      "key": "ui.writing.ai_polish_locked",
+      "value": "Polish (needs API)"
+    },
+    {
+      "key": "ui.writing.ai_confirm",
+      "value": "Confirm replace"
+    },
+    {
+      "key": "ui.writing.ai_cancel_confirm",
+      "value": "Cancel"
+    },
+    {
+      "key": "ui.writing.ai_close",
+      "value": "Close"
+    },
+    {
+      "key": "ui.writing.ai_section_tip",
+      "value": "[Tip]"
+    },
+    {
+      "key": "ui.writing.ai_section_select",
+      "value": "[Suggested materials]"
+    },
+    {
+      "key": "ui.writing.ai_section_focus",
+      "value": "[Focused card wording]"
+    },
+    {
+      "key": "ui.writing.ai_section_draft",
+      "value": "[Draft preview]"
+    },
+    {
+      "key": "ui.writing.ai_select_empty",
+      "value": "(No materials available)"
+    },
+    {
+      "key": "ui.writing.ai_confirm_body",
+      "value": "Replace your current {1} selected cards with the suggested set ({0})?\n\nYou can still edit afterward; nothing is submitted for review yet.\n\nSuggested: {2}"
+    },
+    {
+      "key": "ui.writing.ai_applied",
+      "value": "Suggested selection applied — keep editing or preview."
+    },
+    {
+      "key": "ui.writing.ai_rule_note",
+      "value": "(Rule/template suggestions — works offline. Real LLM polish needs STREETCAT_LLM_API_KEY.)"
+    },
+    {
+      "key": "ui.writing.ai_llm_ready_note",
+      "value": "(API key set: “Polish draft” only rewrites wording; it will not invent facts.)"
+    },
+    {
+      "key": "ui.writing.ai_polish_need_key",
+      "value": "No API key. Use StreetCat/LLM/Paste API Key, or env STREETCAT_LLM_API_KEY."
+    },
+    {
+      "key": "ui.writing.ai_polishing",
+      "value": "Polishing draft…"
+    },
+    {
+      "key": "ui.writing.ai_polish_done",
+      "value": "(Polished wording only — review before applying selection.)"
+    },
+    {
+      "key": "ui.writing.ai_polish_fail",
+      "value": "Polish failed; keeping the rule-based draft."
+    },
+    {
+      "key": "ui.writing.ai.tip_need_unlock",
+      "value": "{0} unlocked. Drafting only needs every paragraph covered — no forced card IDs."
+    },
+    {
+      "key": "ui.writing.ai.tip_need_m13",
+      "value": "Paragraph 04 still needs any unlockable card for that section — no forced card ID."
+    },
+    {
+      "key": "ui.writing.ai.tip_need_treatment",
+      "value": "Paragraph 03 can still be richer; any unlockable treatment-stage card is enough — no forced card ID."
+    },
+    {
+      "key": "ui.writing.ai.tip_assemble_fail",
+      "value": "Still can't assemble with current materials: {0}"
+    },
+    {
+      "key": "ui.writing.ai.tip_need_paras",
+      "value": "Need ≥1 card in paragraphs 01–04 (covered {0}/4). Suggested picks below can fill gaps."
+    },
+    {
+      "key": "ui.writing.ai.tip_guard_ok",
+      "value": "Angle is daily life: keep “on duty / community care,” cover treatment briefly — don't make it a pure rescue feature."
+    },
+    {
+      "key": "ui.writing.ai.tip_rescue_ok",
+      "value": "Angle is rescue: trim sunbathing, chain feed→hospital→cost→no adoption→release."
+    },
+    {
+      "key": "ui.writing.ai.focus_none",
+      "value": "Select an unlocked material card to see how it may read in the article."
+    },
+    {
+      "key": "ui.writing.ai.focus_fmt",
+      "value": "[{0} {1}] may read as:\n{2}"
+    },
+    {
+      "key": "ui.writing.ai.partial_header",
+      "value": "(Not enough materials — fragment join from selected/suggested cards, not a final draft)"
+    },
+    {
+      "key": "ui.writing.ai.partial_empty",
+      "value": "No unlocked materials to stitch yet."
+    },
+    {
+      "key": "ui.interview.subject_tag",
+      "value": "Subject"
+    },
+    {
+      "key": "ui.interview.subject_dafu",
+      "value": "Dafu"
+    },
+    {
+      "key": "ui.interview.subject_lin",
+      "value": "Ms. Lin"
+    },
+    {
+      "key": "ui.interview.title",
+      "value": "Free Interview"
+    },
+    {
+      "key": "ui.interview.title_sub",
+      "value": "INTERVIEW"
+    },
+    {
+      "key": "ui.interview.status_header",
+      "value": "Interviewee status"
+    },
+    {
+      "key": "ui.interview.inspiration",
+      "value": "Ask ideas"
+    },
+    {
+      "key": "ui.interview.inspire_hint",
+      "value": "Tap to fill the input — does not send"
+    },
+    {
+      "key": "ui.interview.meter_trust",
+      "value": "Trust"
+    },
+    {
+      "key": "ui.interview.meter_pressure",
+      "value": "Pressure"
+    },
+    {
+      "key": "ui.interview.meter_focus",
+      "value": "Focus"
+    },
+    {
+      "key": "ui.interview.input_placeholder",
+      "value": "Type your question..."
+    },
+    {
+      "key": "ui.interview.send",
+      "value": "Send"
+    },
+    {
+      "key": "ui.interview.end",
+      "value": "End interview"
+    },
+    {
+      "key": "ui.interview.end_short",
+      "value": "End"
+    },
+    {
+      "key": "ui.interview.back_writing",
+      "value": "Back to writing"
+    },
+    {
+      "key": "ui.interview.continue",
+      "value": "Keep asking"
+    },
+    {
+      "key": "ui.interview.confirm_end",
+      "value": "Confirm end"
+    },
+    {
+      "key": "ui.interview.can_end",
+      "value": "Ready to end"
+    },
+    {
+      "key": "ui.interview.translating",
+      "value": "..."
+    },
+    {
+      "key": "ui.interview.preset_filled",
+      "value": "Preset filled — edit then send"
+    },
+    {
+      "key": "ui.interview.end_warn",
+      "value": "If you end now, quite a few things still seem unclear."
+    },
+    {
+      "key": "ui.interview.missing_header",
+      "value": "Based on what you’ve gathered, these key beats are still open:"
+    },
+    {
+      "key": "ui.interview.missing_none",
+      "value": "Key beats look covered — you can end the interview."
+    },
+    {
+      "key": "ui.interview.miss.past_afraid",
+      "value": "Whether it used to fear people / why it stays near the booth"
+    },
+    {
+      "key": "ui.interview.miss.neck",
+      "value": "Old neck injury / whatever was around its neck"
+    },
+    {
+      "key": "ui.interview.miss.feeding",
+      "value": "Repeated feeding or the person who brought food"
+    },
+    {
+      "key": "ui.interview.miss.taken",
+      "value": "Being taken away in a cage"
+    },
+    {
+      "key": "ui.interview.miss.object_gone",
+      "value": "Waking up after the restraint was gone / that sleep"
+    },
+    {
+      "key": "ui.interview.miss.returned",
+      "value": "Being returned to the community"
+    },
+    {
+      "key": "ui.interview.miss.boundary",
+      "value": "At least one cognitive boundary (surgery, cost, adoption…)"
+    },
+    {
+      "key": "ui.interview.miss.rope",
+      "value": "The rope wound cutting into flesh"
+    },
+    {
+      "key": "ui.interview.miss.feed4",
+      "value": "Several days of feeding"
+    },
+    {
+      "key": "ui.interview.miss.capture",
+      "value": "Capture and hospital trip"
+    },
+    {
+      "key": "ui.interview.miss.panleuk",
+      "value": "Panleukopenia / hospital stay"
+    },
+    {
+      "key": "ui.interview.miss.cost",
+      "value": "Treatment cost"
+    },
+    {
+      "key": "ui.interview.miss.four_cats",
+      "value": "Already four cats at home — can’t take another"
+    },
+    {
+      "key": "ui.interview.miss.release",
+      "value": "Why it was returned to the neighborhood"
+    },
+    {
+      "key": "ui.interview.miss.community",
+      "value": "Ongoing community care"
+    },
+    {
+      "key": "ui.interview.miss.cross",
+      "value": "Cross-check with Dafu’s account (~{0} more overlapping facts)"
+    },
+    {
+      "key": "ui.interview.hint.empty",
+      "value": "Please type a question."
+    },
+    {
+      "key": "ui.interview.hint.too_long",
+      "value": "That question is long — try asking one thing at a time."
+    },
+    {
+      "key": "ui.interview.hint.hostile_dafu",
+      "value": "Dafu sensed hostility. Softer wording is safer."
+    },
+    {
+      "key": "ui.interview.hint.hostile_lin",
+      "value": "Accusatory wording lowers trust. Try a more neutral question."
+    },
+    {
+      "key": "ui.interview.hint.boundary",
+      "value": "That hit concepts it can't understand. Ask about pain, smell, the cage, or waking up."
+    },
+    {
+      "key": "ui.interview.hint.repeat",
+      "value": "You already covered that. Try another unfinished notebook topic."
+    },
+    {
+      "key": "ui.interview.hint.too_broad",
+      "value": "Too broad. Tap a chip below, or chase one detail at a time."
+    },
+    {
+      "key": "ui.interview.hint.generic_dafu",
+      "value": "Try its daily life, old injury, or people it knows."
+    },
+    {
+      "key": "ui.interview.hint.generic_lin",
+      "value": "Follow the arc: discovery, feeding, hospital, then return."
+    },
+    {
+      "key": "ui.interview.hint.gap",
+      "value": "Note this gap — you may need someone else to fill it in."
+    },
+    {
+      "key": "ui.interview.hint.focus_low",
+      "value": "Focus is dropping. Ask what matters most, or wrap up."
+    },
+    {
+      "key": "ui.interview.hint.pressure_high",
+      "value": "Pressure is high. Ease into daily life; avoid interrogation tone."
+    },
+    {
+      "key": "ui.interview.hint.trust_low",
+      "value": "Trust is low. Build a little rapport before sensitive topics."
+    },
+    {
+      "key": "ui.interview.hint.can_end",
+      "value": "Key intel looks solid. Dig further, or end the interview."
+    },
+    {
+      "key": "ui.interview.hint.open_dafu",
+      "value": "Start with daily life, the neck injury, or people it knows."
+    },
+    {
+      "key": "ui.interview.hint.open_lin",
+      "value": "Start with how she found Dafu, the feeding nights, or why he returned."
+    },
+    {
+      "key": "ui.interview.hint.topic_open",
+      "value": "Notebook “{0}” still has gaps — chips below are next asks."
+    },
+    {
+      "key": "ui.interview.hint.topic_new",
+      "value": "New clue “{0}” isn’t covered yet. Tap a chip, edit, then send."
+    },
+    {
+      "key": "ui.interview.hint.default",
+      "value": "Tap a direction below, or follow gaps in your notebook."
+    },
+    {
+      "key": "ui.interview.chip.lin_next_feed",
+      "value": "And then? What did you do over those days?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_capture",
+      "value": "After the wound worsened, how did you get it to a clinic?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_injury",
+      "value": "What did the hospital say about the neck wound?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_hospital",
+      "value": "How did Dafu recover after the surgery?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_cost",
+      "value": "Roughly how much did the treatment cost?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_hesitate",
+      "value": "Facing the cost, did you ever hesitate?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_release",
+      "value": "Before sending Dafu back, what did you weigh?"
+    },
+    {
+      "key": "ui.interview.chip.lin_next_community",
+      "value": "After the return, did anyone keep looking after it?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_next_past",
+      "value": "Did you used to come near the guard post?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_next_neck",
+      "value": "Was your neck hurt before?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_next_woman",
+      "value": "Did someone often bring you food?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_next_capture",
+      "value": "Did someone put you in a carrier and take you away?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_next_return",
+      "value": "Who brought you back here?"
+    },
+    {
+      "key": "ui.interview.chip.lin_soft",
+      "value": "If you’re willing, start from the first time you noticed Dafu."
+    },
+    {
+      "key": "ui.interview.chip.dafu_soft",
+      "value": "Are you okay right now? Did you get food today?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_sensory_pain",
+      "value": "What did the thing around your neck feel like?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_sensory_place",
+      "value": "That bright, strong-smelling place — what happened next?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_ev_neck",
+      "value": "Do you remember when your neck hurt for a long time?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_ev_woman",
+      "value": "The woman who fed you — did she come again?"
+    },
+    {
+      "key": "ui.interview.chip.lin_ev_hospital",
+      "value": "After the hospital, what did the doctors say?"
+    },
+    {
+      "key": "ui.interview.chip.lin_ev_release",
+      "value": "Why wasn’t Dafu adopted after recovering?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb1",
+      "value": "How did you first notice Dafu?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb2",
+      "value": "Why bring food for several days?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb3",
+      "value": "Why send it back to the community?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb1",
+      "value": "When do you usually come here?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb2",
+      "value": "Was your neck hurt before?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb3",
+      "value": "Does anyone come looking for you often?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb4",
+      "value": "What happened after the hospital?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb5",
+      "value": "Roughly how much did treatment cost?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb6",
+      "value": "Did you ever hesitate?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb7",
+      "value": "Do you already have other cats at home?"
+    },
+    {
+      "key": "ui.interview.chip.lin_fb8",
+      "value": "After the return, did anyone keep looking after it?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb4",
+      "value": "Did you used to come near the guard post?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb5",
+      "value": "Did someone put you in a carrier and take you away?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb6",
+      "value": "Do you remember that bright place?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb7",
+      "value": "Who brought you back here?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_fb8",
+      "value": "Did you get food today?"
+    },
+    {
+      "key": "ui.interview.chip.lin_open1",
+      "value": "Which detail about Dafu do you remember most clearly?"
+    },
+    {
+      "key": "ui.interview.chip.lin_open2",
+      "value": "If you could do it again, would you make the same choice?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_open1",
+      "value": "What do you want most right now?"
+    },
+    {
+      "key": "ui.interview.chip.dafu_open2",
+      "value": "Is there anything else you want me to know?"
+    },
+    {
+      "key": "ui.interview.extract_materials",
+      "value": "[Materials] Filed into cards: {0}"
+    },
+    {
+      "key": "ui.writing.ai_section_select_alt",
+      "value": "[Optional better selection]"
+    },
+    {
+      "key": "ui.writing.ai_select_alt_note",
+      "value": "Draft is built from your current selection. The list below is optional; “Apply selection” replaces your picks."
+    },
+    {
+      "key": "ui.writing.ai_section_draft_selected",
+      "value": "[Draft from your selection]"
+    },
+    {
+      "key": "ui.writing.ai.tip_from_selection",
+      "value": "Drafted from your {0} selected cards (all four paragraphs covered). No forced card IDs."
+    },
+    {
+      "key": "ui.writing.desk.kicker",
+      "value": "Huai'an Community feature"
+    },
+    {
+      "key": "ui.writing.desk.draft_label",
+      "value": "Draft body (editable)"
+    },
+    {
+      "key": "ui.writing.desk.draft_placeholder",
+      "value": "Draft text appears here — edit freely…"
+    },
+    {
+      "key": "ui.writing.desk.chars_fmt",
+      "value": "~{0} chars"
+    },
+    {
+      "key": "ui.writing.desk.sources",
+      "value": "Sources"
+    },
+    {
+      "key": "ui.writing.desk.sources_empty",
+      "value": "(No materials selected yet)"
+    },
+    {
+      "key": "ui.writing.desk.dir_title",
+      "value": "1. Writing direction"
+    },
+    {
+      "key": "ui.writing.desk.dir_guard",
+      "value": "Dafu on duty again"
+    },
+    {
+      "key": "ui.writing.desk.dir_rescue",
+      "value": "After saving a cat"
+    },
+    {
+      "key": "ui.writing.desk.mats_fmt",
+      "value": "2. Selected materials ({0}/{1})"
+    },
+    {
+      "key": "ui.writing.desk.need_more",
+      "value": "Need {0} more"
+    },
+    {
+      "key": "ui.writing.desk.need_paras",
+      "value": "Paragraphs covered {0}/4"
+    },
+    {
+      "key": "ui.writing.desk.paras_ok",
+      "value": "All four paragraphs OK"
+    },
+    {
+      "key": "ui.writing.desk.full",
+      "value": "Selection full"
+    },
+    {
+      "key": "ui.writing.desk.status_title",
+      "value": "3. Generation status"
+    },
+    {
+      "key": "ui.writing.desk.st_ready",
+      "value": "Ready to generate"
+    },
+    {
+      "key": "ui.writing.desk.st_not_ready",
+      "value": "Not ready yet"
+    },
+    {
+      "key": "ui.writing.desk.st_dir",
+      "value": "Direction selected"
+    },
+    {
+      "key": "ui.writing.desk.st_mats",
+      "value": "All four paragraphs have cards"
+    },
+    {
+      "key": "ui.writing.desk.st_mats_low",
+      "value": "Some paragraphs still empty"
+    },
+    {
+      "key": "ui.writing.desk.st_editable",
+      "value": "Body editable; AI polish once"
+    },
+    {
+      "key": "ui.writing.desk.st_polishing",
+      "value": "Polishing…"
+    },
+    {
+      "key": "ui.writing.desk.st_polish_used",
+      "value": "AI polish used (once per draft)"
+    },
+    {
+      "key": "ui.writing.desk.headline_guard",
+      "value": "Dafu on duty again"
+    },
+    {
+      "key": "ui.writing.desk.headline_rescue",
+      "value": "After saving a cat"
+    },
+    {
+      "key": "ui.writing.desk.draft_blocked",
+      "value": "Cannot preview a full draft yet."
+    },
+    {
+      "key": "ui.writing.desk.back_mats",
+      "value": "Back to materials"
+    },
+    {
+      "key": "ui.writing.desk.preview",
+      "value": "Preview article"
+    },
+    {
+      "key": "ui.writing.desk.ai_polish",
+      "value": "AI polish"
+    },
+    {
+      "key": "ui.writing.desk.ai_polish_used",
+      "value": "Polished"
+    },
+    {
+      "key": "ui.writing.desk.ai_polishing",
+      "value": "Polishing…"
+    },
+    {
+      "key": "ui.writing.desk.submit",
+      "value": "Submit to editor"
+    },
+    {
+      "key": "ui.writing.desk.submit_locked",
+      "value": "Cannot submit yet"
+    },
+    {
+      "key": "ui.writing.desk.submit_polishing",
+      "value": "Polishing…"
+    }
   ]
 }

@@ -85,7 +85,7 @@ namespace StreetCat.Interview
             if (engine == null)
                 return null;
 
-            log.Add("小凌：" + question);
+            log.Add(InterviewLoc.PlayerPrefix + question);
             lastPlayerQuestion = question;
             var reply = engine.Process(question);
             lastReply = reply;
@@ -135,10 +135,10 @@ namespace StreetCat.Interview
             SetTranslatingPlaceholder(false);
 
             if (!string.IsNullOrEmpty(reply.behavior))
-                log.Add("（" + reply.behavior + "）");
+                log.Add(InterviewLoc.FormatBehavior(reply.behavior));
 
             var lines = overrideLines ?? reply.replyLines;
-            var prefix = subject == InterviewSubject.Dafu ? "大福：" : "林女士：";
+            var prefix = InterviewLoc.SpeakerPrefix(subject);
             if (lines != null)
             {
                 foreach (var line in lines)
@@ -171,6 +171,12 @@ namespace StreetCat.Interview
         /// </summary>
         public string BuildStylePrompt(InterviewReply reply = null)
         {
+            if (GameSettings.IsEnglish)
+            {
+                return InterviewLoc.BuildStylePrompt(subject, reply, IsDafuFoodQuotaExceeded(),
+                    DafuFoodWindowSize, DafuFoodMaxPerWindow);
+            }
+
             if (subject == InterviewSubject.Dafu)
             {
                 var sb = new StringBuilder();
@@ -234,6 +240,12 @@ namespace StreetCat.Interview
         /// <summary>Freer user message: question first; rule lines are soft reference.</summary>
         public string BuildFreeAnswerUserMessage(string factsBlock, string playerQuestion, InterviewReply reply = null)
         {
+            if (GameSettings.IsEnglish)
+            {
+                return InterviewLoc.BuildFreeAnswerUserMessage(subject, factsBlock, playerQuestion, reply, log,
+                    IsDafuFoodQuotaExceeded());
+            }
+
             var sb = new StringBuilder();
             sb.AppendLine("【记者提问】" + (playerQuestion ?? ""));
             if (reply != null && !string.IsNullOrEmpty(reply.intent))
@@ -293,20 +305,31 @@ namespace StreetCat.Interview
             var joined = string.Join("\n", lines);
             if (subject == InterviewSubject.Dafu)
             {
-                foreach (var leak in DafuRuleEngine.ForbiddenLeak)
+                var leaks = GameSettings.IsEnglish
+                    ? InterviewLoc.ForbiddenLeakEn
+                    : DafuRuleEngine.ForbiddenLeak;
+                foreach (var leak in leaks)
                 {
-                    if (joined.IndexOf(leak, StringComparison.Ordinal) >= 0)
+                    if (joined.IndexOf(leak, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         rejectReason = "forbidden:" + leak;
                         return false;
                     }
                 }
-                if (!AcceptDafuCanon(joined, out rejectReason))
+                if (GameSettings.IsEnglish)
+                {
+                    if (!InterviewLoc.AcceptDafuCanonEn(joined, out rejectReason))
+                        return false;
+                }
+                else if (!AcceptDafuCanon(joined, out rejectReason))
                     return false;
                 if (ruleReply != null && ruleReply.cognitiveBoundary)
                 {
                     // Boundary answers should stay confused, not explanatory.
-                    if (joined.Length > 48 && (joined.Contains("因为") || joined.Contains("所以") || joined.Contains("医生")))
+                    if (joined.Length > 48 && (joined.Contains("因为") || joined.Contains("所以") || joined.Contains("医生")
+                        || joined.IndexOf("because", StringComparison.OrdinalIgnoreCase) >= 0
+                        || joined.IndexOf("so ", StringComparison.OrdinalIgnoreCase) >= 0
+                        || joined.IndexOf("doctor", StringComparison.OrdinalIgnoreCase) >= 0))
                     {
                         rejectReason = "boundary_overexplain";
                         return false;
@@ -318,7 +341,9 @@ namespace StreetCat.Interview
                 return false;
 
             // Block prompt-injection style leakage.
-            if (joined.Contains("可用事实") || joined.Contains("系统提示") || joined.Contains("忽略设定"))
+            if (joined.Contains("可用事实") || joined.Contains("系统提示") || joined.Contains("忽略设定")
+                || joined.IndexOf("system prompt", StringComparison.OrdinalIgnoreCase) >= 0
+                || joined.IndexOf("ignore instructions", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 rejectReason = "meta";
                 return false;
@@ -387,6 +412,8 @@ namespace StreetCat.Interview
                 if (text.IndexOf(DafuFoodKeywords[i], StringComparison.Ordinal) >= 0)
                     return true;
             }
+            if (GameSettings.IsEnglish && InterviewLoc.ContainsFoodMentionEn(text))
+                return true;
             return false;
         }
 
@@ -417,8 +444,16 @@ namespace StreetCat.Interview
             }
             if (kept.Count == 0)
             {
-                kept.Add("嗯。");
-                kept.Add("你说什么？");
+                if (GameSettings.IsEnglish)
+                {
+                    kept.Add("Mm.");
+                    kept.Add("What was that?");
+                }
+                else
+                {
+                    kept.Add("嗯。");
+                    kept.Add("你说什么？");
+                }
             }
             return kept;
         }
@@ -582,10 +617,14 @@ namespace StreetCat.Interview
             if (newLines == null || newLines.Count == 0 || subject == InterviewSubject.None)
                 return false;
 
-            var prefix = subject == InterviewSubject.Dafu ? "大福：" : "林女士：";
+            var prefix = InterviewLoc.SpeakerPrefix(subject);
             int i = log.Count - 1;
             int removed = 0;
-            while (i >= 0 && log[i].StartsWith(prefix, StringComparison.Ordinal))
+            while (i >= 0 && (log[i].StartsWith(prefix, StringComparison.Ordinal)
+                              || log[i].StartsWith("大福：", StringComparison.Ordinal)
+                              || log[i].StartsWith("林女士：", StringComparison.Ordinal)
+                              || log[i].StartsWith("Dafu: ", StringComparison.Ordinal)
+                              || log[i].StartsWith("Ms. Lin: ", StringComparison.Ordinal)))
             {
                 log.RemoveAt(i);
                 removed++;

@@ -7,6 +7,66 @@
       "choices": []
     },
     {
+      "key": "title:SC-02",
+      "text": "Meow Translator",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-03",
+      "text": "Guard Cat Dafu",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-04",
+      "text": "Huai'an Community",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-05",
+      "text": "Security Booth",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-06",
+      "text": "Dafu on Duty",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-08",
+      "text": "Looking for Ms. Lin",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-09",
+      "text": "Cafe Interview",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "title:SC-10",
+      "text": "Drafting & Shen He's Review",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-01:0",
+      "text": "[BGM] Newsroom Routine_01 (Loop)",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-01:1",
+      "text": "[SFX] Keyboard typing, a distant printer, and light office ambience",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-01:2",
       "text": "Friday evening. Most of the newsroom is already empty. Outside, the sky is fading; Ling is still at her desk, revising a draft.",
       "speakerName": "",
@@ -16,6 +76,12 @@
       "key": "SC-01:3",
       "text": "\"At 2 a.m., I Met the City's True Soul\"",
       "speakerName": "System",
+      "choices": []
+    },
+    {
+      "key": "SC-01:4",
+      "text": "[SFX] Keyboard backspacing",
+      "speakerName": "",
       "choices": []
     },
     {
@@ -45,6 +111,12 @@
     {
       "key": "SC-01:9",
       "text": "My job is interviews, commissions, edits, chasing deadlines—and hoping writers never notice I cut a third of their piece.",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-01:10",
+      "text": "[SFX] Message notification",
       "speakerName": "",
       "choices": []
     },
@@ -105,8 +177,14 @@
       ]
     },
     {
-      "key": "title:SC-02",
-      "text": "Meow Translator",
+      "key": "SC-02:0",
+      "text": "[SFX] Chair moving",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-02:1",
+      "text": "[BGM] Shen He's Office",
       "speakerName": "",
       "choices": []
     },
@@ -208,7 +286,7 @@
     },
     {
       "key": "SC-02:19",
-      "text": "Even people can't. Cats, even less.",
+      "text": "You can't take even a person's word at face value, let alone a cat's.",
       "speakerName": "Shen He",
       "choices": []
     },
@@ -228,12 +306,6 @@
       "key": "SC-02:22",
       "text": "Objective updated — \"Find a suitable stray to interview\"",
       "speakerName": "System",
-      "choices": []
-    },
-    {
-      "key": "title:SC-03",
-      "text": "Guard Cat Dafu",
-      "speakerName": "",
       "choices": []
     },
     {
@@ -292,7 +364,7 @@
     },
     {
       "key": "SC-03:10",
-      "text": "Shows up every afternoon. When Uncle Guard is on shift, so is he. Sometimes he even tags along on patrol. Pay is kibble and cans. Job duties: sleeping, sunbathing, and supervising the lockers.",
+      "text": "Shows up every afternoon. When the guard is on shift, so is he. Sometimes he even tags along on patrol. Pay is\nkibble and canned food. Job duties: sleeping, sunbathing, and supervising the parcel lockers.",
       "speakerName": "System",
       "choices": []
     },
@@ -381,8 +453,14 @@
       "choices": []
     },
     {
-      "key": "title:SC-04",
-      "text": "Huai'an Community",
+      "key": "SC-04:0",
+      "text": "[BGM] Huai'an Community - Afternoon_01 (Loop)",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-04:1",
+      "text": "[SFX] Birdsong, rustling leaves, and distant traffic",
       "speakerName": "",
       "choices": []
     },
@@ -417,20 +495,20 @@
       "choices": []
     },
     {
-      "key": "title:SC-05",
-      "text": "Guard Booth",
+      "key": "SC-05:0",
+      "text": "[BGM] Security Booth_01 (Loop)",
       "speakerName": "",
       "choices": []
     },
     {
       "key": "SC-05:1",
-      "text": "Uncle Guard steps out of the booth and picks up a cup from the sill. Ling walks over.",
+      "text": "The guard steps out of the booth and picks up his cup from the windowsill. Ling walks over.",
       "speakerName": "",
       "choices": []
     },
     {
       "key": "SC-05:2",
-      "text": "Excuse me, Uncle.",
+      "text": "Excuse me, sir.",
       "speakerName": "Ling",
       "choices": []
     },
@@ -454,7 +532,7 @@
     },
     {
       "key": "SC-05:6",
-      "text": "Uncle Guard glances toward the lockers.",
+      "text": "The guard glances toward the parcel lockers.",
       "speakerName": "",
       "choices": []
     },
@@ -508,7 +586,7 @@
     },
     {
       "key": "SC-05:15",
-      "text": "If I say I'm interviewing a cat, he'll think I'm weird...",
+      "text": "(thought) If I say I'm interviewing a cat, he'll think I'm weird...",
       "speakerName": "Ling",
       "choices": []
     },
@@ -531,8 +609,14 @@
       "choices": []
     },
     {
-      "key": "title:SC-06",
-      "text": "Dafu on Duty",
+      "key": "SC-06:0",
+      "text": "[BGM] Dafu Appears (Loop)",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-06:1",
+      "text": "[SFX] Rustling leaves and a distant bicycle bell",
       "speakerName": "",
       "choices": []
     },
@@ -561,6 +645,12 @@
       "choices": []
     },
     {
+      "key": "SC-06:6",
+      "text": "[SFX] Cat meow",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:7",
       "text": "Meow—",
       "speakerName": "Dafu",
@@ -568,7 +658,7 @@
     },
     {
       "key": "SC-06:8",
-      "text": "Uncle Guard comes out and tops up Dafu's kibble.",
+      "text": "The guard comes out of the booth and adds a little cat food to Dafu's bowl.",
       "speakerName": "",
       "choices": []
     },
@@ -599,6 +689,12 @@
     {
       "key": "SC-06:13",
       "text": "Ling stays put, takes out the meow translator, and powers it on.",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-06:14",
+      "text": "[SFX] Device startup tone",
       "speakerName": "",
       "choices": []
     },
@@ -651,6 +747,12 @@
       "choices": []
     },
     {
+      "key": "SC-06:23",
+      "text": "[SFX] Translation tone",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:24",
       "text": "The device emits a translated meow. Dafu's ear twitches; he looks up at Ling.",
       "speakerName": "",
@@ -660,6 +762,12 @@
       "key": "SC-06:25",
       "text": "Meow?",
       "speakerName": "Dafu",
+      "choices": []
+    },
+    {
+      "key": "SC-06:26",
+      "text": "[SFX] Meow_04",
+      "speakerName": "",
       "choices": []
     },
     {
@@ -687,6 +795,12 @@
       "choices": []
     },
     {
+      "key": "SC-06:31",
+      "text": "[SFX] Cat-treat wrapper tearing",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:32",
       "text": "Dafu's eyes lock onto the treat.",
       "speakerName": "",
@@ -702,6 +816,12 @@
       "key": "SC-06:34",
       "text": "This is for you.",
       "speakerName": "Ling",
+      "choices": []
+    },
+    {
+      "key": "SC-06:35",
+      "text": "[SFX] Translation tone",
+      "speakerName": "",
       "choices": []
     },
     {
@@ -766,7 +886,7 @@
     },
     {
       "key": "SC-06:46",
-      "text": "Looks like we're good.",
+      "text": "(thought) Looks like we're good.",
       "speakerName": "Ling",
       "choices": []
     },
@@ -777,9 +897,21 @@
       "choices": []
     },
     {
+      "key": "SC-06:48",
+      "text": "[SFX] Meow_02",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:49",
       "text": "Meow-meow.",
       "speakerName": "Dafu",
+      "choices": []
+    },
+    {
+      "key": "SC-06:50",
+      "text": "[SFX] Translation notification",
+      "speakerName": "",
       "choices": []
     },
     {
@@ -801,6 +933,12 @@
       "choices": []
     },
     {
+      "key": "SC-06:54",
+      "text": "[SFX] Translation tone",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:55",
       "text": "Dafu stares at the empty wrapper in her hand.",
       "speakerName": "",
@@ -813,6 +951,12 @@
       "choices": []
     },
     {
+      "key": "SC-06:57",
+      "text": "[SFX] Meow_03",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:58",
       "text": "Translation — \"So there's none left.\"",
       "speakerName": "System",
@@ -822,6 +966,12 @@
       "key": "SC-06:59",
       "text": "Next time I'll bring more.",
       "speakerName": "Ling",
+      "choices": []
+    },
+    {
+      "key": "SC-06:60",
+      "text": "[SFX] Translation tone",
+      "speakerName": "",
       "choices": []
     },
     {
@@ -838,13 +988,13 @@
     },
     {
       "key": "SC-06:63",
-      "text": "He actually understood me.",
+      "text": "(thought) He actually understood me.",
       "speakerName": "Ling",
       "choices": []
     },
     {
       "key": "SC-06:64",
-      "text": "And I understood him. Wild.",
+      "text": "(thought) And I understood him. Wild.",
       "speakerName": "Ling",
       "choices": []
     },
@@ -885,9 +1035,21 @@
       "choices": []
     },
     {
+      "key": "SC-06:71",
+      "text": "[SFX] Translation tone",
+      "speakerName": "",
+      "choices": []
+    },
+    {
       "key": "SC-06:72",
       "text": "Meow.",
       "speakerName": "Dafu",
+      "choices": []
+    },
+    {
+      "key": "SC-06:73",
+      "text": "[SFX] Meow_05",
+      "speakerName": "",
       "choices": []
     },
     {
@@ -909,8 +1071,8 @@
       "choices": []
     },
     {
-      "key": "title:SC-08",
-      "text": "Looking for Ms. Lin",
+      "key": "SC-08:0",
+      "text": "[BGM] Huai'an Community - Evening_01 (Loop)",
       "speakerName": "",
       "choices": []
     },
@@ -940,7 +1102,7 @@
     },
     {
       "key": "SC-08:5",
-      "text": "Uncle, I'm back. About that rescuer you mentioned—I'd like to double-check.",
+      "text": "I wanted to follow up on the rescuer you mentioned earlier.",
       "speakerName": "Ling",
       "choices": []
     },
@@ -957,8 +1119,14 @@
       "choices": []
     },
     {
-      "key": "title:SC-09",
-      "text": "Cafe Interview",
+      "key": "SC-09:0",
+      "text": "[BGM] Cafe Ambience_01 (Loop)",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-09:1",
+      "text": "[SFX] Quiet conversation, steaming milk, and the occasional clink of cups and saucers",
       "speakerName": "",
       "choices": []
     },
@@ -1012,7 +1180,7 @@
     },
     {
       "key": "SC-09:10",
-      "text": "Today I mainly want to verify how he was hurt, treated, and later returned.",
+      "text": "Today, I'd mainly like to verify what happened with his injury, treatment, and eventual return to the\ncommunity.",
       "speakerName": "Ling",
       "choices": []
     },
@@ -1060,13 +1228,19 @@
     },
     {
       "key": "SC-09:18",
-      "text": "Second free interview. Use your notebook and ask Ms. Lin freely.",
+      "text": "The second open-ended interview begins. Use your notebook to ask Ms. Lin your own questions.",
       "speakerName": "System",
       "choices": []
     },
     {
-      "key": "title:SC-10",
-      "text": "Drafting & Shen He's Review",
+      "key": "SC-10:0",
+      "text": "[BGM] Newsroom Routine_02 (Loop)",
+      "speakerName": "",
+      "choices": []
+    },
+    {
+      "key": "SC-10:1",
+      "text": "[SFX] Keyboard typing, mouse clicks, and light office ambience",
       "speakerName": "",
       "choices": []
     },
@@ -1090,7 +1264,7 @@
     },
     {
       "key": "SC-10:5",
-      "text": "Intel you've earned becomes fixed material cards; anything you never found won't appear in the drafting list.",
+      "text": "Information gathered earlier becomes fixed material cards. Anything not discovered through investigation or\ninterviews will not appear in the drafting list.",
       "speakerName": "System",
       "choices": []
     }

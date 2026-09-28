@@ -56,6 +56,7 @@ namespace StreetCat.Loc
                 PlayerPrefs.Save();
                 UiLoc.Reload();
                 ScriptLoc.Reload();
+                HardTextLoc.Reload();
                 Notify();
             }
         }

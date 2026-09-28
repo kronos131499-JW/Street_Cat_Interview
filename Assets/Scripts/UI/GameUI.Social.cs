@@ -25,13 +25,50 @@ namespace StreetCat.UI
         bool socialBuilt;
 
         const float SocialFadeDuration = 0.32f;
-        const float SocialDetailScale = 1.06f;
+        /// <summary>Fallback when SocialLayout.asset is missing.</summary>
+        const float SocialDefaultWidth = 520f;
+        const float SocialDefaultHeight = 854f;
+        const float SocialDefaultDetailScale = 1.08f;
+        bool socialShowingDetail;
 
         static bool IsSocialHideCue(string cue)
         {
             if (string.IsNullOrEmpty(cue)) return false;
             var key = cue.Trim().ToLowerInvariant();
             return key == "hide" || key == "off" || key == "close";
+        }
+
+        void ApplySocialPhoneLayout(bool detail)
+        {
+            if (socialPhoneRt == null) return;
+            var d = SocialLayout.Current;
+            float w = d != null && d.width > 40f ? d.width : SocialDefaultWidth;
+            float h = d != null && d.height > 40f ? d.height : SocialDefaultHeight;
+            float ax = d != null ? d.anchorX : 0.5f;
+            float ay = d != null ? d.anchorY : 0.58f;
+            float detailScale = d != null && d.detailScale > 0.1f ? d.detailScale : SocialDefaultDetailScale;
+
+            // Keep the phone below the top HUD / letterbox (avoid status-bar mush in the bar).
+            float scale = detail ? detailScale : 1f;
+            float halfHNorm = (h * scale) / 1080f * 0.5f;
+            float maxAy = VnTheme.TopHudBottom - halfHNorm - 0.008f;
+            if (ay > maxAy)
+                ay = maxAy;
+            float minAy = halfHNorm * 0.2f + VnTheme.LetterboxH;
+            if (ay < minAy)
+                ay = minAy;
+
+            socialPhoneRt.anchorMin = socialPhoneRt.anchorMax = new Vector2(ax, ay);
+            socialPhoneRt.pivot = new Vector2(0.5f, 0.5f);
+            socialPhoneRt.anchoredPosition = Vector2.zero;
+            socialPhoneRt.sizeDelta = new Vector2(w, h);
+            socialPhoneRt.localScale = Vector3.one * scale;
+            socialShowingDetail = detail;
+        }
+
+        public void RefreshSocialLayoutFromAsset()
+        {
+            ApplySocialPhoneLayout(socialShowingDetail);
         }
 
         void BuildSocialOverlay(Transform canvas)
@@ -41,8 +78,12 @@ namespace StreetCat.UI
 
             socialRoot = new GameObject("SocialOverlay", typeof(RectTransform), typeof(CanvasGroup));
             socialRoot.transform.SetParent(canvas, false);
-            // Above stage wash / prop, under portrait + dialogue.
-            if (propImage != null)
+            // Under letterbox + top HUD so phone status chrome never leaks into the bar.
+            if (letterboxTop != null)
+                socialRoot.transform.SetSiblingIndex(letterboxTop.transform.GetSiblingIndex());
+            else if (topBarImage != null)
+                socialRoot.transform.SetSiblingIndex(topBarImage.transform.GetSiblingIndex());
+            else if (propImage != null)
                 socialRoot.transform.SetSiblingIndex(propImage.transform.GetSiblingIndex() + 1);
 
             var rootRt = socialRoot.GetComponent<RectTransform>();
@@ -59,10 +100,7 @@ namespace StreetCat.UI
             var phone = new GameObject("Phone", typeof(RectTransform));
             phone.transform.SetParent(socialRoot.transform, false);
             socialPhoneRt = phone.GetComponent<RectTransform>();
-            socialPhoneRt.anchorMin = socialPhoneRt.anchorMax = new Vector2(0.5f, VnTheme.StageCenterY);
-            socialPhoneRt.pivot = new Vector2(0.5f, 0.5f);
-            socialPhoneRt.sizeDelta = new Vector2(420f, 780f);
-            socialPhoneRt.localScale = Vector3.one;
+            ApplySocialPhoneLayout(detail: false);
 
             socialLayerA = CreateImage(phone.transform, "LayerA", Color.white);
             StretchFull(socialLayerA.rectTransform);
@@ -147,6 +185,8 @@ namespace StreetCat.UI
                 socialFadeB.alpha = 0f;
             }
             socialPhoneRt.localScale = Vector3.one;
+            socialShowingDetail = false;
+            ApplySocialPhoneLayout(detail: false);
             if (instant)
             {
                 socialRootFade.alpha = 1f;
@@ -191,6 +231,7 @@ namespace StreetCat.UI
                 socialLayerB.sprite = null;
                 socialPhoneRt.localScale = Vector3.one;
                 socialSpriteKey = null;
+                socialShowingDetail = false;
                 socialRoot.SetActive(false);
                 socialCo = null;
             }
@@ -231,14 +272,19 @@ namespace StreetCat.UI
             backImg.gameObject.SetActive(true);
             backImg.transform.SetAsLastSibling();
 
-            float targetScale = detail ? SocialDetailScale : 1f;
+            float targetScale = detail
+                ? (SocialLayout.Current != null ? SocialLayout.Current.detailScale : SocialDefaultDetailScale)
+                : 1f;
+            ApplySocialPhoneLayout(detail: false);
             Vector3 startScale = socialPhoneRt.localScale;
+            Vector3 endScale = Vector3.one * targetScale;
+            socialShowingDetail = detail;
 
             if (instant || !hadSprite)
             {
                 frontFade.alpha = 0f;
                 backFade.alpha = 1f;
-                socialPhoneRt.localScale = Vector3.one * targetScale;
+                socialPhoneRt.localScale = endScale;
             }
             else
             {
@@ -251,17 +297,18 @@ namespace StreetCat.UI
                     float e = u * u * (3f - 2f * u);
                     frontFade.alpha = 1f - e;
                     backFade.alpha = e;
-                    socialPhoneRt.localScale = Vector3.Lerp(startScale, Vector3.one * targetScale, e);
+                    socialPhoneRt.localScale = Vector3.Lerp(startScale, endScale, e);
                     yield return null;
                 }
                 frontFade.alpha = 0f;
                 backFade.alpha = 1f;
-                socialPhoneRt.localScale = Vector3.one * targetScale;
+                socialPhoneRt.localScale = endScale;
             }
 
             frontImg.sprite = null;
             socialAIsFront = !socialAIsFront;
             socialSpriteKey = key;
+            ApplySocialPhoneLayout(detail);
             socialCo = null;
         }
 
@@ -304,6 +351,7 @@ namespace StreetCat.UI
             socialLayerB.sprite = null;
             socialPhoneRt.localScale = Vector3.one;
             socialSpriteKey = null;
+            socialShowingDetail = false;
             socialRoot.SetActive(false);
             socialCo = null;
         }

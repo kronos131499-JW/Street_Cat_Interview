@@ -718,9 +718,9 @@ namespace StreetCat.Notebook
             var t = Topics.Find(x => x.id == topicId);
             if (t == null) return null;
             if (!string.IsNullOrEmpty(t.hintQuestion))
-                return t.hintQuestion;
+                return StreetCat.Interview.InterviewLoc.LocalizeAskQuestion(t.hintQuestion);
             if (!t.inspirationIsInvestigate)
-                return t.inspiration;
+                return StreetCat.Interview.InterviewLoc.LocalizeAskQuestion(t.inspiration);
             return null;
         }
 
@@ -873,17 +873,17 @@ namespace StreetCat.Notebook
         {
             if (subject == InterviewSubject.Lin)
             {
-                yield return "您是怎么注意到大福的？";
-                yield return "为什么连续几天给它送吃的？";
-                yield return "送到医院以后怎么样？";
-                yield return "为什么又把它送回社区？";
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.lin_fb1", "您是怎么注意到大福的？");
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.lin_fb2", "为什么连续几天给它送吃的？");
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.lin_fb4", "送到医院以后怎么样？");
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.lin_fb3", "为什么又把它送回社区？");
             }
             else
             {
-                yield return "你平时一般什么时候会来这里？";
-                yield return "你以前也会来保安亭这边吗？";
-                yield return "你脖子以前是不是受过伤？";
-                yield return "有没有人经常来找你？";
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.dafu_fb1", "你平时一般什么时候会来这里？");
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.dafu_next_past", "你以前也会来保安亭这边吗？");
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.dafu_fb2", "你脖子以前是不是受过伤？");
+                yield return StreetCat.Loc.UiLoc.T("ui.interview.chip.dafu_fb3", "有没有人经常来找你？");
             }
         }
 

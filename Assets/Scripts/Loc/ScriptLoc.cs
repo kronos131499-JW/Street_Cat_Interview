@@ -46,8 +46,12 @@ namespace StreetCat.Loc
             { "寻找合适的流浪猫采访对象。", "Find a suitable stray cat to interview." },
             { "前往槐安社区寻找大福。", "Go to Huai'an Community and find Dafu." },
             { "在社区内寻找大福的线索。", "Search the community for leads on Dafu." },
+            { "向保安询问大福的情况。", "Ask the guard about Dafu." },
             { "向保安询问大福记忆中的女人。", "Ask the guard about the woman in Dafu's memory." },
+            { "等待大福出现。", "Wait for Dafu to appear." },
             { "采访林女士，核实大福的救助经过。", "Interview Ms. Lin and verify Dafu's rescue." },
+            { "明天下午15:00前往咖啡馆采访林女士。", "Interview Ms. Lin at the café tomorrow at 15:00." },
+            { "等待林女士回复。", "Wait for Ms. Lin's reply." },
             { "整理素材，完成报道。", "Organize materials and finish the article." },
         };
 
@@ -69,7 +73,9 @@ namespace StreetCat.Loc
             var copy = CloneShallow(src);
             if (entry != null)
             {
-                if (entry.text != null)
+                if (entry.text != null
+                    && !ScriptMetaCue.IsProductionMetaText(entry.text)
+                    && !ScriptMetaCue.IsStructuredCueSource(src))
                     copy.text = entry.text;
                 if (!string.IsNullOrEmpty(entry.speakerName))
                     copy.speakerName = entry.speakerName;

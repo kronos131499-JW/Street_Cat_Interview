@@ -176,8 +176,12 @@ namespace StreetCat.Writing
                 : UiLoc.T("ui.writing.desk.dir_rescue", "救下一只猫以后");
         }
 
-        /// <summary>Article title with 《》 — same loc keys as <see cref="HeadlineFor"/>.</summary>
-        public static string TitleFor(WritingDirection dir) => "《" + HeadlineFor(dir) + "》";
+        /// <summary>Article title with book-title marks — same loc keys as <see cref="HeadlineFor"/>.</summary>
+        public static string TitleFor(WritingDirection dir)
+        {
+            var h = HeadlineFor(dir);
+            return GameSettings.IsEnglish ? "\"" + h + "\"" : "《" + h + "》";
+        }
 
         /// <summary>Build article from direction + selected materials, then apply offline rule review.</summary>
         public void Assemble(WritingDirection dir, List<string> selected)

@@ -212,8 +212,9 @@ namespace StreetCat.UI
             AttachTape(paper.transform, new Vector2(0.9f, 1.01f), 48f, 16f, 10f);
 
             interviewPortraitImage = CreateImage(paper.transform, "Portrait", Color.white);
+            // Larger bust, biased right within the paper frame.
             Stretch(interviewPortraitImage.rectTransform,
-                new Vector2(0.06f, 0.16f), new Vector2(0.94f, 0.94f),
+                new Vector2(0.12f, 0.06f), new Vector2(0.98f, 0.97f),
                 Vector2.zero, Vector2.zero);
             interviewPortraitImage.preserveAspect = true;
             interviewPortraitImage.raycastTarget = false;
@@ -732,7 +733,7 @@ namespace StreetCat.UI
         {
             if (reply == null || DialogueHistory.Instance == null) return;
             if (!string.IsNullOrEmpty(reply.behavior))
-                DialogueHistory.Instance.Add("", "（" + reply.behavior + "）", "interview");
+                DialogueHistory.Instance.Add("", InterviewLoc.FormatBehavior(reply.behavior), "interview");
             if (lines == null) return;
             foreach (var line in lines)
             {
@@ -766,11 +767,11 @@ namespace StreetCat.UI
             {
                 facts = string.Join("\n", ruleLines);
                 if (!string.IsNullOrEmpty(reply.behavior))
-                    facts = "行为：" + reply.behavior + "\n台词：\n" + facts;
+                    facts = StreetCat.Interview.InterviewLoc.FactsBlockLabel(reply.behavior, facts);
             }
             else if (reply.cognitiveBoundary)
             {
-                facts = "（认知边界：保持困惑，短答「不知道/那是什么」，勿解释人类医疗）";
+                facts = StreetCat.Interview.InterviewLoc.CognitiveBoundaryFacts;
             }
             var userMsg = ic.BuildFreeAnswerUserMessage(facts, question, reply);
 
@@ -936,13 +937,16 @@ namespace StreetCat.UI
         {
             if (string.IsNullOrEmpty(line)) return;
 
-            if (line.StartsWith("小凌：") || line.StartsWith("小凌:"))
+            if (line.StartsWith("小凌：") || line.StartsWith("小凌:")
+                || line.StartsWith("Ling: ") || line.StartsWith("Ling:"))
             {
                 var body = StripSpeakerPrefix(line);
                 SpawnInterviewBubble(body, BubbleKind.Player, "小凌");
             }
             else if (line.StartsWith("大福：") || line.StartsWith("大福:")
-                     || line.StartsWith("林女士：") || line.StartsWith("林女士:"))
+                     || line.StartsWith("林女士：") || line.StartsWith("林女士:")
+                     || line.StartsWith("Dafu: ") || line.StartsWith("Dafu:")
+                     || line.StartsWith("Ms. Lin: ") || line.StartsWith("Ms. Lin:"))
             {
                 var body = StripSpeakerPrefix(line);
                 var who = InterviewController.Instance != null
@@ -950,6 +954,10 @@ namespace StreetCat.UI
                     ? "林女士"
                     : "大福";
                 SpawnInterviewBubble(body, BubbleKind.Npc, who);
+            }
+            else if (InterviewLoc.TryUnwrapActionLine(line, out _))
+            {
+                SpawnInterviewBubble(InterviewLoc.FormatActionLogLine(line), BubbleKind.System, null);
             }
             else
             {
@@ -1254,6 +1262,17 @@ namespace StreetCat.UI
             // Three-column layout: left pad only — hide stage VN portraits.
             SetPortrait(null);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            portraitDebugInterviewRevision++;
+            var lineKey = GetPortraitDebugLineKey();
+            var debugKey = PortraitDebugOverrides.ResolveForLine(lineKey);
+            if (!string.IsNullOrEmpty(debugKey))
+            {
+                SetInterviewLeftPortrait(debugKey);
+                return;
+            }
+#endif
+
             var who = ic.Subject == InterviewSubject.Dafu ? "大福" : "林女士";
             var expression = InterviewPortraitService.PickExpression(
                 InterviewPortraitService.BuildContext(ic));
@@ -1308,11 +1327,11 @@ namespace StreetCat.UI
             SetProp(null);
             SetChrome(false, false, false);
             SetInterviewChrome(true);
-            // Paper title owns the header; TopBar chapter chip stays hidden while interviewing.
+            // TopBar chapter/objective row removed — keep both off while interviewing.
             if (chapterChip != null)
                 chapterChip.gameObject.SetActive(false);
             if (objectiveText != null)
-                objectiveText.gameObject.SetActive(true);
+                objectiveText.gameObject.SetActive(false);
             SetStageBackground(subject == InterviewSubject.Lin ? "咖啡馆_午后" : "保安亭_傍晚");
             RefreshHeader();
             HideInterviewBanner();

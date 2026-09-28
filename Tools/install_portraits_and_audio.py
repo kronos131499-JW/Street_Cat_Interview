@@ -41,8 +41,8 @@ PORTRAITS = [
     ("保安大叔立绘/保安大叔_疑惑.png", "ch_guard_puzzled"),
     ("保安大叔立绘/保安大叔_苦笑.png", "ch_guard_wry"),
     ("保安大叔立绘/保安大叔_回忆.png", "ch_guard_recall"),
-    # 大福
-    ("大福立绘/大福_放松.png", "ch_dafu_default"),
+    # 大福 — 常态 = standing default; 放松 = relaxed rapport
+    ("大福立绘/大福_常态.png", "ch_dafu_default"),
     ("大福立绘/大福_放松.png", "ch_dafu_relaxed"),
     ("大福立绘/大福_警惕.png", "ch_dafu_wary"),
     ("大福立绘/大福_不满.png", "ch_dafu_annoyed"),

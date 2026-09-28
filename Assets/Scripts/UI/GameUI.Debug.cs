@@ -149,6 +149,7 @@ namespace StreetCat.UI
             if (saveLoadRoot) saveLoadRoot.SetActive(false);
             if (confirmRoot) confirmRoot.SetActive(false);
             SetDebugJumpPanelVisible(false);
+            SetPortraitDebugPanelVisible(false);
             SetDialogueHidden(false);
             HideWritingMaterialsBoard();
             HideWritingDesk();

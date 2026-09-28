@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d37fab2dbc6c1a149bc43a28f3df630b, type: 3}
+  m_Name: PortraitLayout
+  m_EditorClassIdentifier: 
+  slotLeft: 0.6300498
+  slotRight: 0.9621884
+  slotTop: 0.8745362
+  slotBottom: 0.3
+  heightScale: 1.080317
+  centerBias: 0.5775123
+  offsetY: -0.14144279

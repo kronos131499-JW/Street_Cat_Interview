@@ -1168,7 +1168,7 @@ namespace StreetCat.UI
             HideWritingDesk();
             writingMatsActive = false;
             SetChrome(true, false, true);
-            stageHint.text = "写稿";
+            stageHint.text = UiLoc.T("ui.writing.stage_hint", "写稿");
             SetStageBackground("编辑部工位_上午");
             RefreshHeader();
             selectedMats.Clear();
@@ -1200,26 +1200,39 @@ namespace StreetCat.UI
                 buttonRoot.gameObject.SetActive(true);
             SetChrome(true, false, true);
             RefreshHeader();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            portraitDebugBeatSourceId = "direction_pick";
+            NotifyPortraitDebugLineChanged();
+#endif
             SetSpeaker("沈禾", LineSpeaker.Character, "认真");
             var unlocked = GameState.Instance.Data.unlockedMaterials.Count;
-            var body = "选一个报道立意。素材决定你能写什么，立意决定你想讲什么。\n\n已解锁素材 " +
-                       unlocked + " 张。";
+            var body = string.Format(
+                UiLoc.T("ui.writing.pick_body",
+                    "选一个报道立意。素材决定你能写什么，立意决定你想讲什么。\n\n已解锁素材 {0} 张。"),
+                unlocked);
             if (unlocked < 8)
-                body += "\n\n素材还不够成稿。如果采访里还有没问到的，可以回去补充。";
+                body += UiLoc.T("ui.writing.pick_body_low",
+                    "\n\n素材还不够成稿。如果采访里还有没问到的，可以回去补充。");
             SetBody(body);
             ClearButtons();
-            AddChoice(ArticleAssembler.TitleFor(WritingDirection.GuardCatToday) + "　从流浪猫到社区保安", () =>
-            {
-                pendingDir = WritingDirection.GuardCatToday;
-                ShowMaterialPick();
-            });
-            AddChoice(ArticleAssembler.TitleFor(WritingDirection.RescueWithoutAdoption) + "　一次没有以收养结束的救助", () =>
-            {
-                pendingDir = WritingDirection.RescueWithoutAdoption;
-                ShowMaterialPick();
-            });
+            AddChoice(
+                ArticleAssembler.TitleFor(WritingDirection.GuardCatToday) + "　"
+                + UiLoc.T("ui.writing.pick_guard_blurb", "从流浪猫到社区保安"),
+                () =>
+                {
+                    pendingDir = WritingDirection.GuardCatToday;
+                    ShowMaterialPick();
+                });
+            AddChoice(
+                ArticleAssembler.TitleFor(WritingDirection.RescueWithoutAdoption) + "　"
+                + UiLoc.T("ui.writing.pick_rescue_blurb", "一次没有以收养结束的救助"),
+                () =>
+                {
+                    pendingDir = WritingDirection.RescueWithoutAdoption;
+                    ShowMaterialPick();
+                });
             AddReInterviewActions(unlocked < 8);
-            AddAction("笔记", OpenNotebook);
+            AddAction(UiLoc.T("ui.notebook", "笔记"), OpenNotebook);
         }
 
         void ShowMaterialPick()
@@ -1243,14 +1256,21 @@ namespace StreetCat.UI
             HideWritingDesk();
             if (!assembler.CanAssemble(pendingDir, selectedMats, out var err))
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                portraitDebugBeatSourceId = "assemble_fail";
+                NotifyPortraitDebugLineChanged();
+#endif
                 SetSpeaker("沈禾", LineSpeaker.Character, "认真");
-                SetBody("现在还不能成稿。\n\n" + err + "\n\n可以改选材，或返回采访补齐素材。");
-                statusText.text = err;
+                SetBody(string.Format(
+                    UiLoc.T("ui.writing.cant_assemble",
+                        "现在还不能成稿。\n\n{0}\n\n可以改选材，或返回采访补齐素材。"),
+                    HardTextLoc.T(err)));
+                statusText.text = HardTextLoc.T(err);
                 ClearButtons();
-                AddAction("返回改选材", ShowMaterialPick, true);
-                AddAction("重选立意", ShowWritingDirectionPick);
+                AddAction(UiLoc.T("ui.writing.back_reselect_mats", "返回改选材"), ShowMaterialPick, true);
+                AddAction(UiLoc.T("ui.writing.reselect_dir", "重选立意"), ShowWritingDirectionPick);
                 AddReInterviewActions(true);
-                AddAction("笔记", OpenNotebook);
+                AddAction(UiLoc.T("ui.notebook", "笔记"), OpenNotebook);
                 return;
             }
 
@@ -1271,10 +1291,14 @@ namespace StreetCat.UI
 
             SetStageBackground("沈禾办公室_上午");
             BgmController.Instance?.PlayScriptLabel("编辑部日常_01（循环）");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            portraitDebugBeatSourceId = "submit_review";
+            NotifyPortraitDebugLineChanged();
+#endif
             SetSpeaker("沈禾", LineSpeaker.Character, "认真");
             // Body already edited on the desk — do not re-dump the full article here.
-            SetBody("稿件已提交。正在送审…");
-            statusText.text = "审核中…";
+            SetBody(UiLoc.T("ui.writing.submitted", "稿件已提交。正在送审…"));
+            statusText.text = UiLoc.T("ui.writing.reviewing", "审核中…");
             ClearButtons();
             writingMatsActive = false;
 
@@ -1293,23 +1317,30 @@ namespace StreetCat.UI
             GameState.Instance.Data.lastArticleBody = assembler.Body;
             GameState.Instance.Data.lastArticleTitle = assembler.Title;
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            portraitDebugBeatSourceId = "review_result";
+            NotifyPortraitDebugLineChanged();
+#endif
             SetSpeaker("沈禾", LineSpeaker.Character, assembler.CanPublish ? "淡淡认可" : "认真");
             // Review / score only — full article stays on the writing desk.
-            SetBody("—— 沈禾审核 ——\n" + assembler.ReviewText
-                    + "\n\n评分　" + assembler.Score);
+            SetBody(string.Format(
+                UiLoc.T("ui.writing.review_header", "—— 沈禾审核 ——\n{0}\n\n评分　{1}"),
+                HardTextLoc.T(assembler.ReviewText),
+                assembler.Score));
             statusText.text = assembler.CanPublish
-                ? $"审核通过　{assembler.Score}"
-                : $"审核退回　分支{assembler.ReviewBranch}";
+                ? string.Format(UiLoc.T("ui.writing.pass_fmt", "审核通过　{0}"), assembler.Score)
+                : string.Format(UiLoc.T("ui.writing.fail_fmt", "审核退回　分支{0}"), assembler.ReviewBranch);
             ClearButtons();
             if (assembler.CanPublish)
-                AddAction("确认发布", () => ChapterFlowController.Instance.OnArticlePublished(), true);
+                AddAction(UiLoc.T("ui.writing.confirm_publish", "确认发布"),
+                    () => ChapterFlowController.Instance.OnArticlePublished(), true);
             else
             {
-                AddAction("返回写稿", ShowMaterialPick, true);
-                AddAction("查看记者笔记", OpenNotebook);
+                AddAction(UiLoc.T("ui.writing.back_to_write", "返回写稿"), ShowMaterialPick, true);
+                AddAction(UiLoc.T("ui.writing.view_notebook", "查看记者笔记"), OpenNotebook);
                 AddReInterviewActions(true);
             }
-            AddAction("重选立意", ShowWritingDirectionPick);
+            AddAction(UiLoc.T("ui.writing.reselect_dir", "重选立意"), ShowWritingDirectionPick);
             writingReviewCo = null;
         }
 
@@ -1326,19 +1357,29 @@ namespace StreetCat.UI
 
             if (dafuDone && linDone)
             {
-                AddAction(highlight ? "重新采访…" : "返回采访", ShowReInterviewMenu, highlight);
+                AddAction(
+                    highlight
+                        ? UiLoc.T("ui.writing.reinterview_any", "重新采访…")
+                        : UiLoc.T("ui.writing.back_interview", "返回采访"),
+                    ShowReInterviewMenu, highlight);
                 return;
             }
 
             if (dafuDone)
             {
-                AddAction(highlight ? "重新采访大福" : "返回采访大福",
+                AddAction(
+                    highlight
+                        ? UiLoc.T("ui.writing.reinterview_dafu", "重新采访大福")
+                        : UiLoc.T("ui.writing.back_interview_dafu", "返回采访大福"),
                     () => ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Dafu),
                     highlight);
             }
             if (linDone)
             {
-                AddAction(highlight ? "重新采访林女士" : "返回采访林女士",
+                AddAction(
+                    highlight
+                        ? UiLoc.T("ui.writing.reinterview_lin", "重新采访林女士")
+                        : UiLoc.T("ui.writing.back_interview_lin", "返回采访林女士"),
                     () => ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Lin),
                     highlight);
             }
@@ -1349,24 +1390,29 @@ namespace StreetCat.UI
             writingMatsActive = false;
             HideWritingMaterialsBoard();
             SetChrome(true, false, true);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            portraitDebugBeatSourceId = "reinterview_menu";
+            NotifyPortraitDebugLineChanged();
+#endif
             SetSpeaker("系统", LineSpeaker.System);
-            SetBody("写稿素材不够时，可以回去补充采访。已获得的情报与素材卡会保留。\n\n要重新采访谁？");
-            statusText.text = "补充采访";
+            SetBody(UiLoc.T("ui.writing.reinterview_menu",
+                "写稿素材不够时，可以回去补充采访。已获得的情报与素材卡会保留。\n\n要重新采访谁？"));
+            statusText.text = UiLoc.T("ui.writing.reinterview_status", "补充采访");
             ClearButtons();
             if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
-                AddChoice("重新采访大福", () =>
+                AddChoice(UiLoc.T("ui.writing.reinterview_dafu", "重新采访大福"), () =>
                     ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Dafu));
             if (GameState.Instance.HasFlag(FlagIds.LinInterviewDone))
-                AddChoice("重新采访林女士", () =>
+                AddChoice(UiLoc.T("ui.writing.reinterview_lin", "重新采访林女士"), () =>
                     ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Lin));
-            AddAction("返回写稿", () =>
+            AddAction(UiLoc.T("ui.writing.back_to_write", "返回写稿"), () =>
             {
                 if (selectedMats.Count > 0 || writingMatsActive)
                     ShowMaterialPick();
                 else
                     ShowWritingDirectionPick();
             }, true);
-            AddAction("笔记", OpenNotebook);
+            AddAction(UiLoc.T("ui.notebook", "笔记"), OpenNotebook);
         }
 
         void ResumeWritingMode()

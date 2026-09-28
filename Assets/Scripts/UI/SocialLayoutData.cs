@@ -1,0 +1,42 @@
+using UnityEngine;
+
+namespace StreetCat.UI
+{
+    /// <summary>Persisted phone/social-feed frame layout (Resources/SocialLayout.asset).</summary>
+    [CreateAssetMenu(menuName = "Street Cat/Social Layout", fileName = "SocialLayout")]
+    public class SocialLayoutData : ScriptableObject
+    {
+        [Tooltip("Phone frame width in canvas pixels (reference 1920-wide UI).")]
+        public float width = 520f;
+
+        [Tooltip("Phone frame height in canvas pixels.")]
+        public float height = 854f;
+
+        [Tooltip("Normalized anchor X (0–1).")]
+        public float anchorX = 0.5f;
+
+        [Tooltip("Normalized anchor Y (0–1, bottom origin).")]
+        public float anchorY = 0.52f;
+
+        [Tooltip("Extra scale when showing post detail.")]
+        public float detailScale = 1.08f;
+
+        public void Clamp()
+        {
+            width = Mathf.Clamp(width, 220f, 1100f);
+            height = Mathf.Clamp(height, 360f, 1600f);
+            anchorX = Mathf.Clamp01(anchorX);
+            anchorY = Mathf.Clamp01(anchorY);
+            detailScale = Mathf.Clamp(detailScale, 0.85f, 1.4f);
+        }
+
+        public void ApplyDefaults()
+        {
+            width = 520f;
+            height = 854f;
+            anchorX = 0.5f;
+            anchorY = 0.52f;
+            detailScale = 1.08f;
+        }
+    }
+}

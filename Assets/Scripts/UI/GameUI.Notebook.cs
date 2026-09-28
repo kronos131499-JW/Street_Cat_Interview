@@ -1,6 +1,7 @@
 using System.Text;
 using StreetCat.Core;
 using StreetCat.Data;
+using StreetCat.Interview;
 using StreetCat.Loc;
 using StreetCat.Notebook;
 using UnityEngine;
@@ -679,7 +680,7 @@ namespace StreetCat.UI
 
             var label = CreateUiText(go.transform, "Label", 14, TextAnchor.UpperCenter, NbInk, Vector2.zero, Vector2.zero);
             Stretch(label.rectTransform, new Vector2(0.06f, 0.02f), new Vector2(0.94f, 0.34f), Vector2.zero, Vector2.zero);
-            label.text = topic.title;
+            label.text = HardTextLoc.T(topic.title);
             label.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
             label.enableWordWrapping = true;
             label.overflowMode = TextOverflowModes.Truncate;
@@ -735,7 +736,7 @@ namespace StreetCat.UI
             else
             {
                 foreach (var n in t.notes)
-                    sb.AppendLine("> " + n.text);
+                    sb.AppendLine("> " + HardTextLoc.T(n.text));
             }
 
             var qa = nb.QaForTopic(t.id);
@@ -747,18 +748,22 @@ namespace StreetCat.UI
                 for (int i = qa.Count - show; i < qa.Count; i++)
                 {
                     var q = qa[i];
-                    sb.AppendLine("> " + UiLoc.T("ui.notebook.qa_q", "问：") + q.question);
+                    sb.AppendLine("> " + UiLoc.T("ui.notebook.qa_q", "问：")
+                        + InterviewLoc.LocalizeAskQuestion(q.question));
                     AppendQaAnswerLines(sb, q.speaker, q.answerSummary, indent: "  ");
                 }
             }
 
             string source = nb.SourcesLine(t);
             if (!string.IsNullOrEmpty(source) && source.StartsWith("来源："))
-                source = UiLoc.T("ui.notebook.source_prefix", "来源：") + source.Substring("来源：".Length);
+            {
+                var rest = source.Substring("来源：".Length);
+                source = UiLoc.T("ui.notebook.source_prefix", "来源：") + HardTextLoc.T(rest);
+            }
             else if (string.IsNullOrEmpty(source))
                 source = "";
 
-            SetNotebookPageContent(t.title, LocalizedStatusLabel(t.status), sb.ToString().TrimEnd(), source);
+            SetNotebookPageContent(HardTextLoc.T(t.title), LocalizedStatusLabel(t.status), sb.ToString().TrimEnd(), source);
             UpdateInspirationForTopic(t);
         }
 
@@ -778,11 +783,11 @@ namespace StreetCat.UI
 
             if (t.inspirationIsInvestigate)
             {
-                SetNotebookInspiration(t.inspiration, false);
+                SetNotebookInspiration(HardTextLoc.T(t.inspiration), false);
                 return;
             }
 
-            SetNotebookInspiration(t.inspiration, true);
+            SetNotebookInspiration(InterviewLoc.LocalizeAskQuestion(t.inspiration), true);
         }
 
         static void AppendQaAnswerLines(StringBuilder sb, string speaker, string answer, string indent = "")

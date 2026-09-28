@@ -28,6 +28,18 @@ namespace StreetCat.Editor
             InvestigateHotspotEditorWindow.Open();
         }
 
+        [MenuItem("StreetCat/Portrait Layout Editor")]
+        static void OpenPortraitLayoutEditor()
+        {
+            PortraitLayoutEditorWindow.Open();
+        }
+
+        [MenuItem("StreetCat/Portrait Debug Picker (F11)")]
+        static void LogPortraitDebugPicker()
+        {
+            Debug.Log("[StreetCat] 立绘调试：Play 后按 F11；点击立绘仅预览，点「确认本句立绘」才生效，且只影响当前这一句。");
+        }
+
         [MenuItem("StreetCat/LLM/Paste API Key From Clipboard")]
         static void PasteLlmApiKeyFromClipboard()
         {

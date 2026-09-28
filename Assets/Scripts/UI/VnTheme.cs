@@ -45,6 +45,23 @@ namespace StreetCat.UI
         public const float StageCenterY = 0.68f;
         public const float TopHudBottom = 0.935f;
 
+        // ── VN stage portrait (normalized anchors: bottom=0, top=1) ──
+        // Tune these in code or Inspector debug to adjust size / position.
+        /// <summary>Left edge of portrait slot (0–1 screen width).</summary>
+        public const float PortraitSlotLeft = 0.72f;
+        /// <summary>Right edge of portrait slot.</summary>
+        public const float PortraitSlotRight = 0.99f;
+        /// <summary>Top of portrait slot (below top HUD).</summary>
+        public const float PortraitSlotTop = 0.98f;
+        /// <summary>Clear gap above dialogue panel — portrait bottom sits here (no overlap).</summary>
+        public const float PortraitGapAboveDialogue = 0.06f;
+        /// <summary>Extra scale after aspect fit (1 = fill slot height).</summary>
+        public const float PortraitHeightScale = 1.10f;
+        /// <summary>0.5 = centered in slot; &gt;0.5 shifts portrait right within slot.</summary>
+        public const float PortraitSlotCenterBias = 0.58f;
+
+        public static float PortraitSlotBottom => DialogueTop + PortraitGapAboveDialogue;
+
         public static Texture2D VerticalGradient(Color top, Color bottom, int h = 96)
         {
             var tex = new Texture2D(2, h, TextureFormat.RGBA32, false);
