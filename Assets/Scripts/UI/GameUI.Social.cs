@@ -201,7 +201,7 @@ namespace StreetCat.UI
             if (socialRoot == null) return;
             socialRoot.SetActive(true);
 
-            var sprite = VnArt.GetUi("Social/" + resourceKey);
+            var sprite = ArtPackSocialSprite(resourceKey) ?? VnArt.GetUi("Social/" + resourceKey);
             if (sprite == null)
             {
                 Debug.LogWarning("[GameUI] Social sprite missing: Social/" + resourceKey);

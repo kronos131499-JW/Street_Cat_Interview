@@ -177,6 +177,9 @@ namespace StreetCat.UI
         Image letterboxBottom;
         /// <summary>TopBar 回看/菜单 chips — hidden during free interview (local toolbar only).</summary>
         GameObject hudActionsRoot;
+        const float HudToolButtonWidth = 64f;
+        const float HudToolButtonHeight = 40f;
+        const float HudToolButtonSpacing = 8f;
         Image choiceHostImage;
         CanvasGroup portraitFade;
         Image atmosphereWash;
@@ -387,6 +390,7 @@ namespace StreetCat.UI
                 backlogText.enableWordWrapping = true;
                 ApplyLetterSpacing(backlogText, 0f);
             }
+            RefreshDialogueFontColors();
             ApplyNotebookFonts();
             ApplyInterviewFonts();
             ApplyWritingFonts();
@@ -638,6 +642,9 @@ namespace StreetCat.UI
 
             // Choice band — soft panel above dialogue
             choiceHostImage = CreateImage(canvasGo.transform, "ChoiceHost", new Color(0, 0, 0, 0.001f));
+            choiceHostImage.sprite = null;
+            choiceHostImage.type = Image.Type.Simple;
+            choiceHostImage.color = new Color(0f, 0f, 0f, 0.001f);
             Stretch(choiceHostImage.rectTransform, new Vector2(0.16f, VnTheme.ChoiceBottom), new Vector2(0.84f, VnTheme.ChoiceTop),
                 Vector2.zero, Vector2.zero);
             var choiceHost = choiceHostImage;
@@ -658,7 +665,7 @@ namespace StreetCat.UI
             var vlg = choiceRoot.GetComponent<VerticalLayoutGroup>();
             vlg.spacing = 10;
             vlg.childAlignment = TextAnchor.UpperCenter;
-            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandWidth = false;
             vlg.childControlHeight = true;
             vlg.childControlWidth = true;
             vlg.padding = new RectOffset(12, 12, 8, 8);
@@ -696,11 +703,17 @@ namespace StreetCat.UI
             hart.anchorMin = hart.anchorMax = new Vector2(1, 0.5f);
             hart.pivot = new Vector2(1, 0.5f);
             hart.anchoredPosition = new Vector2(-28, 0);
-            hart.sizeDelta = new Vector2(260, 36);
+            hart.sizeDelta = new Vector2(
+                HudToolButtonWidth * 3f + HudToolButtonSpacing * 2f,
+                HudToolButtonHeight);
             var hhlg = hudActionsRoot.GetComponent<HorizontalLayoutGroup>();
-            hhlg.spacing = 8;
+            hhlg.spacing = HudToolButtonSpacing;
             hhlg.childAlignment = TextAnchor.MiddleRight;
             hhlg.childForceExpandWidth = false;
+            hhlg.childForceExpandHeight = false;
+            hhlg.childControlWidth = true;
+            hhlg.childControlHeight = true;
+            BuildHideDialogueControl(hudActionsRoot.transform);
             SpawnHudChip(hudActionsRoot.transform, "回看", OpenBacklog);
             SpawnHudChip(hudActionsRoot.transform, "菜单", OpenMenu);
             EnsureTopHudClickable();
@@ -715,7 +728,7 @@ namespace StreetCat.UI
             BuildSaveLoadOverlay(canvasGo.transform);
             BuildConfirmOverlay(canvasGo.transform);
             BuildSettingsOverlay(canvasGo.transform);
-            BuildHideDialogueControl(canvasGo.transform);
+            ApplyArtPackFixedSkin();
             BuildSceneFadeOverlay(canvasGo.transform);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             BuildDebugJumpPanel(canvasGo.transform);
@@ -724,13 +737,15 @@ namespace StreetCat.UI
 
         void BuildHideDialogueControl(Transform parent)
         {
-            var go = new GameObject("HideDialogue", typeof(RectTransform), typeof(Image), typeof(Button));
+            var go = new GameObject("HideDialogue", typeof(RectTransform), typeof(Image), typeof(Button),
+                typeof(LayoutElement));
             go.transform.SetParent(parent, false);
             var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
-            rt.pivot = new Vector2(1f, 0f);
-            rt.anchoredPosition = new Vector2(-18f, 210f);
-            rt.sizeDelta = new Vector2(112f, 34f);
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(HudToolButtonWidth, HudToolButtonHeight);
+            ConfigureHudToolLayout(go.GetComponent<LayoutElement>());
             var img = go.GetComponent<Image>();
             img.color = new Color(0.1f, 0.1f, 0.12f, 0.82f);
             hideDialogueBtn = go.GetComponent<Button>();
@@ -750,6 +765,7 @@ namespace StreetCat.UI
             StretchFull(hideDialogueLabel.GetComponent<RectTransform>());
             hideDialogueLabel.text = UiLoc.T("ui.hide_dialogue");
             hideDialogueLabel.raycastTarget = false;
+            ApplyHideDialogueArt(hideDialogueBtn, hideDialogueLabel);
             go.SetActive(false);
         }
 
@@ -880,8 +896,6 @@ namespace StreetCat.UI
             {
                 bool showBtn = CanHideDialogue() || dialogueHidden;
                 hideDialogueBtn.gameObject.SetActive(showBtn);
-                if (showBtn)
-                    hideDialogueBtn.transform.SetAsLastSibling();
             }
 
             if (!dialogueHidden)
@@ -993,8 +1007,7 @@ namespace StreetCat.UI
             go.transform.SetParent(parent, false);
             go.GetComponent<Image>().color = new Color(0.12f, 0.12f, 0.14f, 0.9f);
             var le = go.GetComponent<LayoutElement>();
-            le.minWidth = 88;
-            le.preferredHeight = 34;
+            ConfigureHudToolLayout(le);
             go.GetComponent<Button>().onClick.AddListener(() =>
             {
                 SfxController.Instance?.PlayUi();
@@ -1010,6 +1023,19 @@ namespace StreetCat.UI
             tx.color = VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
+            ApplyHudChipArt(go.GetComponent<Button>(), label, tx);
+        }
+
+        static void ConfigureHudToolLayout(LayoutElement element)
+        {
+            if (element == null) return;
+            element.minWidth = HudToolButtonWidth;
+            element.preferredWidth = HudToolButtonWidth;
+            element.flexibleWidth = 0f;
+            element.minHeight = HudToolButtonHeight;
+            element.preferredHeight = HudToolButtonHeight;
+            element.flexibleHeight = 0f;
+            element.ignoreLayout = false;
         }
 
         void BuildMenuOverlay(Transform parent)
@@ -1246,6 +1272,8 @@ namespace StreetCat.UI
                 var go = new GameObject("Slot", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
                 go.transform.SetParent(saveLoadList, false);
                 go.GetComponent<Image>().color = info.empty ? new Color(0.12f, 0.12f, 0.14f, 0.9f) : VnTheme.Button;
+                ApplyMissingArtPlaceholder(go.GetComponent<Image>(), "存读档界面", "存档槽位",
+                    "存读档界面/存档槽位（空、已有存档、悬停）");
                 go.GetComponent<LayoutElement>().preferredHeight = 72;
                 go.GetComponent<Button>().onClick.AddListener(() => OnSlotClicked(captured));
 
@@ -1528,6 +1556,19 @@ namespace StreetCat.UI
             titleTaglineCleared = false;
 
             BuildTitleDeskProps(titleRoot.transform);
+            if (ApplyArtPackImage(desk, "菜单界面/背景", "主菜单", "背景"))
+            {
+                shadow.gameObject.SetActive(false);
+                mag.gameObject.SetActive(false);
+                left.SetActive(false);
+                contentsHeader.gameObject.SetActive(false);
+                titleContentsLabel.gameObject.SetActive(false);
+                foreach (var propName in new[] { "PropTranslator", "PropNotes", "PropPolaroidA", "PropPolaroidB", "PropScraps" })
+                {
+                    var prop = titleRoot.transform.Find(propName);
+                    if (prop != null) prop.gameObject.SetActive(false);
+                }
+            }
             ApplyTitleLanguageVisuals();
         }
 
@@ -1996,6 +2037,15 @@ namespace StreetCat.UI
             tx.raycastTarget = false;
             StyleTitleMenuText(tx, primary ? 24 : 21, true);
 
+            if (ApplyTitleButtonArt(btn, index))
+            {
+                tx.gameObject.SetActive(false);
+                var oldIcon = go.transform.Find("Icon");
+                if (oldIcon != null) oldIcon.gameObject.SetActive(false);
+                var oldClip = go.transform.Find("Paperclip");
+                if (oldClip != null) oldClip.gameObject.SetActive(false);
+            }
+
             spawnedButtons.Add(go);
         }
 
@@ -2199,7 +2249,10 @@ namespace StreetCat.UI
             if (choiceHostImage != null)
             {
                 choiceHostImage.gameObject.SetActive(true);
-                choiceHostImage.color = VnTheme.ChoicePanel;
+                // ChoiceHost is only a transparent scroll/layout surface. Each option
+                // owns its own art; drawing the same sprite here creates a black slab.
+                choiceHostImage.sprite = null;
+                choiceHostImage.color = new Color(0f, 0f, 0f, 0.001f);
             }
             int index = spawnedButtons.Count;
             SpawnButton(choiceRoot, label, () =>
@@ -2230,19 +2283,23 @@ namespace StreetCat.UI
             });
 
             var le = go.GetComponent<LayoutElement>();
-            le.minHeight = wide ? 52 : (mode == Mode.Title ? 48 : 36);
-            le.preferredHeight = wide ? 52 : (mode == Mode.Title ? 48 : 36);
+            const float choiceArtAspect = 828f / 229f;
+            const float choiceHeight = 104f;
+            le.minHeight = wide ? choiceHeight : (mode == Mode.Title ? 48 : 36);
+            le.preferredHeight = wide ? choiceHeight : (mode == Mode.Title ? 48 : 36);
             if (wide)
             {
-                le.minWidth = 520;
-                le.flexibleWidth = 1;
+                var choiceWidth = choiceHeight * choiceArtAspect;
+                le.minWidth = choiceWidth;
+                le.preferredWidth = choiceWidth;
+                le.flexibleWidth = 0f;
             }
             else
             {
                 le.minWidth = minW;
             }
 
-            if (wide || primary)
+            if (!wide && primary)
             {
                 var tick = CreateImage(go.transform, "Tick", VnTheme.Accent);
                 var tr = tick.rectTransform;
@@ -2260,9 +2317,12 @@ namespace StreetCat.UI
             tx.font = font;
             tx.fontSize = wide ? 22 : 17;
             tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
-            tx.color = VnTheme.TextPrimary;
+            tx.color = wide ? DialogueFontColors.Current.choice : VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
+
+            if (wide)
+                ApplyDialogueChoiceArt(btn);
 
             var cg = go.GetComponent<CanvasGroup>();
             if (wide && staggerIndex >= 0)
@@ -2409,7 +2469,6 @@ namespace StreetCat.UI
             if (saveLoadRoot != null) saveLoadRoot.transform.SetAsLastSibling();
             if (confirmRoot != null) confirmRoot.transform.SetAsLastSibling();
             if (settingsRoot != null) settingsRoot.transform.SetAsLastSibling();
-            if (hideDialogueBtn != null) hideDialogueBtn.transform.SetAsLastSibling();
             // Scene fade stays last for transitions; raycastTarget is off when idle.
             if (sceneFadeImage != null) sceneFadeImage.transform.SetAsLastSibling();
             // Keep an open writing desk above hide-dialogue chrome (fade still tops for blackouts).
@@ -2506,7 +2565,7 @@ namespace StreetCat.UI
             }
 
             var key = VnArt.ResolveBackground(label);
-            var sprite = VnArt.GetBg(key);
+            var sprite = ArtPackStageSprite(label) ?? VnArt.GetBg(key);
             if (sprite != null)
             {
                 stageArt.sprite = sprite;
@@ -2883,22 +2942,10 @@ namespace StreetCat.UI
         /// </summary>
         void ApplyDialogueInkColors(LineSpeaker kind)
         {
-            if (bodyText == null) return;
-            switch (kind)
-            {
-                case LineSpeaker.Narration:
-                    bodyText.color = VnTheme.TextMuted;
-                    break;
-                case LineSpeaker.Inner:
-                    bodyText.color = VnTheme.TextInner;
-                    break;
-                case LineSpeaker.System:
-                    bodyText.color = VnTheme.TextSystem;
-                    break;
-                default:
-                    bodyText.color = VnTheme.TextPrimary;
-                    break;
-            }
+            dialogueInkKind = kind;
+            ApplyDialogueBodyColor(kind);
+            if (nameText != null)
+                nameText.color = DialogueFontColors.Current.speakerName;
         }
 
         void ApplyPortrait(string name, LineSpeaker kind, string portraitTag, string lineText = null)
@@ -3400,9 +3447,7 @@ namespace StreetCat.UI
             else
                 clickHintText.text = UiLoc.T("ui.click_ctrl_skip");
             // Static idle indicator only — do not pulse/restart on every advance click.
-            var c = clickHintText.color;
-            c.a = 0.55f;
-            clickHintText.color = c;
+            clickHintText.color = DialogueFontColors.Current.clickHint;
         }
 
         public void ShowTitle()

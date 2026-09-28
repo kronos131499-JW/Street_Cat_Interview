@@ -643,6 +643,7 @@ namespace StreetCat.UI
 
             var face = go.GetComponent<Image>();
             face.color = Color.white;
+            ApplyNotebookStickyArt(face, colorIdx);
 
             var tape = CreateImage(go.transform, "Tape", Color.white);
             var trt = tape.rectTransform;
@@ -688,10 +689,14 @@ namespace StreetCat.UI
             string id = topic.id;
             go.GetComponent<Button>().targetGraphic = face;
             var colors = go.GetComponent<Button>().colors;
-            colors.normalColor = color;
-            colors.highlightedColor = Color.Lerp(color, Color.white, 0.18f);
-            colors.pressedColor = Color.Lerp(color, Color.black, 0.12f);
-            colors.selectedColor = color;
+            colors.normalColor = face.sprite != null ? Color.white : color;
+            colors.highlightedColor = face.sprite != null
+                ? new Color(1f, 0.96f, 0.88f, 1f)
+                : Color.Lerp(color, Color.white, 0.18f);
+            colors.pressedColor = face.sprite != null
+                ? new Color(0.88f, 0.84f, 0.78f, 1f)
+                : Color.Lerp(color, Color.black, 0.12f);
+            colors.selectedColor = face.sprite != null ? Color.white : color;
             go.GetComponent<Button>().colors = colors;
             go.GetComponent<Button>().transition = Selectable.Transition.ColorTint;
             go.GetComponent<Button>().onClick.AddListener(() =>

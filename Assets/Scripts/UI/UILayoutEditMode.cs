@@ -1,0 +1,15 @@
+#if UNITY_EDITOR
+using UnityEditor;
+
+namespace StreetCat.UI
+{
+    public static class UILayoutEditMode
+    {
+        const string Prefix = "StreetCat.UILayoutEdit.";
+        public static bool Enabled { get => EditorPrefs.GetBool(Prefix + "Enabled", false); set => EditorPrefs.SetBool(Prefix + "Enabled", value); }
+        public static bool SnapEnabled { get => EditorPrefs.GetBool(Prefix + "Snap", true); set => EditorPrefs.SetBool(Prefix + "Snap", value); }
+        public static float GridSize { get => EditorPrefs.GetFloat(Prefix + "Grid", 10f); set => EditorPrefs.SetFloat(Prefix + "Grid", value); }
+        public static bool ShowAllFrames { get => EditorPrefs.GetBool(Prefix + "ShowAll", true); set => EditorPrefs.SetBool(Prefix + "ShowAll", value); }
+    }
+}
+#endif

@@ -424,6 +424,7 @@ namespace StreetCat.UI
             tx.text = UiLoc.T(locKey, fallback);
             tx.raycastTarget = false;
             TagLoc(tx, locKey);
+            ApplyWritingActionArt(go.GetComponent<Button>(), name, tx);
             return go;
         }
 

@@ -669,6 +669,8 @@ namespace StreetCat.UI
             labelTx.raycastTarget = false;
             ApplyLetterSpacing(labelTx, 0f);
 
+            ApplyInterviewActionArt(go.GetComponent<Button>(), label, labelTx);
+
             interviewSpawned.Add(go);
         }
 

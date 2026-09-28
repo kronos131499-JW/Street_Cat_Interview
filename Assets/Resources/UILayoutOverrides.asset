@@ -1,0 +1,159 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f8aa7f96f7d41db958f47ddd4cad3ba, type: 3}
+  m_Name: UILayoutOverrides
+  m_EditorClassIdentifier: 
+  entries:
+  - path: "VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleBtn_\u7EE7\u7EED#0"
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 251.52309, y: -163.7}
+    sizeDelta: {x: 323, y: 92}
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.15816186, y: 0.20497473}
+    anchorMax: {x: 0.84662926, y: 0.835963}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+  - path: "VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleBtn_\u8BFB\u6863#0/Label#0"
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 20, y: 0}
+    sizeDelta: {x: -72, y: -4}
+  - path: "VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleBtn_\u8BFB\u6863#0"
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 251.52309, y: -271.4}
+    sizeDelta: {x: 323, y: 92}
+  - path: VnCanvas/DialogueBox#0/BodyHost#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 10, y: 10}
+    sizeDelta: {x: -56, y: -96}
+  - path: VnCanvas/DialogueBox#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.07, y: 0.055}
+    anchorMax: {x: 0.93, y: 0.28}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -12.6, y: -25.2}
+    sizeDelta: {x: 0, y: 0}
+  - path: VnCanvas/DialogueBox#0/BodyHost#0/Viewport#0/Content#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 1}
+    anchoredPosition: {x: -66.78259, y: 0}
+    sizeDelta: {x: -215.19995, y: 28.01}
+  - path: VnCanvas/AdvanceCatcher#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 0.935}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 14.191284, y: 44.2435}
+    sizeDelta: {x: 28.382568, y: 88.486984}
+  - path: VnCanvas/SceneFade#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 138.6, y: -25.2}
+    sizeDelta: {x: 0, y: 0}
+  - path: VnCanvas/LetterboxTop#0
+    deleted: 1
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0.955}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 15.026001, y: -596.0348}
+    sizeDelta: {x: 0, y: 0}
+  - path: VnCanvas/ChoiceHost#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.16, y: 0.295}
+    anchorMax: {x: 0.84, y: 0.64}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 12.6, y: 75.600006}
+    sizeDelta: {x: 27.54787, y: -27.547813}
+  - path: VnCanvas/DialogueBox#0/Edge#0
+    deleted: 1
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: 37.800003}
+    sizeDelta: {x: 0, y: 2.5}
+  - path: VnCanvas/DialogueBox#0/Status#0
+    deleted: 1
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 0, y: 0}
+    pivot: {x: 0, y: 0}
+    anchoredPosition: {x: 28, y: 12}
+    sizeDelta: {x: 480, y: 24}
+  - path: VnCanvas/SocialOverlay#0/Phone#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.5, y: 0.5}
+    anchorMax: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 88.200005}
+    sizeDelta: {x: 520, y: 854}
+  - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0.045}
+    anchorMax: {x: 1, y: 0.935}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.07, y: 0.08}
+    anchorMax: {x: 0.9377469, y: 0.97989285}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+  - path: VnCanvas/Prop#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.5, y: 0.68}
+    anchorMax: {x: 0.5, y: 0.68}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: -50.4}
+    sizeDelta: {x: 705.60004, y: 768.60004}
+  - path: VnCanvas/SocialOverlay#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: -25.2}
+    sizeDelta: {x: 0, y: 0}

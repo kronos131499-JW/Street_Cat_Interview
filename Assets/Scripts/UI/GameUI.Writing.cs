@@ -594,6 +594,7 @@ namespace StreetCat.UI
             tx.text = label;
             tx.raycastTarget = false;
             ApplyLetterSpacing(tx, 0f);
+            ApplyWritingActionArt(btn, name, tx);
             return btn;
         }
 
@@ -899,6 +900,9 @@ namespace StreetCat.UI
 
             var bg = go.GetComponent<Image>();
             bg.color = unlocked ? ColorForMaterialType(m.type, visualIndex) : WmLocked;
+            ApplyWritingCardArt(bg, visualIndex);
+            if (!unlocked)
+                bg.color = new Color(0.42f, 0.42f, 0.42f, 0.82f);
             var btn = go.GetComponent<Button>();
             btn.targetGraphic = bg;
             string mid = m.id;
