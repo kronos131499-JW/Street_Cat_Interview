@@ -47,6 +47,7 @@ namespace StreetCat.UI
         TextMeshProUGUI wdPolishLabel;
         ScrollRect wdDraftScroll;
         bool writingDeskActive;
+        bool writingDeskArtOn;
 
         void BuildWritingDeskOverlay(Transform parent)
         {
@@ -59,32 +60,36 @@ namespace StreetCat.UI
             desk.raycastTarget = true;
 
             var paper = CreateImage(writingDeskRoot.transform, "Paper", WdPaper);
-            Stretch(paper.rectTransform, new Vector2(0.04f, 0.11f), new Vector2(0.96f, 0.96f),
-                Vector2.zero, Vector2.zero);
+            StretchFull(paper.rectTransform);
             paper.raycastTarget = true;
             DrawManuscriptLines(paper.transform);
+
+            var headlineCover = CreateImage(paper.transform, "HeadlineCover", new Color(0.882f, 0.816f, 0.741f, 1f));
+            Stretch(headlineCover.rectTransform, new Vector2(0.05f, 0.798f), new Vector2(0.64f, 0.848f),
+                Vector2.zero, Vector2.zero);
+            headlineCover.raycastTarget = false;
+            headlineCover.gameObject.SetActive(false);
 
             // ── Left manuscript column ─────────────────────────────────────
             var left = new GameObject("LeftColumn", typeof(RectTransform));
             left.transform.SetParent(paper.transform, false);
-            Stretch(left.GetComponent<RectTransform>(), new Vector2(0.03f, 0.02f), new Vector2(0.66f, 0.98f),
-                Vector2.zero, Vector2.zero);
+            StretchFull(left.GetComponent<RectTransform>());
 
             wdKicker = CreateUiText(left.transform, "Kicker", 14, TextAnchor.MiddleLeft,
                 WdMuted, Vector2.zero, Vector2.zero);
-            Stretch(wdKicker.rectTransform, new Vector2(0f, 0.94f), new Vector2(0.55f, 1f),
+            Stretch(wdKicker.rectTransform, new Vector2(0.06f, 0.90f), new Vector2(0.42f, 0.945f),
                 Vector2.zero, Vector2.zero);
             wdKicker.text = UiLoc.T("ui.writing.desk.kicker", "槐安社区特稿");
 
             wdDate = CreateUiText(left.transform, "Date", 14, TextAnchor.MiddleRight,
                 WdMuted, Vector2.zero, Vector2.zero);
-            Stretch(wdDate.rectTransform, new Vector2(0.55f, 0.94f), new Vector2(1f, 1f),
+            Stretch(wdDate.rectTransform, new Vector2(0.42f, 0.90f), new Vector2(0.63f, 0.945f),
                 Vector2.zero, Vector2.zero);
             wdDate.text = "2025 / 05 / 16";
 
             wdHeadline = CreateUiText(left.transform, "Headline", 32, TextAnchor.MiddleLeft,
                 WdInk, Vector2.zero, Vector2.zero);
-            Stretch(wdHeadline.rectTransform, new Vector2(0f, 0.84f), new Vector2(1f, 0.94f),
+            Stretch(wdHeadline.rectTransform, new Vector2(0.055f, 0.802f), new Vector2(0.63f, 0.845f),
                 Vector2.zero, Vector2.zero);
             wdHeadline.fontStyle = FontStyles.Bold;
             wdHeadline.enableWordWrapping = true;
@@ -92,7 +97,7 @@ namespace StreetCat.UI
 
             var draftLabel = CreateUiText(left.transform, "DraftLabel", 15, TextAnchor.MiddleLeft,
                 WdNavy, Vector2.zero, Vector2.zero);
-            Stretch(draftLabel.rectTransform, new Vector2(0f, 0.795f), new Vector2(0.62f, 0.84f),
+            Stretch(draftLabel.rectTransform, new Vector2(0.055f, 0.755f), new Vector2(0.42f, 0.795f),
                 Vector2.zero, Vector2.zero);
             draftLabel.fontStyle = FontStyles.Bold;
             draftLabel.text = UiLoc.T("ui.writing.desk.draft_label", "成稿正文（可编辑）");
@@ -100,7 +105,7 @@ namespace StreetCat.UI
 
             wdDraftCharCount = CreateUiText(left.transform, "CharCount", 13, TextAnchor.MiddleRight,
                 WdMuted, Vector2.zero, Vector2.zero);
-            Stretch(wdDraftCharCount.rectTransform, new Vector2(0.62f, 0.795f), new Vector2(1f, 0.84f),
+            Stretch(wdDraftCharCount.rectTransform, new Vector2(0.42f, 0.755f), new Vector2(0.63f, 0.795f),
                 Vector2.zero, Vector2.zero);
 
             // Draft scroll row: ScrollRect + TMP_InputField content, Scrollbar OUTSIDE viewport
@@ -108,7 +113,7 @@ namespace StreetCat.UI
             const float draftScrollbarW = 16f;
             var draftRow = new GameObject("DraftRow", typeof(RectTransform));
             draftRow.transform.SetParent(left.transform, false);
-            Stretch(draftRow.GetComponent<RectTransform>(), new Vector2(0f, 0.12f), new Vector2(1f, 0.79f),
+            Stretch(draftRow.GetComponent<RectTransform>(), new Vector2(0.05f, 0.20f), new Vector2(0.63f, 0.75f),
                 Vector2.zero, Vector2.zero);
 
             var draftHost = new GameObject("DraftHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
@@ -261,7 +266,7 @@ namespace StreetCat.UI
 
             var srcLabel = CreateUiText(left.transform, "SourcesLabel", 14, TextAnchor.MiddleLeft,
                 WdNavy, Vector2.zero, Vector2.zero);
-            Stretch(srcLabel.rectTransform, new Vector2(0f, 0.06f), new Vector2(1f, 0.11f),
+            Stretch(srcLabel.rectTransform, new Vector2(0.05f, 0.145f), new Vector2(0.63f, 0.19f),
                 Vector2.zero, Vector2.zero);
             srcLabel.fontStyle = FontStyles.Bold;
             srcLabel.text = UiLoc.T("ui.writing.desk.sources", "信息来源");
@@ -269,15 +274,14 @@ namespace StreetCat.UI
 
             wdSourcesLine = CreateUiText(left.transform, "Sources", 14, TextAnchor.MiddleLeft,
                 WdMuted, Vector2.zero, Vector2.zero);
-            Stretch(wdSourcesLine.rectTransform, new Vector2(0f, 0.01f), new Vector2(1f, 0.06f),
+            Stretch(wdSourcesLine.rectTransform, new Vector2(0.05f, 0.105f), new Vector2(0.63f, 0.145f),
                 Vector2.zero, Vector2.zero);
             wdSourcesLine.enableWordWrapping = true;
 
             // ── Right sidebar ──────────────────────────────────────────────
             var right = new GameObject("RightColumn", typeof(RectTransform));
             right.transform.SetParent(paper.transform, false);
-            Stretch(right.GetComponent<RectTransform>(), new Vector2(0.68f, 0.02f), new Vector2(0.98f, 0.98f),
-                Vector2.zero, Vector2.zero);
+            StretchFull(right.GetComponent<RectTransform>());
 
             var rule = CreateImage(paper.transform, "VRule", WdRule);
             Stretch(rule.rectTransform, new Vector2(0.665f, 0.04f), new Vector2(0.668f, 0.96f),
@@ -286,7 +290,7 @@ namespace StreetCat.UI
 
             var s1 = CreateUiText(right.transform, "S1", 16, TextAnchor.MiddleLeft,
                 WdInk, Vector2.zero, Vector2.zero);
-            Stretch(s1.rectTransform, new Vector2(0f, 0.92f), new Vector2(1f, 1f),
+            Stretch(s1.rectTransform, new Vector2(0.67f, 0.855f), new Vector2(0.92f, 0.90f),
                 Vector2.zero, Vector2.zero);
             s1.fontStyle = FontStyles.Bold;
             s1.text = UiLoc.T("ui.writing.desk.dir_title", "1. 写作方向");
@@ -294,7 +298,7 @@ namespace StreetCat.UI
 
             BuildDirButton(right.transform, "DirGuard",
                 "ui.writing.desk.dir_guard", "大福今天也在上班",
-                new Vector2(0f, 0.80f), new Vector2(1f, 0.91f),
+                new Vector2(0.67f, 0.805f), new Vector2(0.92f, 0.85f),
                 () =>
                 {
                     pendingDir = WritingDirection.GuardCatToday;
@@ -303,7 +307,7 @@ namespace StreetCat.UI
 
             BuildDirButton(right.transform, "DirRescue",
                 "ui.writing.desk.dir_rescue", "救下一只猫以后",
-                new Vector2(0f, 0.68f), new Vector2(1f, 0.79f),
+                new Vector2(0.67f, 0.752f), new Vector2(0.92f, 0.798f),
                 () =>
                 {
                     pendingDir = WritingDirection.RescueWithoutAdoption;
@@ -312,13 +316,13 @@ namespace StreetCat.UI
 
             wdMatsCount = CreateUiText(right.transform, "MatsHeader", 16, TextAnchor.MiddleLeft,
                 WdInk, Vector2.zero, Vector2.zero);
-            Stretch(wdMatsCount.rectTransform, new Vector2(0f, 0.60f), new Vector2(1f, 0.67f),
+            Stretch(wdMatsCount.rectTransform, new Vector2(0.78f, 0.685f), new Vector2(0.92f, 0.725f),
                 Vector2.zero, Vector2.zero);
-            wdMatsCount.fontStyle = FontStyles.Bold;
+            wdMatsCount.alignment = VnText.ToAlignment(TextAnchor.MiddleRight);
 
             wdMatsList = CreateUiText(right.transform, "MatsList", 13, TextAnchor.UpperLeft,
                 WdInk, Vector2.zero, Vector2.zero);
-            Stretch(wdMatsList.rectTransform, new Vector2(0f, 0.28f), new Vector2(1f, 0.60f),
+            Stretch(wdMatsList.rectTransform, new Vector2(0.67f, 0.45f), new Vector2(0.92f, 0.675f),
                 Vector2.zero, Vector2.zero);
             wdMatsList.enableWordWrapping = true;
             wdMatsList.overflowMode = TextOverflowModes.Truncate;
@@ -326,12 +330,12 @@ namespace StreetCat.UI
 
             wdMatsHint = CreateUiText(right.transform, "MatsHint", 13, TextAnchor.MiddleLeft,
                 WdOrange, Vector2.zero, Vector2.zero);
-            Stretch(wdMatsHint.rectTransform, new Vector2(0f, 0.22f), new Vector2(1f, 0.28f),
+            Stretch(wdMatsHint.rectTransform, new Vector2(0.67f, 0.415f), new Vector2(0.92f, 0.45f),
                 Vector2.zero, Vector2.zero);
 
             var s3 = CreateUiText(right.transform, "S3", 16, TextAnchor.MiddleLeft,
                 WdInk, Vector2.zero, Vector2.zero);
-            Stretch(s3.rectTransform, new Vector2(0f, 0.155f), new Vector2(1f, 0.22f),
+            Stretch(s3.rectTransform, new Vector2(0.70f, 0.355f), new Vector2(0.92f, 0.40f),
                 Vector2.zero, Vector2.zero);
             s3.fontStyle = FontStyles.Bold;
             s3.text = UiLoc.T("ui.writing.desk.status_title", "3. 生成状态");
@@ -339,35 +343,48 @@ namespace StreetCat.UI
 
             wdStatusLines = CreateUiText(right.transform, "Status", 13, TextAnchor.UpperLeft,
                 WdInk, Vector2.zero, Vector2.zero);
-            Stretch(wdStatusLines.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.155f),
+            var statusIcon = CreateImage(right.transform, "StatusIcon", Color.white);
+            Stretch(statusIcon.rectTransform, new Vector2(0.67f, 0.305f), new Vector2(0.70f, 0.345f),
+                Vector2.zero, Vector2.zero);
+            statusIcon.preserveAspect = true;
+            statusIcon.raycastTarget = false;
+            statusIcon.enabled = false;
+
+            Stretch(wdStatusLines.rectTransform, new Vector2(0.67f, 0.185f), new Vector2(0.92f, 0.35f),
                 Vector2.zero, Vector2.zero);
             wdStatusLines.enableWordWrapping = true;
             wdStatusLines.overflowMode = TextOverflowModes.Truncate;
 
             // ── Bottom action bar ──────────────────────────────────────────
-            var bar = CreateImage(writingDeskRoot.transform, "ActionBar", WdNavy);
-            Stretch(bar.rectTransform, new Vector2(0.04f, 0.015f), new Vector2(0.96f, 0.095f),
+            var bar = CreateImage(writingDeskRoot.transform, "ActionBar", new Color(0, 0, 0, 0));
+            Stretch(bar.rectTransform, new Vector2(0.025f, 0.012f), new Vector2(0.975f, 0.098f),
                 Vector2.zero, Vector2.zero);
+            bar.raycastTarget = false;
 
             SpawnDeskBarButton(bar.transform, "BackMats",
                 "ui.writing.desk.back_mats", "返回修改素材",
-                new Vector2(0.01f, 0.12f), new Vector2(0.28f, 0.88f), WdNavy,
+                new Vector2(0f, 0.02f), new Vector2(0.25f, 0.98f), WdNavy,
                 () =>
                 {
                     HideWritingDesk();
                     ShowMaterialPick();
                 });
 
+            SpawnDeskBarButton(bar.transform, "PreviewDesk",
+                "ui.writing.preview", "预览文章",
+                new Vector2(0.26f, 0.02f), new Vector2(0.465f, 0.98f), WdNavy,
+                ShowDeskArticlePreview);
+
             var polishGo = SpawnDeskBarButton(bar.transform, "AiPolish",
                 "ui.writing.desk.ai_polish", "AI 优化",
-                new Vector2(0.30f, 0.12f), new Vector2(0.52f, 0.88f), WdNavy,
+                new Vector2(0.475f, 0.02f), new Vector2(0.68f, 0.98f), WdNavy,
                 OnWritingDeskAiPolish);
             wdPolishBtn = polishGo.GetComponent<Button>();
             wdPolishLabel = polishGo.GetComponentInChildren<TextMeshProUGUI>();
 
             var submitGo = SpawnDeskBarButton(bar.transform, "Submit",
                 "ui.writing.desk.submit", "提交主编审核",
-                new Vector2(0.54f, 0.08f), new Vector2(0.99f, 0.92f), WdOrange,
+                new Vector2(0.695f, 0.02f), new Vector2(1f, 0.98f), WdOrange,
                 OnWritingDeskSubmit);
             wdSubmitBtn = submitGo.GetComponent<Button>();
             wdSubmitLabel = submitGo.GetComponentInChildren<TextMeshProUGUI>();
@@ -460,8 +477,8 @@ namespace StreetCat.UI
             writingDeskRoot.SetActive(true);
             writingDeskRoot.transform.SetAsLastSibling();
             BringOverlayStackToFront();
-            // BringOverlayStackToFront raises fade/hide-dialogue after desk; keep desk above UI chrome.
             writingDeskRoot.transform.SetAsLastSibling();
+            ApplyWritingDeskSkin();
             if (sceneFadeImage != null)
                 sceneFadeImage.transform.SetAsLastSibling();
             if (advanceCatcher != null)
@@ -482,6 +499,20 @@ namespace StreetCat.UI
             yield return null;
             Canvas.ForceUpdateCanvases();
             RebuildWritingDeskDraftLayout();
+        }
+
+        void ShowDeskArticlePreview()
+        {
+            if (writingPreviewRoot == null || canvasRt == null) return;
+            if (writingPreviewBody != null)
+            {
+                string title = wdHeadline != null ? wdHeadline.text : "";
+                string body = wdDraftInput != null ? wdDraftInput.text : "";
+                writingPreviewBody.text = title + "\n\n" + body;
+            }
+            writingPreviewRoot.transform.SetParent(canvasRt, false);
+            writingPreviewRoot.SetActive(true);
+            writingPreviewRoot.transform.SetAsLastSibling();
         }
 
         void HideWritingDesk()
@@ -511,9 +542,12 @@ namespace StreetCat.UI
             int n = selectedMats != null ? selectedMats.Count : 0;
             if (wdMatsCount != null)
             {
-                wdMatsCount.text = string.Format(
-                    UiLoc.T("ui.writing.desk.mats_fmt", "2. 已选素材（{0}/{1}）"),
-                    n, WritingMaxSelect);
+                if (writingDeskArtOn)
+                    wdMatsCount.text = n + " / " + WritingMaxSelect;
+                else
+                    wdMatsCount.text = string.Format(
+                        UiLoc.T("ui.writing.desk.mats_fmt", "2. 已选素材（{0}/{1}）"),
+                        n, WritingMaxSelect);
             }
 
             var listSb = new StringBuilder();

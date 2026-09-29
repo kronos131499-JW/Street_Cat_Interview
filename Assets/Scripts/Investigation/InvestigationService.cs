@@ -22,6 +22,10 @@ namespace StreetCat.Investigation
         public string speaker;
         /// <summary>Portrait expression tag (常态/认真/疑惑…).</summary>
         public string portrait;
+        /// <summary>
+        /// Epilogue polaroid. null = leave the current photo; "" = hide; otherwise a prop key.
+        /// </summary>
+        public string photo;
     }
 
     [Serializable]
@@ -34,6 +38,13 @@ namespace StreetCat.Investigation
         public string text;
         /// <summary>Optional 【SE：…】 cue when this beat is shown.</summary>
         public string sfx;
+        /// <summary>
+        /// Final chat screenshot under Resources/VnArt/UI/Messages (no extension).
+        /// The picture already contains the avatar, name, and text.
+        /// </summary>
+        public string phoneImage;
+        /// <summary>Records the café appointment. Does not grant treatment intel.</summary>
+        public bool confirmAppointment;
     }
 
     [Serializable]
@@ -108,6 +119,9 @@ namespace StreetCat.Investigation
 
         static TalkBeat TS(string text, string sfx = null) =>
             new TalkBeat { system = true, text = text, sfx = sfx };
+
+        static TalkBeat TP(string image) =>
+            new TalkBeat { narration = true, phoneImage = image };
 
         void BuildDefaults()
         {
@@ -389,8 +403,7 @@ namespace StreetCat.Investigation
                     portrait = "常态",
                     requiresIntel = true,
                     requiredIntel = IntelIds.LinIdentity,
-                    setObjective = "等待林女士回复。",
-                    nextSceneId = SceneIds.SC09
+                    setObjective = "等待林女士回复。"
                 }
             };
         }
@@ -423,29 +436,61 @@ namespace StreetCat.Investigation
             };
         }
 
-        /// <summary>Lin WeChat-style friend-request chat before SC-09 café.</summary>
-        public static List<TalkBeat> BuildLinContactBeats()
+        /// <summary>
+        /// Guard's phone, after he agrees to ask Lin. Two screenshots, then back to the booth.
+        /// Does not play Ling's interview request or jump to the café.
+        /// </summary>
+        public static List<TalkBeat> BuildGuardPhoneBeats()
         {
             return new List<TalkBeat>
             {
-                TN("十几分钟后，小凌的手机收到一条新的好友申请。", "消息提示音"),
-                TS("新的联系人——“林女士”"),
-                TB("林女士", "你好，我是林敏。", "常态"),
-                TB("林女士", "保安跟我说，你想了解大福以前的事。", "常态"),
-                TB("小凌", "您好，我是《此间》的记者小凌。", "常态"),
-                TB("小凌", "我今天已经在社区看过大福，也跟保安了解了一些情况。还有些它当时受伤、治疗和后来送回社区的细节，想跟您核实一下。", "常态"),
-                TB("小凌", "请问您明天下午方便接受一个短采访吗？", "常态"),
-                TB("林女士", "可以。", "常态"),
-                TB("林女士", "明天下午三点左右我有空。小区南门外有家咖啡馆，就约在那里吧，人少一点，方便说话。", "常态"),
-                TB("小凌", "好，麻烦您把定位发我一下。", "常态"),
-                TS("位置共享——槐安社区南门外·咖啡馆"),
-                TB("林女士", "就是这家。", "常态"),
-                TB("小凌", "收到。那明天下午三点见，谢谢您。", "常态"),
-                TB("林女士", "好，明天见。", "常态"),
-                TS("发现采访对象——“林女士”"),
-                TS("解锁人物档案——“林女士”"),
-                TS("任务更新——“明天下午15:00前往咖啡馆采访林女士”")
+                TN("保安叔叔拿出手机，发了一条消息。", "信息发送"),
+                TP("01_Guard_LinMin_01"),
+                TP("02_Guard_LinMin_02"),
+                TB("保安叔叔", "她愿意聊。我来给你们牵个线。", "常态"),
+                TB("小凌", "好，谢谢叔叔。", "常态")
             };
+        }
+
+        /// <summary>
+        /// Ling's phone, after the day's talks with Dafu and the guard.
+        /// Images 03–10 each add one message. The location card and
+        /// "This is the one." are separate screens.
+        /// </summary>
+        public static List<TalkBeat> BuildLingPhoneBeats()
+        {
+            return new List<TalkBeat>
+            {
+                TN("小凌的手机响了一声。是林敏发来的消息。", "消息提示音"),
+                TP("03_Ling_LinMin_01"),
+                TP("04_Ling_LinMin_02"),
+                TP("05_Ling_LinMin_03"),
+                TP("06_Ling_LinMin_04"),
+                TP("07_Ling_LinMin_05"),
+                TP("08_Ling_LinMin_06"),
+                TP("09_Ling_LinMin_07"),
+                TP("10_Ling_LinMin_08"),
+                new TalkBeat
+                {
+                    system = true,
+                    confirmAppointment = true,
+                    text = "明天下午三点，在槐安社区南门外的咖啡馆见林敏。"
+                }
+            };
+        }
+
+        /// <summary>
+        /// True when today's required talks are still unfinished.
+        /// Closing the phone must not skip them and jump to the next afternoon.
+        /// </summary>
+        public bool HasRequiredDayInvestigation()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return false;
+            if (!gs.HasFlag(FlagIds.DafuInterviewDone)) return true;
+            if (!gs.HasIntel(IntelIds.LinIdentity)) return true;
+            if (!gs.HasFlag(FlagIds.GuardPhoneChatDone)) return true;
+            return false;
         }
 
         public IReadOnlyList<InspectBeat> GetInspectBeats(string hotspotId)
@@ -571,7 +616,7 @@ namespace StreetCat.Investigation
             if (!string.IsNullOrEmpty(topic.setObjective))
                 GameState.Instance.SetObjective(topic.setObjective);
             // who_rescued: unlocksLinFlow marks Lin identity known via LinIdentity intel only.
-            // FlagIds.LinUnlocked is set later when WeChat contact chat finishes (StartLinContactChat).
+            // FlagIds.LinUnlocked is set when Ling's phone chat closes (StartPhoneSequence "ling").
 
             return topic.reply ?? "";
         }

@@ -54,8 +54,10 @@ namespace StreetCat.UI
         public const float PortraitSlotRight = 0.99f;
         /// <summary>Top of portrait slot (below top HUD).</summary>
         public const float PortraitSlotTop = 0.98f;
-        /// <summary>Clear gap above dialogue panel — portrait bottom sits here (no overlap).</summary>
+        /// <summary>Clear gap above dialogue panel — theme-default portrait bottom (before layout overrides).</summary>
         public const float PortraitGapAboveDialogue = 0.06f;
+        /// <summary>Lowest allowed portrait-slot bottom. Below the dialogue top so standing art can sit into the text panel.</summary>
+        public const float PortraitSlotBottomMin = 0.12f;
         /// <summary>Extra scale after aspect fit (1 = fill slot height).</summary>
         public const float PortraitHeightScale = 1.10f;
         /// <summary>0.5 = centered in slot; &gt;0.5 shifts portrait right within slot.</summary>

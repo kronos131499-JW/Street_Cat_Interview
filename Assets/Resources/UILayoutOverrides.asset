@@ -21,14 +21,16 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 251.52309, y: -163.7}
     sizeDelta: {x: 323, y: 92}
+    fontSize: 0
   - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0.15816186, y: 0.20497473}
     anchorMax: {x: 0.84662926, y: 0.835963}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 0, y: 0}
+    anchoredPosition: {x: -37.800003, y: -25.2}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: "VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleBtn_\u8BFB\u6863#0/Label#0"
     deleted: 0
     ignoreParentLayout: 0
@@ -37,6 +39,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 20, y: 0}
     sizeDelta: {x: -72, y: -4}
+    fontSize: 0
   - path: "VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleBtn_\u8BFB\u6863#0"
     deleted: 0
     ignoreParentLayout: 0
@@ -45,30 +48,34 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 251.52309, y: -271.4}
     sizeDelta: {x: 323, y: 92}
+    fontSize: 0
   - path: VnCanvas/DialogueBox#0/BodyHost#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 10, y: 10}
-    sizeDelta: {x: -56, y: -96}
+    anchoredPosition: {x: -30, y: 6}
+    sizeDelta: {x: -212, y: -72}
+    fontSize: 0
   - path: VnCanvas/DialogueBox#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0.07, y: 0.055}
     anchorMax: {x: 0.93, y: 0.28}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: -20.462952, y: -8.610809}
-    sizeDelta: {x: -4.800111, y: 0.59998924}
+    anchoredPosition: {x: 14.365967, y: 1.7660522}
+    sizeDelta: {x: 5.3278604, y: 2.9811842}
+    fontSize: 0
   - path: VnCanvas/DialogueBox#0/BodyHost#0/Viewport#0/Content#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 1}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 1}
-    anchoredPosition: {x: -66.78259, y: 0}
-    sizeDelta: {x: -215.19995, y: 28.01}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/LetterboxTop#0
     deleted: 1
     ignoreParentLayout: 0
@@ -77,6 +84,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 15.026001, y: -596.0348}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/ChoiceHost#0
     deleted: 0
     ignoreParentLayout: 0
@@ -85,38 +93,43 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 12.6, y: 75.600006}
     sizeDelta: {x: 27.54787, y: -27.547813}
+    fontSize: 0
   - path: VnCanvas/DialogueBox#0/Edge#0
-    deleted: 1
+    deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 1}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -0, y: 37.800003}
     sizeDelta: {x: 0, y: 2.5}
+    fontSize: 0
   - path: VnCanvas/DialogueBox#0/Status#0
-    deleted: 1
+    deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0}
     anchorMax: {x: 0, y: 0}
     pivot: {x: 0, y: 0}
     anchoredPosition: {x: 28, y: 12}
     sizeDelta: {x: 480, y: 24}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0.045}
     anchorMax: {x: 1, y: 0.935}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 8.4, y: -33.6}
+    anchoredPosition: {x: 12.599976, y: -25.200012}
     sizeDelta: {x: -4.800049, y: 13.199963}
+    fontSize: 0
   - path: VnCanvas/TitleRoot#0/MagazineHost#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0.07, y: 0.08}
-    anchorMax: {x: 0.9377469, y: 0.97989285}
+    anchorMax: {x: 0.94, y: 0.98}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 0, y: 0}
-    sizeDelta: {x: 0, y: 0}
+    anchoredPosition: {x: 49.2, y: -24.6}
+    sizeDelta: {x: 63.900055, y: 36.600014}
+    fontSize: 0
   - path: VnCanvas/Prop#0
     deleted: 0
     ignoreParentLayout: 0
@@ -125,6 +138,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -0, y: -50.4}
     sizeDelta: {x: 705.60004, y: 768.60004}
+    fontSize: 0
   - path: VnCanvas/TopBar#0
     deleted: 0
     ignoreParentLayout: 0
@@ -133,22 +147,25 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 8.4, y: 16.8}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/ThinChrome#0/IntelHint#0
-    deleted: 1
+    deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0.5}
     anchorMax: {x: 0, y: 0.5}
     pivot: {x: 0, y: 0.5}
     anchoredPosition: {x: 18, y: -14}
     sizeDelta: {x: 480, y: 22}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/ThinChrome#0/Title#0
-    deleted: 1
+    deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0.5}
     anchorMax: {x: 0, y: 0.5}
     pivot: {x: 0, y: 0.5}
     anchoredPosition: {x: 18, y: 0}
     sizeDelta: {x: 420, y: 28}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/ThinChrome#0
     deleted: 1
     ignoreParentLayout: 0
@@ -157,6 +174,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 0, y: 0}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0
     deleted: 0
     ignoreParentLayout: 0
@@ -165,6 +183,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 0, y: 0}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/Bg#0
     deleted: 0
     ignoreParentLayout: 0
@@ -173,6 +192,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -0, y: 8.4}
     sizeDelta: {x: 3.5998535, y: 12}
+    fontSize: 0
   - path: VnCanvas/DialogueBox#0/ArtNotebookTab#0
     deleted: 0
     ignoreParentLayout: 0
@@ -181,22 +201,25 @@ MonoBehaviour:
     pivot: {x: 0, y: 0.5}
     anchoredPosition: {x: -50.399998, y: 8.4}
     sizeDelta: {x: 168, y: 37.631992}
+    fontSize: 0
   - path: VnCanvas/StageArt#0
     deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 0, y: 8.4}
+    anchoredPosition: {x: 12.6, y: 0}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/LetterboxBottom#0
-    deleted: 1
+    deleted: 0
     ignoreParentLayout: 0
     anchorMin: {x: 0, y: 0}
     anchorMax: {x: 1, y: 0.045}
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 0, y: 0}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_cat_house#0
     deleted: 0
     ignoreParentLayout: 0
@@ -205,14 +228,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 0, y: 0}
     sizeDelta: {x: 0, y: 0}
-  - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_food_bowl#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0.30761594, y: 0.5615765}
-    anchorMax: {x: 0.3695207, y: 0.61985904}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: -16.8, y: 16.8}
-    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_water_bowl#0
     deleted: 0
     ignoreParentLayout: 0
@@ -221,6 +237,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -8.4, y: 25.199999}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_tabby#0
     deleted: 0
     ignoreParentLayout: 0
@@ -229,6 +246,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -8.4, y: 33.6}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_bench#0
     deleted: 0
     ignoreParentLayout: 0
@@ -237,6 +255,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -8.4, y: 33.6}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_vending#0
     deleted: 0
     ignoreParentLayout: 0
@@ -245,6 +264,7 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -8.4, y: 58.799995}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_locker#0
     deleted: 0
     ignoreParentLayout: 0
@@ -253,3 +273,652 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: -8.4, y: 25.199999}
     sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/Portrait#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.6557947, y: 0.3}
+    anchorMax: {x: 0.9879333, y: 0.7982079}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: -50.4}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/DialogueBox#0/NamePlate#0/Name#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.5, y: 0.5}
+    anchorMax: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -2.2075195, y: -4.4150467}
+    sizeDelta: {x: 289.80002, y: 75.600006}
+    fontSize: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/InspireHost#0/InspireSticky#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: 12.6}
+    sizeDelta: {x: -27.97754, y: 0}
+    fontSize: 0
+  - path: VnCanvas/DialogueBox#0/Actions#0/Btn#0
+    deleted: 1
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 844.2, y: 12.6}
+    sizeDelta: {x: 118, y: 36}
+    fontSize: 0
+  - path: VnCanvas/InvestigateOverlay#0/Actions#0/Act#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 1184.4, y: -37.800003}
+    sizeDelta: {x: 214.20001, y: 126}
+    fontSize: 0
+  - path: VnCanvas/InvestigateOverlay#0/Actions#0/Act#1
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 1377.3735, y: -31.381077}
+    sizeDelta: {x: 189, y: 126}
+    fontSize: 0
+  - path: VnCanvas/InvestigateOverlay#0/Actions#0/Act#2
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 1562.4, y: -25.2}
+    sizeDelta: {x: 176.40001, y: 126}
+    fontSize: 0
+  - path: VnCanvas/InvestigateOverlay#0/Actions#0/Act#3
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 1739.683, y: -23.875462}
+    sizeDelta: {x: 176.40001, y: 138.6}
+    fontSize: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0/StatusChip#0/Label#0
+    deleted: 1
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0/StatusChip#0
+    deleted: 1
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.62, y: 0.9}
+    anchorMax: {x: 0.92, y: 0.97}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -40, y: -5}
+    sizeDelta: {x: -80, y: -10}
+    fontSize: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0/DetailHost#0/Viewport#0/Content#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 1}
+    anchoredPosition: {x: -12.362152, y: 0.000030517578}
+    sizeDelta: {x: -25.200012, y: 340.2}
+    fontSize: 27.405003
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0/Source#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.08, y: 0.28}
+    anchorMax: {x: 0.46, y: 0.34}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 63, y: -252}
+    sizeDelta: {x: 207.53282, y: -12.747911}
+    fontSize: 15.703914
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/InspireHost#0/InspireSticky#0/InspireBody#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.1, y: 0.14}
+    anchorMax: {x: 0.88, y: 0.46}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 12.6, y: 0}
+    sizeDelta: {x: -61.76544, y: 5.030632}
+    fontSize: 21.873308
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/LeftColumn#0/StickyGridHost#0/Viewport#0/Content#0/return#0/Label#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.12, y: 0.22}
+    anchorMax: {x: 0.88, y: 0.72}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 22
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/LeftColumn#0/StickyGridHost#0/Viewport#0/Content#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 1}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 448}
+    fontSize: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0/DetailHost#0/Viewport#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 22.95819, y: -56.071014}
+    sizeDelta: {x: 43.170776, y: 107.96741}
+    fontSize: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.42, y: 0.12}
+    anchorMax: {x: 0.93, y: 0.9}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: 12.6}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleArt_start_game#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 295.19998, y: -49.199997}
+    sizeDelta: {x: 440.03473, y: 95}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleArt_load#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 295.19998, y: -246}
+    sizeDelta: {x: 446.90143, y: 95}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleArt_archive_notes#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 295.19998, y: -344.4}
+    sizeDelta: {x: 443.7762, y: 95}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleArt_settings#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 295.19998, y: -442.8}
+    sizeDelta: {x: 440.69443, y: 95}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleArt_continue#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 295.19998, y: -147.59999}
+    sizeDelta: {x: 443.7762, y: 95}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0/TitleActions#0/TitleArt_exit#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 295.19998, y: -541.2}
+    sizeDelta: {x: 443.7762, y: 95}
+    fontSize: 0
+  - path: VnCanvas/TopBar#0/HudActions#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 1, y: 0.5}
+    anchorMax: {x: 1, y: 0.5}
+    pivot: {x: 1, y: 0.5}
+    anchoredPosition: {x: -28, y: 0}
+    sizeDelta: {x: 242, y: 58}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/PropTranslator#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.01, y: 0.02}
+    anchorMax: {x: 0.16, y: 0.42}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: 213.2}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/Magazine#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -16.400024, y: -16.399963}
+    sizeDelta: {x: 100.66968, y: 241.67566}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/DeskBg#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/RightPage#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.5019473, y: 0.090805635}
+    anchorMax: {x: 0.9405084, y: 0.9412448}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -12.3, y: 36.9}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_title#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.06, y: 0.62}
+    anchorMax: {x: 0.46, y: 0.94}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_tape#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.1, y: 0.42}
+    anchorMax: {x: 0.32, y: 0.58}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -110.700005, y: 110.700005}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_polaroid#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.06, y: 0.18}
+    anchorMax: {x: 0.42, y: 0.64}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 49.2, y: -36.9}
+    sizeDelta: {x: 224.35202, y: 237.14404}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_clip#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.42, y: 0.14}
+    anchorMax: {x: 0.52, y: 0.32}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -24.6, y: 49.2}
+    sizeDelta: {x: -44.039993, y: -27.359987}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_slogan#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.22, y: 0.08}
+    anchorMax: {x: 0.5, y: 0.28}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 36.9, y: 24.6}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_lamp#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.46, y: 0.06}
+    anchorMax: {x: 0.54, y: 0.4}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 61.5, y: 49.2}
+    sizeDelta: {x: 26.267984, y: -22.980007}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_skyline#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.52, y: 0.04}
+    anchorMax: {x: 0.74, y: 0.2}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -0, y: 61.5}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_mic#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.05, y: 0.5}
+    anchorMax: {x: 0.14, y: 0.66}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_cat#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.76, y: 0.04}
+    anchorMax: {x: 0.96, y: 0.28}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 61.5, y: 86.1}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_paws#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.82, y: 0.42}
+    anchorMax: {x: 0.98, y: 0.92}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -56, y: 30.7}
+    sizeDelta: {x: 5.4119406, y: 36.899963}
+    fontSize: 0
+  - path: VnCanvas/TitleRoot#0/MagazineHost#0/deco_camera#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.48, y: 0.78}
+    anchorMax: {x: 0.58, y: 0.96}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 36.9, y: -24.6}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Trust#0/Track#0/Fill#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 0.55, y: 1}
+    pivot: {x: 0, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Trust#0/Track#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.2, y: 0.08}
+    anchorMax: {x: 0.78, y: 0.48}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Trust#0/ArtIcon#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0.35}
+    anchorMax: {x: 0.18, y: 0.95}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: -36.9}
+    sizeDelta: {x: -1.4544971, y: -10.41599}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Trust#0/ArtWord#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.2, y: 0.55}
+    anchorMax: {x: 0.72, y: 0.95}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Stress#0/Track#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.2, y: 0.08}
+    anchorMax: {x: 0.78, y: 0.48}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Focus#0/Track#0/Fill#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 0.8, y: 1}
+    pivot: {x: 0, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Focus#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.06, y: 0.060000017}
+    anchorMax: {x: 0.94, y: 0.26000002}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -12.3, y: 86.1}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Stress#0/Value#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.55, y: 0.45}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -49.2, y: -49.2}
+    sizeDelta: {x: 2.5137768, y: 6.852007}
+    fontSize: 20
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Stress#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.06, y: 0.3}
+    anchorMax: {x: 0.94, y: 0.5}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -12.3, y: 98.4}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Focus#0/Value#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.55, y: 0.45}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -49.2, y: -49.2}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 20
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Trust#0/Value#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.55, y: 0.45}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -55.99997, y: -45.7}
+    sizeDelta: {x: 14.813765, y: -5.4479923}
+    fontSize: 13
+  - path: VnCanvas/InterviewOverlay#0/ArtDesk#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Trust#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.06, y: 0.54}
+    anchorMax: {x: 0.94, y: 0.74}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -12.3, y: 98.4}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Stress#0/ArtIcon#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0.35}
+    anchorMax: {x: 0.18, y: 0.95}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: -36.9}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0/Focus#0/ArtIcon#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0.35}
+    anchorMax: {x: 0.18, y: 0.95}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: -36.9}
+    sizeDelta: {x: -1.4544971, y: -10.415999}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/StatusPad#0/Paper#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: -0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/PortraitPad#0/Paper#0/Portrait#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.14, y: 0.34}
+    anchorMax: {x: 0.86, y: 0.78}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 5.0000305, y: 20.599985}
+    sizeDelta: {x: 70.543205, y: 69.49541}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/LeftColumn#0/PortraitPad#0/ArtFrame#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/InspirePad#0/Paper#0/Chips#0/Preset#2
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 219.40001, y: -402.50003}
+    sizeDelta: {x: 258.30002, y: 159.90001}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/InspirePad#0/Paper#0/CoachTip#0
+    deleted: 1
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.05, y: 0.02}
+    anchorMax: {x: 0.95, y: 0.15}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 12
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/InspirePad#0/Paper#0/Chips#0/Preset#1
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 218.90007, y: -251.19997}
+    sizeDelta: {x: 258.30002, y: 159.90001}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/InspirePad#0/Paper#0/Chips#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.04, y: 0.16}
+    anchorMax: {x: 0.96, y: 0.83}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0.69999695, y: 1}
+    sizeDelta: {x: -21.179985, y: -7.1332445}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/InspirePad#0/Paper#0/Chips#0/Preset#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 213.90001, y: -86.6}
+    sizeDelta: {x: 270.6, y: 221.40001}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/InspirePad#0/Paper#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0/Act#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 196.8, y: -86.1}
+    sizeDelta: {x: 344.4, y: 73.8}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0/Act#2
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 196.8, y: -159.90001}
+    sizeDelta: {x: 270.6, y: 73.8}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 12.3, y: -24.6}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 172.79999, y: -132}
+    sizeDelta: {x: 341.59998, y: 140}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0/Act#1
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 196.8, y: -12.3}
+    sizeDelta: {x: 356.7, y: 86.1}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.05, y: 0.06}
+    anchorMax: {x: 0.95, y: 0.94}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/ActEnd#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 209.1, y: -159.90001}
+    sizeDelta: {x: 233.7, y: 73.8}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/CenterColumn#0/MainPaper#0/InputBar#0/InterviewInput#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0}
+    anchoredPosition: {x: 2, y: 6}
+    sizeDelta: {x: -24, y: -12}
+    fontSize: 0
+  - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Act#0
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 209.1, y: -233.7}
+    sizeDelta: {x: 221.40001, y: 61.5}
+    fontSize: 0

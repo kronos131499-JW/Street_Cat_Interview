@@ -349,7 +349,7 @@ namespace StreetCat.UI
         bool EditorGUILayoutSliders(PortraitLayoutData d)
         {
             bool changed = false;
-            float minBottom = VnTheme.DialogueTop + 0.02f;
+            float minBottom = VnTheme.PortraitSlotBottomMin;
             float minTop = minBottom + PortraitLayout.MinSlotHeight;
 
             changed |= ApplySlider(ref d.slotLeft, GUILayout.HorizontalSlider(d.slotLeft, 0.35f, 0.95f));

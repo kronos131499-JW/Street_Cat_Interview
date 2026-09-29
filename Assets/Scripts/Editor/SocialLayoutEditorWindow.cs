@@ -68,8 +68,8 @@ namespace StreetCat.Editor
 
             EditorGUILayout.LabelField("当前参数", EditorStyles.boldLabel);
             EditorGUI.BeginChangeCheck();
-            data.width = EditorGUILayout.Slider("宽度", data.width, 220f, 1100f);
-            data.height = EditorGUILayout.Slider("高度", data.height, 360f, 1600f);
+            data.width = EditorGUILayout.Slider("宽度", data.width, 220f, 1400f);
+            data.height = EditorGUILayout.Slider("高度", data.height, 360f, 2000f);
             data.anchorX = EditorGUILayout.Slider("水平位置", data.anchorX, 0.15f, 0.85f);
             data.anchorY = EditorGUILayout.Slider("垂直位置", data.anchorY, 0.25f, 0.95f);
             data.detailScale = EditorGUILayout.Slider("详情放大", data.detailScale, 0.85f, 1.4f);

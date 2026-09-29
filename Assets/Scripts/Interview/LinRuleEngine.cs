@@ -55,7 +55,47 @@ namespace StreetCat.Interview
                 return "too_broad";
             if (ContainsAny(input, "赚多少", "收入", "工资"))
                 return "privacy";
+            var english = ClassifyEnglish(input);
+            if (english != null)
+                return english;
             return "generic";
+        }
+
+        string ClassifyEnglish(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return null;
+            if (ContainsAny(input, "system prompt", "ignore the setting", "ignore instructions"))
+                return "oob";
+            if (ContainsAny(input, "abandoned him", "threw him", "irresponsible"))
+                return "release_accuse";
+            if (ContainsAny(input, "not adopt", "wasn't adopted", "why wasn't", "send him back", "send back",
+                    "other cats", "cats at home", "fifth cat", "bring him home"))
+                return "release";
+            if (ContainsAny(input, "how much", "cost", "money", "five thousand", "ten thousand"))
+                return "cost";
+            if (ContainsAny(input, "hesitat", "give up", "couldn't save"))
+                return "hesitate";
+            if (ContainsAny(input, "hospital", "surgery", "clinic", "panleuk", "treatment", "vet say", "doctors"))
+                return "hospital";
+            if (ContainsAny(input, "carrier", "cage", "catch him", "how did you get him"))
+                return "capture";
+            if (ContainsAny(input, "several days", "bring food", "feeding", "fed him", "why feed", "cans"))
+                return "feeding";
+            if (ContainsAny(input, "rope", "neck", "wound", "necro"))
+                return "injury";
+            if (ContainsAny(input, "first notice", "first time", "how did you first", "dumpster"))
+                return "discovery";
+            if (ContainsAny(input, "and then", "what next", "what happened next", "go on"))
+                return "followup";
+            if (ContainsAny(input, "who tied", "who did that", "on purpose"))
+                return "cause_unknown";
+            if (ContainsAny(input, "community", "guard", "tabby", "looking after", "after the return"))
+                return "community";
+            if (ContainsAny(input, "whole story", "everything that happened", "from the start"))
+                return "too_broad";
+            if (ContainsAny(input, "salary", "how much do you earn", "your income"))
+                return "privacy";
+            return null;
         }
 
         protected override InterviewReply BuildReply(string input, string intent)

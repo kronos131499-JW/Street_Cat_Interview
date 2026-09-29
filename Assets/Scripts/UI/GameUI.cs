@@ -274,7 +274,7 @@ namespace StreetCat.UI
             if (display.choices != null && display.choices.Count > 0 && waitingForChoice)
             {
                 ClearButtons();
-                statusText.text = UiLoc.T("ui.make_choice");
+                statusText.text = GameSettings.IsEnglish ? "" : UiLoc.T("ui.make_choice");
                 SetAdvanceEnabled(false, true);
                 for (int i = 0; i < display.choices.Count; i++)
                 {
@@ -285,13 +285,179 @@ namespace StreetCat.UI
             }
             else if (!waitingForChoice)
             {
-                statusText.text = UiLoc.T("ui.status_advance");
+                statusText.text = "";
                 ClearButtons();
                 AddStandardDialogueActions(includeSkip: true);
                 SetAdvanceEnabled(true);
             }
             RefreshHeader();
             RefreshAdvanceHint();
+        }
+
+        /// <summary>Re-show the current script line after a dialogue-text edit.</summary>
+        string freeEditKey;
+        string freeEditText;
+        string freeEditSpeaker;
+        string freeEditCaption;
+        string[] freeEditChoices = Array.Empty<string>();
+        bool freeEditActive;
+
+        void NoteFreeLine(string caption, string key, string text, string speaker, string[] choices = null)
+        {
+            freeEditActive = !string.IsNullOrEmpty(key);
+            freeEditCaption = caption ?? "";
+            freeEditKey = key ?? "";
+            freeEditText = text ?? "";
+            freeEditSpeaker = speaker ?? "";
+            freeEditChoices = choices ?? Array.Empty<string>();
+        }
+
+        void ClearFreeLine()
+        {
+            freeEditActive = false;
+        }
+
+        public bool TryGetFreeEditorLine(out string caption, out string key, out string text, out string speaker, out string[] choices)
+        {
+            caption = freeEditCaption;
+            key = freeEditKey;
+            text = freeEditText;
+            speaker = freeEditSpeaker;
+            choices = freeEditChoices ?? Array.Empty<string>();
+            return freeEditActive && !string.IsNullOrEmpty(key);
+        }
+
+        public bool TryGetDialogueFrame(out RectTransform panel)
+        {
+            panel = dialoguePanel != null ? dialoguePanel.rectTransform : null;
+            return panel != null;
+        }
+
+        public void SetDialogueFrameSize(float width, float height)
+        {
+            if (dialoguePanel == null) return;
+            var rt = dialoguePanel.rectTransform;
+            var parent = rt.parent as RectTransform;
+            if (parent == null) return;
+
+            var corners = new Vector3[4];
+            rt.GetWorldCorners(corners);
+            var bottom = (corners[0] + corners[3]) * 0.5f;
+            var cam = rt.GetComponentInParent<Canvas>()?.rootCanvas?.worldCamera;
+            var screen = RectTransformUtility.WorldToScreenPoint(cam, bottom);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, cam, out var local);
+
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.sizeDelta = new Vector2(Mathf.Max(480f, width), Mathf.Max(100f, height));
+            rt.anchoredPosition = new Vector2(0f, local.y);
+        }
+
+        /// <summary>Re-show the current line after a dialogue-text edit.</summary>
+        public void RefreshLocalizedDialogueLine()
+        {
+            if (mode == Mode.Dialogue)
+                RefreshCurrentDialogueDisplay();
+            else if (mode == Mode.Investigate && !investigateHotspotsVisible
+                && inspectIndex >= 0 && inspectIndex < inspectQueue.Count)
+                ShowInspectBeat(recordHistory: false, playCues: false);
+            else if (mode == Mode.Talk && talkIndex >= 0 && talkIndex < talkQueue.Count)
+                ShowTalkBeat(recordHistory: false, playCues: false);
+            else if (mode == Mode.Talk && talkAwaitingClickReturn)
+                PresentLegacyTalkReply(recordHistory: false);
+            else if (mode == Mode.Talk && !talkIsPostInterview)
+                PresentTalkMenu(recordHistory: false);
+            else if (mode == Mode.Epilogue && epilogueIndex >= 0 && epilogueIndex < epilogueQueue.Count)
+                ShowEpilogueBeat(recordHistory: false);
+        }
+
+        /// <summary>
+        /// Current 槐安社区调查句（热点检视 / 保安出场）。Key stays the same across sessions.
+        /// </summary>
+        public bool TryGetInvestigateEditorLine(out string key, out string text, out string speaker)
+        {
+            key = null;
+            text = null;
+            speaker = null;
+            if (mode != Mode.Investigate || investigateHotspotsVisible)
+                return false;
+            if (inspectIndex < 0 || inspectIndex >= inspectQueue.Count)
+                return false;
+
+            var beat = inspectQueue[inspectIndex];
+            var source = string.IsNullOrEmpty(portraitDebugBeatSourceId) ? "spot" : portraitDebugBeatSourceId;
+            key = "inv:" + source + ":" + inspectIndex;
+            text = beat.text ?? "";
+            if (beat.system)
+                speaker = "系统";
+            else if (beat.narration)
+                speaker = "旁白";
+            else
+                speaker = string.IsNullOrEmpty(beat.speaker) ? "小凌" : beat.speaker;
+            return !string.IsNullOrEmpty(text);
+        }
+
+        /// <summary>
+        /// Current guard-booth line: topic menu, a talk beat, or a single reply.
+        /// </summary>
+        public bool TryGetTalkEditorLine(out string key, out string text, out string speaker, out string[] choices)
+        {
+            key = null;
+            text = null;
+            speaker = null;
+            choices = Array.Empty<string>();
+            if (mode != Mode.Talk)
+                return false;
+
+            if (talkIndex >= 0 && talkIndex < talkQueue.Count)
+            {
+                var beat = talkQueue[talkIndex];
+                var source = string.IsNullOrEmpty(portraitDebugBeatSourceId) ? "topic" : portraitDebugBeatSourceId;
+                key = "talk:" + source + ":" + talkIndex;
+                text = beat.text ?? "";
+                if (beat.system)
+                    speaker = "系统";
+                else if (beat.narration)
+                    speaker = "旁白";
+                else
+                    speaker = string.IsNullOrEmpty(beat.speakerName) ? "保安叔叔" : beat.speakerName;
+                return !string.IsNullOrEmpty(text);
+            }
+
+            if (talkAwaitingClickReturn && activeTalkTopic != null)
+            {
+                key = "talk:reply:" + activeTalkTopic.id;
+                text = activeTalkTopic.reply ?? "";
+                speaker = "保安叔叔";
+                return !string.IsNullOrEmpty(text);
+            }
+
+            if (talkAwaitingClickReturn)
+                return false;
+
+            var topics = talkIsPostInterview
+                ? InvestigationService.Instance?.PostInterviewTopics
+                : InvestigationService.Instance?.GuardTopics;
+            if (topics == null)
+                return false;
+
+            key = talkIsPostInterview ? "talk:post" : "talk:menu";
+            text = talkIsPostInterview
+                ? "用大福提供的线索，向保安打听当年的救助者。"
+                : "想向保安叔叔了解什么？";
+            speaker = "系统";
+            var list = new List<string>();
+            for (int i = 0; i < topics.Count; i++)
+            {
+                var topic = topics[i];
+                if (topic == null) continue;
+                if (talkIsPostInterview && InvestigationService.Instance != null
+                    && !InvestigationService.Instance.CanAsk(topic))
+                    continue;
+                list.Add(topic.label ?? "");
+            }
+            choices = list.ToArray();
+            return true;
         }
 
         static TMP_FontAsset ResolveUiFont() => TmpFontCatalog.Resolve(GameSettings.UiFontId);
@@ -333,12 +499,12 @@ namespace StreetCat.UI
                 bodyText.fontSize = Mathf.RoundToInt((artPackParchmentActive ? 26f : 24f) * scale);
                 bodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
                 bodyText.enableWordWrapping = true;
-                bodyText.overflowMode = artPackParchmentActive
-                    ? TextOverflowModes.Truncate
-                    : TextOverflowModes.Overflow;
-                bodyText.lineSpacing = artPackParchmentActive ? 4f : 20f;
+                // Scroll/mask clips extra lines. Truncate was wrapping only the last word.
+                bodyText.overflowMode = TextOverflowModes.Overflow;
+                bodyText.lineSpacing = artPackParchmentActive ? 10f : 20f;
                 bodyText.extraPadding = true;
-                ApplyLetterSpacing(bodyText, 0f);
+                // TMP characterSpacing does not break wrapping (the old vertex hack did).
+                ApplyLetterSpacing(bodyText, spacing);
                 if (artPackParchmentActive)
                     SharpenDialogueTmp(bodyText);
                 var contentRt = bodyText.rectTransform;
@@ -420,7 +586,10 @@ namespace StreetCat.UI
                 if (inputField.placeholder is TMP_Text ph)
                     ph.font = font;
             }
+            UILayoutOverrides.ReapplyTextStyles();
         }
+
+        public void RefreshTypography() => ApplyActiveFonts();
 
         static void ApplyLetterSpacing(TMP_Text t, float spacing) =>
             VnText.ApplyLetterSpacing(t, spacing);
@@ -593,9 +762,6 @@ namespace StreetCat.UI
                 dialoguePanel.type = Image.Type.Simple;
                 dialoguePanel.color = new Color(0.5f, 0.48f, 0.45f, 0.9f);
             }
-            var edge = CreateImage(dialoguePanel.transform, "Edge", VnTheme.DialogueEdge);
-            Stretch(edge.rectTransform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -2.5f), new Vector2(0, 0));
-
             dialogueFade = dialoguePanel.gameObject.AddComponent<CanvasGroup>();
 
             namePlate = CreateImage(dialoguePanel.transform, "NamePlate", VnTheme.NamePlate);
@@ -653,14 +819,6 @@ namespace StreetCat.UI
             var stRt = statusText.GetComponent<RectTransform>();
             stRt.anchorMin = stRt.anchorMax = new Vector2(0, 0);
             stRt.pivot = new Vector2(0, 0);
-
-            clickHintText = CreateUiText(dialoguePanel.transform, "ClickHint", 14, TextAnchor.LowerRight,
-                new Color(VnTheme.TextMuted.r, VnTheme.TextMuted.g, VnTheme.TextMuted.b, 0.55f),
-                new Vector2(-28, 12), new Vector2(280, 24));
-            var chRt = clickHintText.GetComponent<RectTransform>();
-            chRt.anchorMin = chRt.anchorMax = new Vector2(1, 0);
-            chRt.pivot = new Vector2(1, 0);
-            clickHintText.text = UiLoc.T("ui.click_continue");
 
             // Choice band — soft panel above dialogue (wide for English parchment strips)
             choiceHostImage = CreateImage(canvasGo.transform, "ChoiceHost", new Color(0, 0, 0, 0.001f));
@@ -1008,7 +1166,7 @@ namespace StreetCat.UI
             var ihr = investigateIntelHint.GetComponent<RectTransform>();
             ihr.anchorMin = ihr.anchorMax = new Vector2(0, 0.5f);
             ihr.pivot = new Vector2(0, 0.5f);
-            investigateIntelHint.text = HardTextLoc.T("点击场景中的物件调查");
+            investigateIntelHint.text = "";
 
             investigateHoverLabel = CreateUiText(investigateRoot.transform, "HoverLabel", 18, TextAnchor.MiddleCenter,
                 VnTheme.TextPrimary, Vector2.zero, new Vector2(280, 36));
@@ -1477,7 +1635,7 @@ namespace StreetCat.UI
             titleRoot.transform.SetParent(canvas, false);
             StretchFull(titleRoot.GetComponent<RectTransform>());
 
-            var desk = CreateTitleSprite(titleRoot.transform, "DeskBg", "title_desk_bg", Color.white, true);
+            var desk = CreateTitleSprite(titleRoot.transform, "DeskBg", "Desk/title_desk_bg", Color.white, true);
             if (desk.sprite == null)
                 desk.color = new Color(0.12f, 0.08f, 0.06f, 1f);
 
@@ -1487,13 +1645,13 @@ namespace StreetCat.UI
                 new Vector2(0.07f, 0.08f), new Vector2(0.93f, 0.96f));
             MakeTitleEditable(magHost, "magazine_host");
 
-            var shadow = CreateTitleSprite(magHost.transform, "MagazineShadow", "title_magazine_shadow",
+            var shadow = CreateTitleSprite(magHost.transform, "MagazineShadow", "Desk/title_magazine_shadow",
                 new Color(1f, 1f, 1f, 0.45f), true);
             var shadowRt = shadow.rectTransform;
             shadowRt.anchoredPosition = new Vector2(18f, -22f);
             shadow.raycastTarget = false;
 
-            var mag = CreateTitleSprite(magHost.transform, "Magazine", "title_magazine_open", Color.white, true);
+            var mag = CreateTitleSprite(magHost.transform, "Magazine", "Desk/title_magazine_open", Color.white, true);
             mag.raycastTarget = false;
 
             // Left page art + branding
@@ -1503,19 +1661,19 @@ namespace StreetCat.UI
                 new Vector2(0.04f, 0.08f), new Vector2(0.48f, 0.92f));
             MakeTitleEditable(left, "left_page");
 
-            var feature = CreateTitleSprite(left.transform, "FeatureArt", "title_feature_art", Color.white, false);
+            var feature = CreateTitleSprite(left.transform, "FeatureArt", "Desk/title_feature_art", Color.white, false);
             TitleMenuLayout.Apply(feature.rectTransform, "feature_art",
                 new Vector2(0.06f, 0.38f), new Vector2(0.94f, 0.96f));
             feature.preserveAspect = true;
             MakeTitleEditable(feature.gameObject, "feature_art");
 
-            titleLogoCn = CreateTitleSprite(left.transform, "LogoCn", "title_logo_cn", Color.white, false);
+            titleLogoCn = CreateTitleSprite(left.transform, "LogoCn", "Desk/title_logo_cn", Color.white, false);
             TitleMenuLayout.Apply(titleLogoCn.rectTransform, "logo_cn",
                 new Vector2(0.08f, 0.78f), new Vector2(0.92f, 0.96f));
             titleLogoCn.preserveAspect = true;
             MakeTitleEditable(titleLogoCn.gameObject, "logo_cn");
 
-            titleLogoEn = CreateTitleSprite(left.transform, "LogoEn", "title_logo_en", Color.white, false);
+            titleLogoEn = CreateTitleSprite(left.transform, "LogoEn", "Desk/title_logo_en", Color.white, false);
             TitleMenuLayout.Apply(titleLogoEn.rectTransform, "logo_en",
                 new Vector2(0.10f, 0.68f), new Vector2(0.90f, 0.80f));
             titleLogoEn.preserveAspect = true;
@@ -1527,9 +1685,12 @@ namespace StreetCat.UI
             StyleTitleMenuFittedText(titleBrand, 50, true);
             TitleMenuLayout.Apply(titleBrand.GetComponent<RectTransform>(), "logo_cn",
                 new Vector2(0.08f, 0.82f), new Vector2(0.92f, 0.94f));
-            titleBrand.gameObject.SetActive(titleLogoCn.sprite == null);
+            // Logo pngs are a fixed wordmark. The live label follows the settings font.
+            titleBrand.gameObject.SetActive(true);
+            if (titleLogoCn != null) titleLogoCn.gameObject.SetActive(false);
+            if (titleLogoEn != null) titleLogoEn.gameObject.SetActive(false);
 
-            var quoteBox = CreateTitleSprite(left.transform, "QuoteBox", "title_quote_box_l", Color.white, false);
+            var quoteBox = CreateTitleSprite(left.transform, "QuoteBox", "Desk/title_quote_box_l", Color.white, false);
             TitleMenuLayout.Apply(quoteBox.rectTransform, "quote_box",
                 new Vector2(0.08f, 0.10f), new Vector2(0.92f, 0.36f));
             quoteBox.preserveAspect = true;
@@ -1543,7 +1704,7 @@ namespace StreetCat.UI
                 new Vector2(0.08f, 0.13f), new Vector2(0.62f, 0.34f));
             MakeTitleEditable(titleSubtitle.gameObject, "subtitle");
 
-            var blurb = CreateTitleSprite(left.transform, "BlurbDeco", "title_blurb_deco", Color.white, false);
+            var blurb = CreateTitleSprite(left.transform, "BlurbDeco", "Desk/title_blurb_deco", Color.white, false);
             TitleMenuLayout.Apply(blurb.rectTransform, "blurb_deco",
                 new Vector2(0.55f, 0.02f), new Vector2(0.98f, 0.22f));
             blurb.preserveAspect = true;
@@ -1556,7 +1717,7 @@ namespace StreetCat.UI
                 new Vector2(0.52f, 0.10f), new Vector2(0.96f, 0.92f));
             MakeTitleEditable(right, "right_page");
 
-            var contentsHeader = CreateTitleSprite(right.transform, "ContentsHeader", "title_contents_header",
+            var contentsHeader = CreateTitleSprite(right.transform, "ContentsHeader", "Desk/title_contents_header",
                 Color.white, false);
             TitleMenuLayout.Apply(contentsHeader.rectTransform, "contents_header",
                 new Vector2(0.06f, 0.86f), new Vector2(0.94f, 0.96f));
@@ -1584,7 +1745,6 @@ namespace StreetCat.UI
             tah.childForceExpandHeight = false;
             tah.childControlWidth = true;
             tah.childControlHeight = true;
-            tah.padding = new RectOffset(12, 12, 6, 6);
 
             // Chapter tagline removed from title ("第一章　编外保安大福").
             // Cleared-saves notice is shown on demand via SetTitleTaglineMessage(true).
@@ -1592,8 +1752,11 @@ namespace StreetCat.UI
             titleTaglineCleared = false;
 
             BuildTitleDeskProps(titleRoot.transform);
-            if (TryApplyArtPackTitleBackground(desk, mag.gameObject, left, contentsHeader, titleContentsLabel))
+            if (TryApplySplitTitleBackground(desk, mag.gameObject, left, contentsHeader, titleContentsLabel)
+                || TryApplyArtPackTitleBackground(desk, mag.gameObject, left, contentsHeader, titleContentsLabel))
                 shadow.gameObject.SetActive(false);
+            BuildTitlePageDecorations(magHost.transform, right.transform);
+            ApplyTitleLayerOrder();
             ApplyTitleLanguageVisuals();
         }
 
@@ -1721,7 +1884,7 @@ namespace StreetCat.UI
                 var child = titleActionRoot.GetChild(i);
                 var le = child.GetComponent<LayoutElement>();
                 if (le == null) continue;
-            bool primary = child.name.Contains("新游戏") || child.name.Contains("New Game");
+                bool primary = child.name.Contains("新游戏") || child.name.Contains("New Game");
                 float bw = primary ? w + 12f : w;
                 float bh = primary ? h + 4f : h;
                 le.minWidth = bw;
@@ -1813,11 +1976,117 @@ namespace StreetCat.UI
                 });
             }
 
-            Prop("PropTranslator", "prop_translator", "prop_translator", new Vector2(0.01f, 0.02f), new Vector2(0.14f, 0.42f));
-            Prop("PropNotes", "prop_notes", "prop_field_notes", new Vector2(0.86f, 0.02f), new Vector2(0.99f, 0.38f), true);
-            Prop("PropPolaroidA", "prop_polaroid_a", "prop_polaroid_a", new Vector2(0.00f, 0.55f), new Vector2(0.12f, 0.88f));
-            Prop("PropPolaroidB", "prop_polaroid_b", "prop_polaroid_b", new Vector2(0.88f, 0.52f), new Vector2(0.995f, 0.86f));
-            Prop("PropScraps", "prop_scraps", "prop_scraps", new Vector2(0.78f, 0.00f), new Vector2(0.92f, 0.22f));
+            Prop("PropTranslator", "prop_translator", "Menu/red_voice_recorder", new Vector2(0.01f, 0.02f), new Vector2(0.16f, 0.42f));
+            Prop("PropNotes", "prop_notes", "Desk/prop_field_notes", new Vector2(0.86f, 0.02f), new Vector2(0.99f, 0.38f), true);
+            Prop("PropPolaroidA", "prop_polaroid_a", "Desk/prop_polaroid_a", new Vector2(0.00f, 0.55f), new Vector2(0.12f, 0.88f));
+            Prop("PropPolaroidB", "prop_polaroid_b", "Desk/prop_polaroid_b", new Vector2(0.88f, 0.52f), new Vector2(0.995f, 0.86f));
+            Prop("PropScraps", "prop_scraps", "Desk/prop_scraps", new Vector2(0.78f, 0.00f), new Vector2(0.92f, 0.22f));
+        }
+
+        /// <summary>
+        /// Desk plate is Menu/background. The magazine hole is transparent; the open magazine
+        /// sits in that hole and the recorder stays a separate piece above it.
+        /// </summary>
+        bool TryApplySplitTitleBackground(Image desk, GameObject magazine, GameObject leftPage,
+            Image contentsHeader, TextMeshProUGUI contentsLabel)
+        {
+            var spr = VnArt.GetTitle("Menu/background");
+            if (spr == null || desk == null) return false;
+            desk.sprite = spr;
+            desk.type = Image.Type.Simple;
+            desk.preserveAspect = false;
+            desk.color = Color.white;
+
+            var pages = VnArt.GetTitle("Menu/magazine_pages");
+            if (magazine != null)
+            {
+                magazine.SetActive(pages != null);
+                var img = magazine.GetComponent<Image>();
+                if (img != null && pages != null)
+                {
+                    img.sprite = pages;
+                    img.color = Color.white;
+                    img.preserveAspect = true;
+                    img.type = Image.Type.Simple;
+                }
+            }
+            if (leftPage != null) leftPage.SetActive(false);
+            if (contentsHeader != null) contentsHeader.gameObject.SetActive(false);
+            if (contentsLabel != null) contentsLabel.gameObject.SetActive(false);
+            if (titleRoot != null)
+            {
+                foreach (var propName in new[] { "PropNotes", "PropPolaroidA", "PropPolaroidB", "PropScraps" })
+                {
+                    var prop = titleRoot.transform.Find(propName);
+                    if (prop != null) prop.gameObject.SetActive(false);
+                }
+            }
+            return true;
+        }
+
+        void BuildTitlePageDecorations(Transform magazineHost, Transform rightPage)
+        {
+            void Piece(string id, string title, string key, Vector2 min, Vector2 max)
+            {
+                var img = CreateTitleSprite(magazineHost, id, "Menu/" + key, Color.white, false);
+                if (img.sprite == null)
+                {
+                    img.gameObject.SetActive(false);
+                    return;
+                }
+                img.preserveAspect = true;
+                img.raycastTarget = false;
+                TitleMenuLayout.Apply(img.rectTransform, id, min, max);
+                MakeTitleEditable(img.gameObject, id);
+            }
+
+            Piece("deco_camera", "相机", "camera_icon", new Vector2(0.48f, 0.78f), new Vector2(0.58f, 0.96f));
+            Piece("deco_paws", "爪印", "paw_print_trail", new Vector2(0.82f, 0.42f), new Vector2(0.98f, 0.92f));
+            Piece("deco_lamp", "路灯", "street_lamp_icon", new Vector2(0.46f, 0.06f), new Vector2(0.54f, 0.40f));
+            Piece("deco_skyline", "城市剪影", "city_skyline_icon", new Vector2(0.52f, 0.04f), new Vector2(0.74f, 0.20f));
+            Piece("deco_cat", "猫咪剪影", "cat_silhouette_icon", new Vector2(0.76f, 0.04f), new Vector2(0.96f, 0.28f));
+            Piece("deco_title", "英文标题", "game_title", new Vector2(0.06f, 0.62f), new Vector2(0.46f, 0.94f));
+            Piece("deco_mic", "麦克风", "microphone_icon", new Vector2(0.05f, 0.50f), new Vector2(0.14f, 0.66f));
+            Piece("deco_polaroid", "采访拍立得", "interview_polaroid", new Vector2(0.06f, 0.18f), new Vector2(0.42f, 0.64f));
+            Piece("deco_tape", "胶带", "masking_tape", new Vector2(0.10f, 0.42f), new Vector2(0.32f, 0.58f));
+            Piece("deco_slogan", "标语纸条", "slogan_note", new Vector2(0.22f, 0.08f), new Vector2(0.50f, 0.28f));
+            Piece("deco_clip", "回形针", "paper_clip", new Vector2(0.42f, 0.14f), new Vector2(0.52f, 0.32f));
+            if (rightPage != null)
+                rightPage.SetAsLastSibling();
+        }
+
+        public void ApplyTitleLayerOrder()
+        {
+            if (titleRoot == null) return;
+            var order = TitleMenuLayout.LayerOrder;
+            var byId = new Dictionary<string, Transform>();
+            for (int i = 0; i < titleRoot.transform.childCount; i++)
+            {
+                var child = titleRoot.transform.GetChild(i);
+                var id = TitleLayerId(child.name);
+                if (!string.IsNullOrEmpty(id))
+                    byId[id] = child;
+            }
+            for (int i = order.Count - 1; i >= 0; i--)
+            {
+                if (byId.TryGetValue(order[i], out var child))
+                    child.SetAsLastSibling();
+            }
+        }
+
+        static string TitleLayerId(string objectName)
+        {
+            switch (objectName)
+            {
+                case "DeskBg": return "desk_bg";
+                case "MagazineHost": return "magazine_host";
+                case "PropTranslator": return "prop_translator";
+                case "PropNotes": return "prop_notes";
+                case "PropPolaroidA": return "prop_polaroid_a";
+                case "PropPolaroidB": return "prop_polaroid_b";
+                case "PropScraps": return "prop_scraps";
+                default: return null;
+            }
         }
 
         Image CreateTitleSprite(Transform parent, string name, string key, Color color, bool stretchFull)
@@ -1916,6 +2185,108 @@ namespace StreetCat.UI
             investigateSpawned.Clear();
         }
 
+        void BuildTitleMenuButtons()
+        {
+            ClearButtons();
+            AddTitleArtButton("start_game", () => ChapterFlowController.Instance.StartNewGame());
+            AddTitleArtButton("continue", () => ChapterFlowController.Instance.ContinueOrNew());
+            AddTitleArtButton("load", () => OpenSaveLoad(false));
+            AddTitleArtButton("archive_notes", OpenNotebook);
+            AddTitleArtButton("settings", OpenSettings);
+            AddTitleArtButton("exit", ExitFromTitle);
+        }
+
+        static void ExitFromTitle()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+
+        void AddTitleArtButton(string artKey, UnityEngine.Events.UnityAction action)
+        {
+            if (TrySpawnTitleArtButton(artKey, action))
+                return;
+
+            string label;
+            bool primary = artKey == "start_game";
+            switch (artKey)
+            {
+                case "start_game": label = UiLoc.T("ui.title.new_game"); break;
+                case "continue": label = UiLoc.T("ui.title.continue"); break;
+                case "load": label = UiLoc.T("ui.title.load"); break;
+                case "archive_notes": label = UiLoc.T("ui.notebook", "笔记"); break;
+                case "settings": label = UiLoc.T("ui.title.settings"); break;
+                default: label = UiLoc.T("ui.title.quit"); break;
+            }
+            AddAction(label, action, primary);
+        }
+
+        static void FitTitleArtButtonSize(float aspect, out float btnW, out float btnH)
+        {
+            btnW = TitleMenuLayout.ButtonWidth;
+            btnH = aspect > 0.01f ? btnW / aspect : TitleMenuLayout.ButtonHeight;
+            const int count = 6;
+            float spacing = TitleMenuLayout.ButtonSpacing;
+            const float maxStack = 620f;
+            float stack = count * btnH + (count - 1) * spacing;
+            if (stack > maxStack && btnH > 1f)
+            {
+                btnH = (maxStack - (count - 1) * spacing) / count;
+                btnW = btnH * aspect;
+            }
+        }
+
+        bool TrySpawnTitleArtButton(string artKey, UnityEngine.Events.UnityAction action)
+        {
+            var idle = VnArt.GetTitle("MenuButtons/" + artKey + "_normal");
+            if (idle == null) return false;
+            var selected = VnArt.GetTitle("MenuButtons/" + artKey + "_selected") ?? idle;
+
+            var go = new GameObject("TitleArt_" + artKey, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            go.transform.SetParent(titleActionRoot, false);
+
+            var img = go.GetComponent<Image>();
+            img.sprite = idle;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = true;
+            img.color = Color.white;
+
+            var btn = go.GetComponent<Button>();
+            btn.transition = Selectable.Transition.SpriteSwap;
+            btn.spriteState = new SpriteState
+            {
+                highlightedSprite = selected,
+                pressedSprite = selected,
+                selectedSprite = selected,
+                disabledSprite = idle
+            };
+            btn.onClick.AddListener(() =>
+            {
+#if UNITY_EDITOR
+                if (TitleMenuEditMode.Enabled) return;
+#endif
+                SfxController.Instance?.PlayUi();
+                action();
+            });
+
+            float pxH = idle.rect.height;
+            if (selected.rect.height > pxH) pxH = selected.rect.height;
+            float aspect = pxH > 1f ? idle.rect.width / pxH : 4.7f;
+            FitTitleArtButtonSize(aspect, out float btnW, out float btnH);
+            var le = go.GetComponent<LayoutElement>();
+            le.minHeight = btnH;
+            le.preferredHeight = btnH;
+            le.minWidth = btnW;
+            le.preferredWidth = btnW;
+            le.flexibleWidth = 0f;
+
+            spawnedButtons.Add(go);
+            return true;
+        }
+
         void AddAction(string label, UnityEngine.Events.UnityAction action, bool primary = false)
         {
             label = HardTextLoc.T(label);
@@ -1953,9 +2324,9 @@ namespace StreetCat.UI
             go.transform.SetParent(titleActionRoot, false);
 
             var img = go.GetComponent<Image>();
-            string idleKey = primary ? "btn_tape_primary_idle" : "btn_tape_idle";
-            string hoverKey = primary ? "btn_tape_primary_hover" : "btn_tape_hover";
-            string pressedKey = primary ? "btn_tape_primary_hover" : "btn_tape_pressed";
+            string idleKey = primary ? "Shared/btn_tape_primary_idle" : "Shared/btn_tape_idle";
+            string hoverKey = primary ? "Shared/btn_tape_primary_hover" : "Shared/btn_tape_hover";
+            string pressedKey = primary ? "Shared/btn_tape_primary_hover" : "Shared/btn_tape_pressed";
             var idle = VnArt.GetTitle(idleKey);
             var hover = VnArt.GetTitle(hoverKey);
             var pressed = VnArt.GetTitle(pressedKey);
@@ -2032,7 +2403,7 @@ namespace StreetCat.UI
 
             if (primary)
             {
-                var clipSpr = VnArt.GetTitle("deco_paperclip");
+                var clipSpr = VnArt.GetTitle("Shared/deco_paperclip");
                 MakeTitleSpriteCrisp(clipSpr);
                 if (clipSpr != null)
                 {
@@ -2064,15 +2435,6 @@ namespace StreetCat.UI
             tx.text = string.Format("{0:00}  {1}", index, label);
             tx.raycastTarget = false;
             StyleTitleMenuText(tx, primary ? 24 : 21, true);
-
-            if (ApplyTitleButtonArt(btn, label))
-            {
-                tx.gameObject.SetActive(false);
-                var oldIcon = go.transform.Find("Icon");
-                if (oldIcon != null) oldIcon.gameObject.SetActive(false);
-                var oldClip = go.transform.Find("Paperclip");
-                if (oldClip != null) oldClip.gameObject.SetActive(false);
-            }
 
             spawnedButtons.Add(go);
         }
@@ -2241,6 +2603,31 @@ namespace StreetCat.UI
             investigateSpawned.Add(go);
         }
 
+        void AddInvestigateNotebookButton()
+        {
+            var spr = LoadArtPackSprite("对话界面/记者笔记");
+            var go = new GameObject("InvestigateNotebook", typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(investigateRoot.transform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(1f, 0f);
+            rt.anchoredPosition = new Vector2(-18f, 24f);
+            float height = 168f;
+            float aspect = spr != null && spr.rect.height > 1f ? spr.rect.width / spr.rect.height : 0.55f;
+            rt.sizeDelta = new Vector2(height * aspect, height);
+
+            var img = go.GetComponent<Image>();
+            img.sprite = spr;
+            img.preserveAspect = true;
+            img.color = Color.white;
+            go.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                SfxController.Instance?.PlayUi();
+                OpenNotebook();
+            });
+            investigateSpawned.Add(go);
+        }
+
         void AddInvestigateAction(string label, UnityEngine.Events.UnityAction action, bool primary = false)
         {
             label = HardTextLoc.T(label);
@@ -2329,7 +2716,8 @@ namespace StreetCat.UI
                 le.minWidth = minW;
             }
 
-            if (!wide && primary)
+            bool woodPlate = label == "结束交谈" || label == "End talk";
+            if (!wide && primary && !woodPlate)
             {
                 var tick = CreateImage(go.transform, "Tick", VnTheme.Accent);
                 var tr = tick.rectTransform;
@@ -2355,11 +2743,34 @@ namespace StreetCat.UI
             if (wide)
                 tx.fontStyle = FontStyles.Bold;
             tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
-            tx.color = wide
-                ? (artPackParchmentActive ? ArtPackInk : DialogueFontColors.Current.choice)
-                : VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
+            if (wide)
+            {
+                var idle = artPackParchmentActive ? ArtPackInk : DialogueFontColors.Current.choice;
+                go.AddComponent<ChoiceHoverLabel>().Bind(tx, idle);
+            }
+            else
+                tx.color = woodPlate ? Color.white : VnTheme.TextPrimary;
+            if (woodPlate)
+            {
+                var plate = VnArt.GetUi("UI_button_bg");
+                if (plate != null)
+                {
+                    img.sprite = plate;
+                    img.type = Image.Type.Simple;
+                    img.preserveAspect = false;
+                    img.color = Color.white;
+                    var plateColors = btn.colors;
+                    plateColors.normalColor = Color.white;
+                    plateColors.highlightedColor = new Color(1f, 0.95f, 0.86f, 1f);
+                    plateColors.pressedColor = new Color(0.82f, 0.74f, 0.62f, 1f);
+                    plateColors.selectedColor = plateColors.highlightedColor;
+                    btn.colors = plateColors;
+                    le.minHeight = 48f;
+                    le.preferredHeight = 48f;
+                }
+            }
             if (wide)
             {
                 tx.enableWordWrapping = true;
@@ -2470,7 +2881,10 @@ namespace StreetCat.UI
             if (dialoguePanel != null)
                 dialoguePanel.gameObject.SetActive(!on && mode != Mode.Title && mode != Mode.Investigate);
             if (on)
+            {
                 HideSceneTitleImmediate();
+                ApplyInterviewComponentSkin();
+            }
             if (hideDialogueBtn != null)
                 hideDialogueBtn.gameObject.SetActive(!on && CanHideDialogue());
             if (buttonRoot != null)
@@ -2601,6 +3015,14 @@ namespace StreetCat.UI
         void ApplyStageArt()
         {
             if (stageArt == null) return;
+
+            if (mode == Mode.Title)
+            {
+                stageArt.sprite = null;
+                stageArt.enabled = false;
+                SetPortrait(null);
+                return;
+            }
 
             string label = null;
             if (!string.IsNullOrEmpty(stageBackgroundOverride))
@@ -2745,7 +3167,8 @@ namespace StreetCat.UI
                 return;
             }
 
-            // Upper-right, fully above dialogue (see PortraitLayout.asset or VnTheme defaults).
+            // Upper-right standing slot. Bottom may overlap the dialogue panel
+            // (see PortraitLayout.asset or VnTheme defaults).
             float slotLeft = PortraitLayout.SlotLeft;
             float slotRight = PortraitLayout.SlotRight;
             float slotTop = PortraitLayout.SlotTop;
@@ -3302,10 +3725,15 @@ namespace StreetCat.UI
                 return;
             }
 
-            // Guard talk reply: click returns to topic menu
+            // Guard talk reply: click continues Lin's contact chain, or returns to the topic menu.
             if (mode == Mode.Talk && talkAwaitingClickReturn)
             {
                 talkAwaitingClickReturn = false;
+                if (IsLinContactReply())
+                {
+                    ContinueAfterLinOffer();
+                    return;
+                }
                 if (talkIsPostInterview)
                     ShowPostInterviewTalk();
                 else
@@ -3382,18 +3810,38 @@ namespace StreetCat.UI
                 return;
             }
 
-            // Talk multi-beat: jump to end of current topic / outro queue.
+            // Phone chats stop on the last picture. Skip does not close it.
             if (mode == Mode.Talk && talkQueue.Count > 0)
             {
+                if (!string.IsNullOrEmpty(phoneSequence))
+                {
+                    int lastPhone = LastPhoneImageIndex();
+                    if (lastPhone >= 0 && talkIndex < lastPhone)
+                    {
+                        talkIndex = lastPhone;
+                        ShowTalkBeat();
+                        return;
+                    }
+                    if (lastPhone >= 0 && talkIndex == lastPhone)
+                    {
+                        AdvanceTalkBeatOrFinish();
+                        return;
+                    }
+                }
                 talkIndex = talkQueue.Count - 1;
                 AdvanceTalkBeatOrFinish();
                 return;
             }
 
-            // Talk single reply: return to topic menu.
+            // Talk single reply: continue Lin's contact chain, or return to the topic menu.
             if (mode == Mode.Talk && talkAwaitingClickReturn)
             {
                 talkAwaitingClickReturn = false;
+                if (IsLinContactReply())
+                {
+                    ContinueAfterLinOffer();
+                    return;
+                }
                 if (talkIsPostInterview)
                     ShowPostInterviewTalk();
                 else
@@ -3502,31 +3950,6 @@ namespace StreetCat.UI
 
         void RefreshAdvanceHint()
         {
-            if (clickHintText == null) return;
-            bool inspectClick = mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0;
-            bool talkBeats = mode == Mode.Talk && talkQueue.Count > 0;
-            bool talkClick = mode == Mode.Talk && talkAwaitingClickReturn;
-            bool epilogueBeats = mode == Mode.Epilogue && epilogueQueue.Count > 0;
-            bool show = !waitingForChoice && (canClickAdvance || typewriterRunning || inspectClick || talkBeats || talkClick || epilogueBeats)
-                && (mode == Mode.Dialogue || inspectClick || talkBeats || talkClick || epilogueBeats);
-            clickHintText.gameObject.SetActive(show);
-            if (!show) return;
-            if (typewriterRunning)
-                clickHintText.text = UiLoc.T("ui.click_show_full");
-            else if (inspectClick)
-                clickHintText.text = playingGuardAppear
-                    ? (inspectIndex >= inspectQueue.Count - 1 ? UiLoc.T("ui.click_return_map") : UiLoc.T("ui.click_continue"))
-                    : (inspectIndex >= inspectQueue.Count - 1 ? UiLoc.T("ui.click_return_investigate") : UiLoc.T("ui.click_continue"));
-            else if (talkBeats)
-                clickHintText.text = talkIndex >= talkQueue.Count - 1 ? UiLoc.T("ui.click_return_topics") : UiLoc.T("ui.click_continue");
-            else if (talkClick)
-                clickHintText.text = UiLoc.T("ui.click_return_topics");
-            else if (epilogueBeats)
-                clickHintText.text = UiLoc.T("ui.click_continue");
-            else
-                clickHintText.text = UiLoc.T("ui.click_ctrl_skip");
-            // Static idle indicator only — do not pulse/restart on every advance click.
-            clickHintText.color = DialogueFontColors.Current.clickHint;
         }
 
         public void ShowTitle()
@@ -3579,23 +4002,7 @@ namespace StreetCat.UI
             if (titleTaglineCleared)
                 SetTitleTaglineMessage(false);
 
-            AddAction(UiLoc.T("ui.title.new_game"), () => ChapterFlowController.Instance.StartNewGame(), true);
-            AddAction(UiLoc.T("ui.title.continue"), () => ChapterFlowController.Instance.ContinueOrNew());
-            AddAction(UiLoc.T("ui.title.load"), () => OpenSaveLoad(false));
-            AddAction(UiLoc.T("ui.title.clear_saves"), () =>
-            {
-                SaveSystem.Delete();
-                SetTitleTaglineMessage(true);
-            });
-            AddAction(UiLoc.T("ui.title.settings"), OpenSettings);
-            AddAction(UiLoc.T("ui.title.quit"), () =>
-            {
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
-            });
+            BuildTitleMenuButtons();
             ApplyTitleLanguageVisuals();
         }
 
@@ -3620,7 +4027,7 @@ namespace StreetCat.UI
             ClearButtons();
             AddStandardDialogueActions(includeSkip: true);
             SetAdvanceEnabled(true);
-            statusText.text = UiLoc.T("ui.status_advance");
+            statusText.text = "";
         }
 
         void OpenLinInterviewFromScript()
@@ -3636,6 +4043,7 @@ namespace StreetCat.UI
         void OnScriptLine(ScriptLine line)
         {
             mode = Mode.Dialogue;
+            ClearFreeLine();
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
@@ -3709,7 +4117,7 @@ namespace StreetCat.UI
             ClearButtons();
             if (line.choices != null && line.choices.Count > 0)
             {
-                statusText.text = UiLoc.T("ui.make_choice");
+                statusText.text = GameSettings.IsEnglish ? "" : UiLoc.T("ui.make_choice");
                 SetAdvanceEnabled(false, true);
                 for (int i = 0; i < line.choices.Count; i++)
                 {
@@ -3720,7 +4128,7 @@ namespace StreetCat.UI
             }
             else
             {
-                statusText.text = UiLoc.T("ui.status_advance");
+                statusText.text = "";
                 SetAdvanceEnabled(true);
                 AddStandardDialogueActions(includeSkip: true);
             }
@@ -3820,9 +4228,9 @@ namespace StreetCat.UI
                     ClearButtons();
                     AddStandardDialogueActions(includeSkip: !waitingForChoice);
                     SetAdvanceEnabled(!waitingForChoice, waitingForChoice);
-                    statusText.text = waitingForChoice
+                    statusText.text = waitingForChoice && !GameSettings.IsEnglish
                         ? UiLoc.T("ui.make_choice")
-                        : UiLoc.T("ui.status_advance");
+                        : "";
                     break;
                 case Mode.Investigate:
                     if (inspectQueue.Count > 0 && !investigateHotspotsVisible)
@@ -3890,17 +4298,9 @@ namespace StreetCat.UI
             {
                 int n = GameState.Instance.Data.intel.Count;
                 if (GameSettings.IsEnglish)
-                {
-                    investigateIntelHint.text = string.IsNullOrEmpty(lastInspectText)
-                        ? $"Tap objects to investigate · Intel: {n}"
-                        : $"Intel obtained: {n} · Keep investigating";
-                }
+                    investigateIntelHint.text = $"Intel: {n}";
                 else
-                {
-                    investigateIntelHint.text = string.IsNullOrEmpty(lastInspectText)
-                        ? "点击场景物件调查　·　已获情报　" + n
-                        : "已获情报　" + n + "　·　可继续调查";
-                }
+                    investigateIntelHint.text = "已获情报　" + n;
             }
             if (investigateHoverLabel != null)
                 investigateHoverLabel.gameObject.SetActive(false);
@@ -3923,7 +4323,6 @@ namespace StreetCat.UI
                 AddInvestigateHotspot("guard_booth", "保安亭",
                     GameState.Instance.HasFlag(FlagIds.GuardIntroDone),
                     EnterGuardBoothFromMap);
-                AddInvestigateAction("与保安交谈", EnterGuardBoothFromMap, true);
             }
             if (service.CanWaitForDafu())
                 AddInvestigateAction("等待大福", () =>
@@ -3953,27 +4352,40 @@ namespace StreetCat.UI
                     ChapterFlowController.Instance.GoToScene(SceneIds.SC09);
                 }, true);
             }
+            else if (GameState.Instance.HasFlag(FlagIds.LingPhoneChatDone)
+                && InvestigationService.Instance != null
+                && !InvestigationService.Instance.HasRequiredDayInvestigation())
+            {
+                AddInvestigateAction("前往咖啡馆", () =>
+                {
+                    SetInvestigateChrome(false);
+                    ChapterFlowController.Instance.GoToScene(SceneIds.SC09);
+                }, true);
+            }
             if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
                 AddInvestigateAction("打听救助者", () =>
                 {
                     SetInvestigateChrome(false);
                     ShowPostInterviewTalk();
                 }, true);
-            AddInvestigateAction(UiLoc.T("ui.backlog"), OpenBacklog);
-            AddInvestigateAction(UiLoc.T("ui.notebook"), OpenNotebook);
-            AddInvestigateAction(UiLoc.T("ui.menu"), OpenMenu);
+            AddInvestigateNotebookButton();
         }
 
         readonly List<InspectBeat> inspectQueue = new List<InspectBeat>();
         int inspectIndex;
         readonly List<InspectBeat> epilogueQueue = new List<InspectBeat>();
+        GameObject toBeContinuedRoot;
+        Coroutine toBeContinuedCo;
         int epilogueIndex;
+        string epilogueLocPrefix;
         /// <summary>Playing the post-intel guard-appear cutscene (door SE → map).</summary>
         bool playingGuardAppear;
         /// <summary>Playing 【结束交谈】 wait-for-Dafu outro → SC-06.</summary>
         bool playingWaitForDafuOutro;
-        /// <summary>Playing Lin friend-request chat → SC-09.</summary>
-        bool playingLinContactChat;
+        /// <summary>guard or ling while those screenshots are on screen.</summary>
+        string phoneSequence;
+        /// <summary>Next click after the guard agrees starts his phone, not Ling's chat.</summary>
+        bool armGuardPhone;
 
         void ShowHotspotInspect(string hotspotId)
         {
@@ -4048,7 +4460,7 @@ namespace StreetCat.UI
             ChapterFlowController.Instance.GoToScene(SceneIds.SC05);
         }
 
-        void ShowInspectBeat()
+        void ShowInspectBeat(bool recordHistory = true, bool playCues = true)
         {
             if (inspectIndex < 0 || inspectIndex >= inspectQueue.Count)
             {
@@ -4061,16 +4473,37 @@ namespace StreetCat.UI
 
             var beat = inspectQueue[inspectIndex];
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            PortraitDebugOverrides.OnLineChanged(GetPortraitDebugLineKey());
+            if (playCues)
+                PortraitDebugOverrides.OnLineChanged(GetPortraitDebugLineKey());
 #endif
-            if (!string.IsNullOrEmpty(beat.background))
+            if (playCues && !string.IsNullOrEmpty(beat.background))
                 SetStageBackground(beat.background);
-            if (!string.IsNullOrEmpty(beat.sfx))
+            if (playCues && !string.IsNullOrEmpty(beat.sfx))
                 SfxController.Instance?.PlayScriptLabel(beat.sfx);
+
+            var source = string.IsNullOrEmpty(portraitDebugBeatSourceId) ? "spot" : portraitDebugBeatSourceId;
+            var locKey = "inv:" + source + ":" + inspectIndex;
+            string body = beat.text ?? "";
+            string speakerName;
+            if (beat.system)
+                speakerName = "系统";
+            else if (beat.narration)
+                speakerName = "旁白";
+            else
+                speakerName = string.IsNullOrEmpty(beat.speaker) ? "小凌" : beat.speaker;
+            if (ScriptLoc.TryGetUserText(locKey, out var edited, out var editedSpeaker))
+            {
+                body = edited ?? body;
+                if (!string.IsNullOrEmpty(editedSpeaker))
+                    speakerName = editedSpeaker;
+            }
+            NoteFreeLine("槐安社区调查  " + locKey, locKey, beat.text ?? "",
+                beat.system ? "系统" : beat.narration ? "旁白" : (string.IsNullOrEmpty(beat.speaker) ? "小凌" : beat.speaker));
+
             string bodyKind;
             if (beat.system)
             {
-                SetSpeaker("系统", LineSpeaker.System);
+                SetSpeaker(speakerName, LineSpeaker.System);
                 bodyKind = "system";
             }
             else if (beat.narration)
@@ -4080,17 +4513,17 @@ namespace StreetCat.UI
             }
             else
             {
-                var who = string.IsNullOrEmpty(beat.speaker) ? "小凌" : beat.speaker;
-                SetSpeaker(who, LineSpeaker.Character, beat.portrait);
+                SetSpeaker(speakerName, LineSpeaker.Character, beat.portrait);
                 bodyKind = playingGuardAppear ? "dialogue" : "investigate";
             }
 
-            SetBody(beat.text, true, bodyKind);
+            SetBody(body, recordHistory, bodyKind);
+            if (!recordHistory && !playCues)
+                return;
+
             if (GameSettings.IsEnglish)
             {
-                statusText.text = playingGuardAppear
-                    ? $"Continue {inspectIndex + 1}/{inspectQueue.Count}"
-                    : $"Inspect {inspectIndex + 1}/{inspectQueue.Count}";
+                statusText.text = "";
             }
             else
             {
@@ -4163,14 +4596,36 @@ namespace StreetCat.UI
             SetStageBackground("保安亭_午后");
             stageHint.text = HardTextLoc.T("交谈");
             RefreshHeader();
-            SetSpeaker("系统", LineSpeaker.System);
-            SetBody("想向保安叔叔了解什么？");
-            statusText.text = HardTextLoc.T("选择一个话题");
+            PresentTalkMenu(recordHistory: true);
+        }
+
+        void PresentTalkMenu(bool recordHistory)
+        {
+            string prompt = "想向保安叔叔了解什么？";
+            string speaker = "系统";
+            var choices = new List<string>();
+            if (InvestigationService.Instance != null)
+            {
+                foreach (var topic in InvestigationService.Instance.GuardTopics)
+                    choices.Add(topic != null ? topic.label ?? "" : "");
+            }
+            NoteFreeLine("保安交谈  talk:menu", "talk:menu", prompt, speaker, choices.ToArray());
+            if (ScriptLoc.TryGetUserText("talk:menu", out var edited, out var editedSpeaker) && edited != null)
+            {
+                prompt = edited;
+                if (!string.IsNullOrEmpty(editedSpeaker))
+                    speaker = editedSpeaker;
+            }
+            SetSpeaker(speaker, LineSpeaker.System);
+            SetBody(prompt, recordHistory, "system");
+            statusText.text = GameSettings.IsEnglish ? "" : HardTextLoc.T("选择一个话题");
             ClearButtons();
+            int index = 0;
             foreach (var topic in InvestigationService.Instance.GuardTopics)
             {
                 var t = topic;
-                AddChoice(t.label, () => StartGuardTopic(t));
+                int choice = index++;
+                AddChoice(ScriptLoc.DisplayChoice("talk:menu", choice, t.label), () => StartGuardTopic(t));
             }
             AddAction("结束交谈", () =>
             {
@@ -4191,7 +4646,8 @@ namespace StreetCat.UI
             talkIsPostInterview = false;
             talkAwaitingClickReturn = false;
             playingWaitForDafuOutro = true;
-            playingLinContactChat = false;
+            phoneSequence = null;
+            armGuardPhone = false;
             activeTalkTopic = null;
             talkQueue.Clear();
             talkQueue.AddRange(InvestigationService.BuildWaitForDafuEndBeats());
@@ -4210,18 +4666,114 @@ namespace StreetCat.UI
             ShowTalkBeat();
         }
 
-        void StartLinContactChat()
+        bool ShouldPlayLingPhone()
         {
+            var gs = GameState.Instance;
+            if (gs == null) return false;
+            return gs.HasFlag(FlagIds.DafuInterviewDone)
+                && gs.HasFlag(FlagIds.GuardPhoneChatDone)
+                && !gs.HasFlag(FlagIds.LingPhoneChatDone)
+                && gs.HasIntel(IntelIds.LinIdentity);
+        }
+
+        bool IsLinContactReply()
+        {
+            return armGuardPhone || (activeTalkTopic != null && activeTalkTopic.id == "lin_info");
+        }
+
+        /// <summary>
+        /// After the guard offers to ask Lin: his phone, then Ling's chat with Lin, then the café.
+        /// Returning to the topic menu here replayed the same line forever.
+        /// </summary>
+        void ContinueAfterLinOffer()
+        {
+            armGuardPhone = false;
+            talkAwaitingClickReturn = false;
+            activeTalkTopic = null;
+            talkQueue.Clear();
+            talkIndex = 0;
+            talkIsPostInterview = true;
+            var gs = GameState.Instance;
+            if (gs != null && !gs.HasFlag(FlagIds.GuardPhoneChatDone))
+            {
+                StartPhoneSequence("guard", 0);
+                return;
+            }
+            if (ShouldPlayLingPhone())
+            {
+                StartPhoneSequence("ling", 0);
+                return;
+            }
+            if (gs != null && gs.HasFlag(FlagIds.LingPhoneChatDone)
+                && InvestigationService.Instance != null
+                && !InvestigationService.Instance.HasRequiredDayInvestigation())
+            {
+                ChapterFlowController.Instance.GoToScene(SceneIds.SC09);
+                return;
+            }
+            ShowPostInterviewTalk();
+        }
+
+        void ClearPhoneSaveProgress()
+        {
+            if (GameState.Instance == null) return;
+            GameState.Instance.Data.phoneChatId = "";
+            GameState.Instance.Data.phoneChatIndex = 0;
+        }
+
+        void RememberPhoneProgress()
+        {
+            if (GameState.Instance == null) return;
+            if (string.IsNullOrEmpty(phoneSequence))
+            {
+                ClearPhoneSaveProgress();
+                return;
+            }
+            GameState.Instance.Data.phoneChatId = phoneSequence;
+            GameState.Instance.Data.phoneChatIndex = talkIndex;
+        }
+
+        /// <summary>Reopen the phone on the screenshot from the last save.</summary>
+        public bool TryResumePhoneChat()
+        {
+            var gs = GameState.Instance;
+            if (gs == null) return false;
+            var id = gs.Data.phoneChatId;
+            if (string.IsNullOrEmpty(id)) return false;
+            if (gs.Data.currentSceneId != SceneIds.SC08) return false;
+            if (id == "guard" && gs.HasFlag(FlagIds.GuardPhoneChatDone))
+            {
+                ClearPhoneSaveProgress();
+                return false;
+            }
+            if (id == "ling" && gs.HasFlag(FlagIds.LingPhoneChatDone))
+            {
+                ClearPhoneSaveProgress();
+                return false;
+            }
+            if (id != "guard" && id != "ling") return false;
+            StartPhoneSequence(id, gs.Data.phoneChatIndex);
+            return true;
+        }
+
+        void StartPhoneSequence(string which, int startIndex)
+        {
+            var beats = which == "guard"
+                ? InvestigationService.BuildGuardPhoneBeats()
+                : InvestigationService.BuildLingPhoneBeats();
+            if (beats == null || beats.Count == 0) return;
+
             mode = Mode.Talk;
             talkIsPostInterview = true;
             talkAwaitingClickReturn = false;
+            armGuardPhone = false;
             playingWaitForDafuOutro = false;
-            playingLinContactChat = true;
+            phoneSequence = which;
             activeTalkTopic = null;
             talkQueue.Clear();
-            talkQueue.AddRange(InvestigationService.BuildLinContactBeats());
-            talkIndex = 0;
-            portraitDebugBeatSourceId = "lin_contact";
+            talkQueue.AddRange(beats);
+            talkIndex = Mathf.Clamp(startIndex, 0, talkQueue.Count - 1);
+            portraitDebugBeatSourceId = which == "guard" ? "guard_phone" : "ling_phone";
             SetAdvanceEnabled(false);
             inputField.gameObject.SetActive(false);
             SetInvestigateChrome(false);
@@ -4231,13 +4783,36 @@ namespace StreetCat.UI
             stageHint.text = HardTextLoc.T("消息");
             RefreshHeader();
             ClearButtons();
-            // Actions rebuilt in ShowTalkBeat (includes Skip).
             ShowTalkBeat();
+        }
+
+        int LastPhoneImageIndex()
+        {
+            int last = -1;
+            for (int i = 0; i < talkQueue.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(talkQueue[i].phoneImage))
+                    last = i;
+            }
+            return last;
+        }
+
+        void PhoneImageProgress(out int current, out int total)
+        {
+            current = 0;
+            total = 0;
+            for (int i = 0; i < talkQueue.Count; i++)
+            {
+                if (string.IsNullOrEmpty(talkQueue[i].phoneImage)) continue;
+                total++;
+                if (i == talkIndex) current = total;
+            }
         }
 
         void StartGuardTopic(TalkTopic topic)
         {
             if (topic == null) return;
+            mode = Mode.Talk;
             talkIsPostInterview = false;
             talkAwaitingClickReturn = false;
             activeTalkTopic = topic;
@@ -4255,15 +4830,34 @@ namespace StreetCat.UI
             }
 
             // Legacy single-reply topics
-            var reply = InvestigationService.Instance.Talk(topic);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            NotifyPortraitDebugLineChanged();
-#endif
-            SetSpeaker("保安叔叔", LineSpeaker.Character, topic.portrait);
-            SetBody(reply, true, "talk");
-            statusText.text = HardTextLoc.T("点击返回话题");
-            ClearButtons();
+            InvestigationService.Instance.Talk(topic);
             talkAwaitingClickReturn = true;
+            PresentLegacyTalkReply(recordHistory: true);
+        }
+
+        void PresentLegacyTalkReply(bool recordHistory)
+        {
+            if (activeTalkTopic == null) return;
+            string reply = activeTalkTopic.reply ?? "";
+            string speaker = "保安叔叔";
+            if (ScriptLoc.TryGetUserText("talk:reply:" + activeTalkTopic.id, out var edited, out var editedSpeaker)
+                && edited != null)
+            {
+                reply = edited;
+                if (!string.IsNullOrEmpty(editedSpeaker))
+                    speaker = editedSpeaker;
+            }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (recordHistory)
+                NotifyPortraitDebugLineChanged();
+#endif
+            SetSpeaker(speaker, LineSpeaker.Character, activeTalkTopic.portrait);
+            NoteFreeLine("保安交谈  talk:reply:" + activeTalkTopic.id, "talk:reply:" + activeTalkTopic.id,
+                activeTalkTopic.reply ?? "", "保安叔叔");
+            SetBody(reply, recordHistory, "talk");
+            if (!recordHistory) return;
+            statusText.text = "";
+            ClearButtons();
             AddAction(UiLoc.T("ui.skip"), TrySkipDialogue);
             AddAction("结束交谈", () =>
             {
@@ -4278,7 +4872,7 @@ namespace StreetCat.UI
             SetAdvanceEnabled(true);
         }
 
-        void ShowTalkBeat()
+        void ShowTalkBeat(bool recordHistory = true, bool playCues = true)
         {
             if (talkIndex < 0 || talkIndex >= talkQueue.Count)
             {
@@ -4288,15 +4882,71 @@ namespace StreetCat.UI
 
             var beat = talkQueue[talkIndex];
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            PortraitDebugOverrides.OnLineChanged(GetPortraitDebugLineKey());
+            if (playCues)
+                PortraitDebugOverrides.OnLineChanged(GetPortraitDebugLineKey());
 #endif
-            if (!string.IsNullOrEmpty(beat.sfx))
+            if (playCues && !string.IsNullOrEmpty(beat.sfx))
                 SfxController.Instance?.PlayScriptLabel(beat.sfx);
+
+            if (!string.IsNullOrEmpty(phoneSequence))
+                RememberPhoneProgress();
+
+            if (!string.IsNullOrEmpty(beat.phoneImage))
+                ShowMessageScreen(beat.phoneImage);
+            else if (!string.IsNullOrEmpty(phoneSequence))
+                SocialHide(instant: true);
+
+            if (!string.IsNullOrEmpty(beat.phoneImage) && string.IsNullOrEmpty(beat.text))
+            {
+                SetSpeaker("", LineSpeaker.Narration);
+                SetPortrait(null);
+                SetBody("", false);
+                if (GameSettings.IsEnglish)
+                    statusText.text = "";
+                else
+                {
+                    PhoneImageProgress(out var current, out var total);
+                    statusText.text = total > 0 ? $"消息　{current}/{total}" : "";
+                }
+                ClearButtons();
+                AddStandardDialogueActions(includeSkip: true);
+                SetAdvanceEnabled(true);
+                return;
+            }
+
+            if (beat.confirmAppointment && GameState.Instance != null)
+            {
+                GameState.Instance.SetFlag(FlagIds.LinAppointmentNoted);
+                if (!string.IsNullOrEmpty(beat.text))
+                    GameState.Instance.SetObjective(beat.text);
+                if (StreetCat.Notebook.ReporterNotebook.Instance != null)
+                    StreetCat.Notebook.ReporterNotebook.Instance.RefreshFromState();
+            }
+
+            var source = string.IsNullOrEmpty(portraitDebugBeatSourceId) ? "topic" : portraitDebugBeatSourceId;
+            var locKey = "talk:" + source + ":" + talkIndex;
+            string body = beat.text ?? "";
+            string speakerName;
+            if (beat.system)
+                speakerName = "系统";
+            else if (beat.narration)
+                speakerName = "旁白";
+            else
+                speakerName = string.IsNullOrEmpty(beat.speakerName) ? "保安叔叔" : beat.speakerName;
+            if (ScriptLoc.TryGetUserText(locKey, out var edited, out var editedSpeaker) && edited != null)
+            {
+                body = edited;
+                if (!string.IsNullOrEmpty(editedSpeaker))
+                    speakerName = editedSpeaker;
+            }
+            NoteFreeLine("保安交谈  " + locKey, locKey, beat.text ?? "",
+                beat.system ? "系统" : beat.narration ? "旁白"
+                : (string.IsNullOrEmpty(beat.speakerName) ? "保安叔叔" : beat.speakerName));
 
             string bodyKind;
             if (beat.system)
             {
-                SetSpeaker("系统", LineSpeaker.System);
+                SetSpeaker(speakerName, LineSpeaker.System);
                 bodyKind = "system";
             }
             else if (beat.narration)
@@ -4306,23 +4956,26 @@ namespace StreetCat.UI
             }
             else
             {
-                var who = string.IsNullOrEmpty(beat.speakerName) ? "保安叔叔" : beat.speakerName;
-                SetSpeaker(who, LineSpeaker.Character, beat.portrait);
+                SetSpeaker(speakerName, LineSpeaker.Character, beat.portrait);
                 bodyKind = "talk";
             }
 
-            SetBody(beat.text, true, bodyKind);
+            SetBody(body, recordHistory, bodyKind);
+            if (!recordHistory && !playCues)
+                return;
+
             if (GameSettings.IsEnglish)
             {
-                statusText.text = playingLinContactChat
-                    ? $"Message {talkIndex + 1}/{talkQueue.Count}"
-                    : $"Talk {talkIndex + 1}/{talkQueue.Count}";
+                statusText.text = "";
+            }
+            else if (!string.IsNullOrEmpty(beat.phoneImage))
+            {
+                PhoneImageProgress(out var current, out var total);
+                statusText.text = total > 0 ? $"消息　{current}/{total}" : "";
             }
             else
             {
-                statusText.text = playingLinContactChat
-                    ? $"消息　{talkIndex + 1}/{talkQueue.Count}"
-                    : $"交谈　{talkIndex + 1}/{talkQueue.Count}";
+                statusText.text = $"交谈　{talkIndex + 1}/{talkQueue.Count}";
             }
             ClearButtons();
             AddStandardDialogueActions(includeSkip: true);
@@ -4359,14 +5012,45 @@ namespace StreetCat.UI
                 return;
             }
 
-            if (playingLinContactChat)
+            if (phoneSequence == "guard")
             {
-                playingLinContactChat = false;
+                phoneSequence = null;
+                armGuardPhone = false;
                 talkQueue.Clear();
                 talkIndex = 0;
                 activeTalkTopic = null;
-                GameState.Instance.SetFlag(FlagIds.LinUnlocked);
-                GameState.Instance.SetObjective("明天下午15:00前往咖啡馆采访林女士。");
+                ClearPhoneSaveProgress();
+                SocialHide(instant: true);
+                GameState.Instance.SetFlag(FlagIds.GuardPhoneChatDone);
+                ContinueAfterLinOffer();
+                return;
+            }
+
+            if (phoneSequence == "ling")
+            {
+                phoneSequence = null;
+                talkQueue.Clear();
+                talkIndex = 0;
+                activeTalkTopic = null;
+                ClearPhoneSaveProgress();
+                SocialHide(instant: true);
+                var gs = GameState.Instance;
+                gs.SetFlag(FlagIds.LingPhoneChatDone);
+                gs.SetFlag(FlagIds.LinUnlocked);
+                const string meet = "明天下午三点，在槐安社区南门外的咖啡馆见林敏。";
+                gs.SetFlag(FlagIds.LinAppointmentNoted);
+                gs.SetObjective(meet);
+                if (StreetCat.Notebook.ReporterNotebook.Instance != null)
+                    StreetCat.Notebook.ReporterNotebook.Instance.RefreshFromState();
+
+                bool stillRequired = InvestigationService.Instance != null
+                    && InvestigationService.Instance.HasRequiredDayInvestigation();
+                if (stillRequired)
+                {
+                    ShowInvestigationMode();
+                    return;
+                }
+
                 ChapterFlowController.Instance.GoToScene(SceneIds.SC09);
                 return;
             }
@@ -4385,6 +5069,9 @@ namespace StreetCat.UI
             mode = Mode.Talk;
             talkIsPostInterview = true;
             talkAwaitingClickReturn = false;
+            armGuardPhone = false;
+            phoneSequence = null;
+            SocialHide(instant: true);
             SetAdvanceEnabled(false);
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
@@ -4393,9 +5080,15 @@ namespace StreetCat.UI
             stageHint.text = HardTextLoc.T("核实线索");
             RefreshHeader();
             SetSpeaker("系统", LineSpeaker.System);
-            SetBody("用大福提供的线索，向保安打听当年的救助者。");
+            const string postBase = "用大福提供的线索，向保安打听当年的救助者。";
+            NoteFreeLine("保安交谈  talk:post", "talk:post", postBase, "系统");
+            string postPrompt = postBase;
+            if (ScriptLoc.TryGetUserText("talk:post", out var postEdited, out _) && postEdited != null)
+                postPrompt = postEdited;
+            SetBody(postPrompt);
             ClearButtons();
             var service = InvestigationService.Instance;
+            int postChoice = 0;
             foreach (var topic in service.PostInterviewTopics)
             {
                 // Gate 「林姐的信息」 on LinIdentity from who_rescued finishing first.
@@ -4403,13 +5096,14 @@ namespace StreetCat.UI
                     continue;
 
                 var t = topic;
-                AddChoice(t.label, () =>
+                int choiceIndex = postChoice++;
+                AddChoice(ScriptLoc.DisplayChoice("talk:post", choiceIndex, t.label), () =>
                 {
                     if (!InvestigationService.Instance.CanAsk(t))
                     {
                         SetSpeaker("系统", LineSpeaker.System);
                         SetBody("（还缺少相关线索。先问清当初是谁救助的大福。）", true, "system");
-                        statusText.text = HardTextLoc.T("点击返回话题");
+                        statusText.text = "";
                         talkAwaitingClickReturn = true;
                         talkIsPostInterview = true;
                         ClearButtons();
@@ -4418,37 +5112,52 @@ namespace StreetCat.UI
                         return;
                     }
 
-                    var reply = InvestigationService.Instance.Talk(t);
-                    SetSpeaker("保安叔叔", LineSpeaker.Character, t.portrait);
+                    activeTalkTopic = t;
+                    InvestigationService.Instance.Talk(t);
+                    talkQueue.Clear();
+                    talkIndex = 0;
+                    talkAwaitingClickReturn = true;
+                    string reply = t.reply ?? "";
+                    string speaker = "保安叔叔";
+                    NoteFreeLine("保安交谈  talk:reply:" + t.id, "talk:reply:" + t.id, reply, speaker);
+                    if (ScriptLoc.TryGetUserText("talk:reply:" + t.id, out var replyEdited, out var replySpeaker)
+                        && replyEdited != null)
+                    {
+                        reply = replyEdited;
+                        if (!string.IsNullOrEmpty(replySpeaker))
+                            speaker = replySpeaker;
+                    }
+                    SetSpeaker(speaker, LineSpeaker.Character, t.portrait);
                     SetBody(reply, true, "talk");
                     ClearButtons();
-                    // nextSceneId (lin_info → WeChat) only after Talk succeeds.
-                    if (!string.IsNullOrEmpty(t.nextSceneId) && t.done)
-                    {
-                        talkAwaitingClickReturn = false;
-                        AddAction("等待回复", () =>
-                        {
-                            SfxController.Instance?.PlayScriptLabel("信息发送");
-                            StartLinContactChat();
-                        }, true);
-                        AddAction(UiLoc.T("ui.notebook"), OpenNotebook);
-                        AddAction(UiLoc.T("ui.menu"), OpenMenu);
-                    }
-                    else
-                    {
-                        statusText.text = HardTextLoc.T("点击返回话题");
-                        talkAwaitingClickReturn = true;
-                        talkIsPostInterview = true;
-                        AddStandardDialogueActions(includeSkip: true);
-                        SetAdvanceEnabled(true);
-                    }
+                    armGuardPhone = t.id == "lin_info"
+                        && GameState.Instance != null
+                        && !GameState.Instance.HasFlag(FlagIds.GuardPhoneChatDone);
+                    statusText.text = "";
+                    talkAwaitingClickReturn = true;
+                    talkIsPostInterview = true;
+                    AddStandardDialogueActions(includeSkip: true);
+                    SetAdvanceEnabled(true);
                 });
             }
-            AddAction("返回调查", () =>
+            if (ShouldPlayLingPhone())
             {
-                talkAwaitingClickReturn = false;
-                ShowInvestigationMode();
-            });
+                AddAction("结束交谈", () =>
+                {
+                    talkAwaitingClickReturn = false;
+                    armGuardPhone = false;
+                    StartPhoneSequence("ling", 0);
+                }, true);
+            }
+            else
+            {
+                AddAction("返回调查", () =>
+                {
+                    talkAwaitingClickReturn = false;
+                    armGuardPhone = false;
+                    ShowInvestigationMode();
+                });
+            }
         }
 
         // Interview UI (Show/Refresh/presets/end) -> GameUI.Interview.cs
@@ -4466,56 +5175,67 @@ namespace StreetCat.UI
             SetInvestigateChrome(false);
             SetInterviewChrome(false);
             SetChrome(true, false, true);
-            SetStageBackground("文章发布页面");
+            SetStageBackground("槐安社区_午后");
+            SetProp(null);
             BgmController.Instance?.ClearScriptSticky();
             BgmController.Instance?.PlayScriptLabel("专题结束_01");
-            locationText.text = "几天后";
-            stageHint.text = "后日谈";
+            locationText.text = GameSettings.IsEnglish ? "Epilogue" : "后日谈";
+            stageHint.text = GameSettings.IsEnglish ? "Epilogue" : "后日谈";
             RefreshHeader();
 
             var dir = (WritingDirection)Mathf.Max(0, GameState.Instance.Data.writingDirection);
+            epilogueLocPrefix = dir == WritingDirection.GuardCatToday ? "guard" : "rescue";
             epilogueQueue.Clear();
-            BuildEpilogueBeats(epilogueQueue, dir, GameState.Instance.Data.lastArticleTitle);
+            BuildEpilogueBeats(epilogueQueue, dir);
             epilogueIndex = 0;
             ShowEpilogueBeat();
         }
 
-        static void BuildEpilogueBeats(List<InspectBeat> beats, WritingDirection dir, string articleTitle)
+        static void BuildEpilogueBeats(List<InspectBeat> beats, WritingDirection dir)
         {
-            void AddSystem(string text, string background = null) =>
-                beats.Add(new InspectBeat { system = true, text = text, background = background });
-            void AddNarration(string text, string background = null) =>
-                beats.Add(new InspectBeat { narration = true, text = text, background = background });
+            void Line(string text, string photo = null, string background = null) =>
+                beats.Add(new InspectBeat
+                {
+                    narration = true,
+                    text = text,
+                    photo = photo,
+                    background = background
+                });
 
-            AddSystem("文章已发布：" + (articleTitle ?? ""));
-            AddNarration("文章发布以后，有不少人第一次知道，大福以前受过那么严重的伤。");
-            AddNarration("也有人讨论，救下一只流浪猫以后，是不是一定要把它带回家。");
-            AddNarration("林女士没有再解释更多。救治和收养是两件事。");
-            AddSystem("—— 几天后 ——", "槐安社区_午后");
+            Line("文章发布以后，很多读者第一次知道，大福曾经伤得有多重。", "");
+            Line("也有人讨论，救下一只流浪猫，是不是就必须把它带回家。");
+            Line("林女士没有再作更多解释。正如她在采访里说的，给猫看病和收养是两回事。她能做的，是把大福送到医院；等到自己照顾不了，再另作安排。");
+            beats.Add(new InspectBeat
+            {
+                system = true,
+                text = "—— 几天后 ——",
+                photo = ""
+            });
 
+            // Direction A 《大福今天也在上班》 / Direction B 《救下一只猫以后》
+            // photo: null keeps the last picture; "" clears it.
             if (dir == WritingDirection.GuardCatToday)
             {
-                AddNarration("偶尔会有人来问，大福今天有没有上班。");
-                AddNarration("但大福并不知道自己成了报道里的主角。它还是按照自己的时间出现。");
-                AddNarration("下午四点多，大福又来了。");
-                AddNarration("和文章发布以前没什么不同。");
-                AddNarration("大福今天也在上班。");
+                Line("文章发出去以后，偶尔会有人来问，大福今天有没有上班。", "");
+                Line("但大福并不知道自己成了报道里的主角。它还是按照自己的时间出现，饿了就去找保安，困了就跳上快递柜。");
+                Line("下午四点多，大福又来了。", "DafuAfter01");
+                Line("和文章发布以前没什么不同。", "DafuAfter02");
+                Line("大福今天也在上班。", "DafuAfter03");
             }
             else
             {
-                AddNarration("还是有人问，林女士为什么没有把大福带回家。");
-                AddNarration("也有人说，第一次知道一场救助并不一定要以收养结束。");
-                AddNarration("林女士没有成为大福的主人。");
-                AddNarration("但大福还是活了下来，并且回到了熟悉的地方。");
-                AddNarration("救下一只猫以后，故事并不会立刻结束。");
+                Line("文章发出去以后，还是有人问，林女士为什么没有把大福带回家。", "");
+                Line("也有人说，第一次知道一场救助并不一定要以收养结束。");
+                Line("林女士没有成为大福的主人。");
+                Line("保安、投喂的居民和那些偶尔替它换水的人，也没有谁能够单独负责它的一生。");
+                Line("但大福还是活了下来，并且回到了熟悉的地方。", "DafuAfter01");
+                Line("救下一只猫以后，故事并不会立刻结束。", "DafuAfter02");
+                Line("至于大福，它还有明天的饭要吃，还有熟悉的地方要去。");
+                Line("它的日子还在继续。", "DafuAfter03");
             }
-
-            AddNarration("报道能记录的，只是它生活里很短的一段。");
-            AddNarration("至于大福，它还有明天的饭要吃，还有熟悉的地方要去。");
-            AddNarration("它的日子还在继续。");
         }
 
-        void ShowEpilogueBeat()
+        void ShowEpilogueBeat(bool recordHistory = true)
         {
             if (epilogueIndex < 0 || epilogueIndex >= epilogueQueue.Count)
             {
@@ -4529,11 +5249,19 @@ namespace StreetCat.UI
 #endif
             if (!string.IsNullOrEmpty(beat.background))
                 SetStageBackground(beat.background);
+            if (beat.photo != null)
+                SetProp(string.IsNullOrEmpty(beat.photo) ? null : beat.photo);
+
+            var epiKey = "epi:" + (epilogueLocPrefix ?? "x") + ":" + epilogueIndex;
+            string body = beat.text ?? "";
+            if (ScriptLoc.TryGetUserText(epiKey, out var edited, out _) && edited != null)
+                body = edited;
+            NoteFreeLine("后日谈  " + epiKey, epiKey, beat.text ?? "", beat.system ? "系统" : "旁白");
 
             string bodyKind;
             if (beat.system)
             {
-                SetSpeaker("系统", LineSpeaker.System);
+                SetSpeaker(ScriptLoc.MapSpeaker("系统"), LineSpeaker.System);
                 bodyKind = "system";
             }
             else
@@ -4542,8 +5270,11 @@ namespace StreetCat.UI
                 bodyKind = "narration";
             }
 
-            SetBody(beat.text, true, bodyKind);
-            statusText.text = $"后日谈　{epilogueIndex + 1}/{epilogueQueue.Count}";
+            SetBody(body, recordHistory, bodyKind);
+            if (!recordHistory) return;
+            statusText.text = GameSettings.IsEnglish
+                ? ""
+                : $"后日谈　{epilogueIndex + 1}/{epilogueQueue.Count}";
             ClearButtons();
             AddStandardDialogueActions(includeSkip: true);
             SetAdvanceEnabled(true);
@@ -4569,14 +5300,47 @@ namespace StreetCat.UI
         {
             epilogueQueue.Clear();
             epilogueIndex = 0;
+            SetProp(null);
+            ClearFreeLine();
             SetAdvanceEnabled(false);
-            if (GameState.Instance != null)
-            {
-                statusText.text =
-                    $"审核 {GameState.Instance.Data.lastReviewScore}　素材 {GameState.Instance.Data.selectedMaterials.Count}/{GameState.Instance.Data.unlockedMaterials.Count}";
-            }
             ClearButtons();
-            AddAction("第一章 完", () => ChapterFlowController.Instance.OnChapterComplete(), true);
+            if (statusText != null) statusText.text = "";
+            if (toBeContinuedCo != null) StopCoroutine(toBeContinuedCo);
+            toBeContinuedCo = StartCoroutine(ToBeContinuedThenTitle());
+        }
+
+        IEnumerator ToBeContinuedThenTitle()
+        {
+            ShowToBeContinued(true);
+            yield return new WaitForSecondsRealtime(2.8f);
+            ShowToBeContinued(false);
+            toBeContinuedCo = null;
+            if (ChapterFlowController.Instance != null)
+                ChapterFlowController.Instance.OnChapterComplete();
+            else
+                ShowTitle();
+        }
+
+        void ShowToBeContinued(bool show)
+        {
+            if (show && toBeContinuedRoot == null && canvasRt != null)
+            {
+                toBeContinuedRoot = new GameObject("ToBeContinued", typeof(RectTransform), typeof(Image));
+                toBeContinuedRoot.transform.SetParent(canvasRt, false);
+                StretchFull(toBeContinuedRoot.GetComponent<RectTransform>());
+                toBeContinuedRoot.GetComponent<Image>().color = new Color(0.04f, 0.03f, 0.02f, 0.94f);
+                var label = CreateUiText(toBeContinuedRoot.transform, "Title", 64, TextAnchor.MiddleCenter,
+                    new Color(0.96f, 0.93f, 0.86f, 1f), Vector2.zero, Vector2.zero);
+                StretchFull(label.rectTransform);
+                label.text = "TO BE CONTINUED";
+                label.fontStyle = FontStyles.Bold;
+                label.enableWordWrapping = false;
+                label.raycastTarget = false;
+            }
+            if (toBeContinuedRoot == null) return;
+            toBeContinuedRoot.SetActive(show);
+            if (show)
+                toBeContinuedRoot.transform.SetAsLastSibling();
         }
 
     }

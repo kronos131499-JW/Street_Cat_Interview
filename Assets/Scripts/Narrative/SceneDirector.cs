@@ -154,6 +154,13 @@ namespace StreetCat.Narrative
             ShowCurrent();
         }
 
+        public void ContinuePastDeleted()
+        {
+            if (current == null) return;
+            if (!ScriptLoc.IsLineDeleted(current.id, index)) return;
+            ShowCurrent();
+        }
+
         public void Advance()
         {
             if (current == null)
@@ -167,6 +174,15 @@ namespace StreetCat.Narrative
             ApplyLineEffects(line);
             if (!string.IsNullOrEmpty(jump))
                 return;
+
+            // Investigation-open lines stay on screen until this click. Opening in
+            // ShowCurrent skipped the objective update because effects run here.
+            if (line != null && line.openInvestigation && !string.IsNullOrEmpty(line.text))
+            {
+                index++;
+                onOpenInvestigation?.Invoke();
+                return;
+            }
 
             index++;
             if (!HasMore)
@@ -255,15 +271,31 @@ namespace StreetCat.Narrative
 
         void ShowCurrent()
         {
+            int guard = 0;
+            while (HasMore && ScriptLoc.IsLineDeleted(current.id, index) && guard++ < current.lines.Count)
+            {
+                var skipped = CurrentLine;
+                ApplyLineEffects(skipped);
+                if (skipped != null && !string.IsNullOrEmpty(skipped.nextSceneId))
+                    return;
+                index++;
+            }
+
             var line = CurrentLine;
             if (line == null)
+            {
+                if (!HasMore)
+                    onSceneEnd?.Invoke();
                 return;
+            }
 
             var display = ScriptLoc.Resolve(current.id, index, line);
             onLine?.Invoke(display);
 
             // Open gameplay panels after dialogue bind so their buttons are not overwritten.
-            if (line.openInvestigation)
+            // Readable investigation gates wait for Advance so the objective line is shown
+            // and setObjective actually runs.
+            if (line.openInvestigation && string.IsNullOrEmpty(line.text))
                 onOpenInvestigation?.Invoke();
             if (line.openTalkMenu)
                 onOpenTalkMenu?.Invoke();

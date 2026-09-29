@@ -176,7 +176,8 @@ namespace StreetCat.UI
             notebookDetailTitleText.fontStyle = FontStyles.Bold;
             notebookDetailTitleText.overflowMode = TextOverflowModes.Overflow;
 
-            notebookStatusChipBg = CreateImage(notebookPageImage.transform, "StatusChip", new Color(0.96f, 0.92f, 0.78f, 0.92f));
+            notebookStatusChipBg = CreateImage(notebookPageImage.transform, "StatusChip", new Color(1f, 1f, 1f, 0f));
+            notebookStatusChipBg.raycastTarget = false;
             Stretch(notebookStatusChipBg.rectTransform, new Vector2(0.62f, 0.90f), new Vector2(0.92f, 0.97f),
                 new Vector2(0f, 0f), new Vector2(-80f, -10f));
             notebookStatusChipText = CreateUiText(notebookStatusChipBg.transform, "Label", 16, TextAnchor.MiddleCenter,
@@ -200,22 +201,22 @@ namespace StreetCat.UI
             StretchFull(dVp.GetComponent<RectTransform>());
             dVp.GetComponent<Image>().color = new Color(1, 1, 1, 0.01f);
 
-            var dContent = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
+            var dContent = new GameObject("Content", typeof(RectTransform));
             dContent.transform.SetParent(dVp.transform, false);
             var dcrt = dContent.GetComponent<RectTransform>();
             dcrt.anchorMin = new Vector2(0, 1);
             dcrt.anchorMax = new Vector2(1, 1);
             dcrt.pivot = new Vector2(0.5f, 1);
-            dcrt.sizeDelta = Vector2.zero;
-            dContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            dcrt.sizeDelta = new Vector2(0f, 360f);
             notebookDetailBodyText = dContent.AddComponent<TextMeshProUGUI>();
             notebookDetailBodyText.font = font;
-            notebookDetailBodyText.fontSize = 21;
+            notebookDetailBodyText.fontSize = 28;
+            notebookDetailBodyText.extraPadding = true;
             notebookDetailBodyText.color = NbInk;
             notebookDetailBodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
             notebookDetailBodyText.enableWordWrapping = true;
             notebookDetailBodyText.overflowMode = TextOverflowModes.Overflow;
-            notebookDetailBodyText.lineSpacing = 55f;
+            notebookDetailBodyText.lineSpacing = 28f;
             notebookDetailBodyText.raycastTarget = false;
             notebookDetailScroll.viewport = dVp.GetComponent<RectTransform>();
             notebookDetailScroll.content = dcrt;
@@ -261,7 +262,7 @@ namespace StreetCat.UI
             clipRt.pivot = new Vector2(0.5f, 0.5f);
             clipRt.anchoredPosition = new Vector2(6f, 10f);
             clipRt.sizeDelta = new Vector2(36f, 52f);
-            var clipSpr = VnArt.GetTitle("deco_paperclip");
+            var clipSpr = VnArt.GetTitle("Shared/deco_paperclip");
             if (clipSpr != null)
             {
                 clip.sprite = clipSpr;
@@ -428,16 +429,19 @@ namespace StreetCat.UI
                 if (t == null) return;
                 t.font = font;
                 t.fontSize = Mathf.RoundToInt(baseSize * scale);
+                t.extraPadding = true;
+                t.enableAutoSizing = false;
                 if (bold) t.fontStyle = FontStyles.Bold;
                 ApplyLetterSpacing(t, 0f);
+                SharpenDialogueTmp(t);
             }
-            Chrome(notebookTitleText, 28, true);
-            Chrome(notebookCloseLabel, 17);
-            Chrome(notebookDetailTitleText, 30, true);
-            Chrome(notebookStatusChipText, 16, true);
-            Chrome(notebookSourceText, 16);
-            Chrome(notebookInspireHeaderText, 17, true);
-            Chrome(notebookInspireBodyText, 16);
+            Chrome(notebookTitleText, 36, true);
+            Chrome(notebookCloseLabel, 18);
+            Chrome(notebookDetailTitleText, 36, true);
+            Chrome(notebookStatusChipText, 18, true);
+            Chrome(notebookSourceText, 20);
+            Chrome(notebookInspireHeaderText, 22, true);
+            Chrome(notebookInspireBodyText, 20);
             if (notebookInspireHeaderText != null)
                 notebookInspireHeaderText.color = new Color(0.10f, 0.07f, 0.04f, 1f);
             if (notebookInspireBodyText != null)
@@ -448,10 +452,13 @@ namespace StreetCat.UI
             if (notebookDetailBodyText != null)
             {
                 notebookDetailBodyText.font = font;
-                notebookDetailBodyText.fontSize = Mathf.RoundToInt(21f * scale);
-                notebookDetailBodyText.lineSpacing = 55f;
+                notebookDetailBodyText.fontSize = Mathf.RoundToInt(28f * scale);
+                notebookDetailBodyText.extraPadding = true;
+                notebookDetailBodyText.lineSpacing = 28f;
                 notebookDetailBodyText.enableWordWrapping = true;
+                notebookDetailBodyText.enableAutoSizing = false;
                 ApplyLetterSpacing(notebookDetailBodyText, 0f);
+                SharpenDialogueTmp(notebookDetailBodyText);
             }
         }
 
@@ -671,13 +678,14 @@ namespace StreetCat.UI
             face.color = Color.white;
             ApplyNotebookStickyArt(face, colorIdx);
 
+            bool artSticky = face.sprite != null;
             var tape = CreateImage(go.transform, "Tape", Color.white);
             var trt = tape.rectTransform;
             trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 1f);
             trt.pivot = new Vector2(0.5f, 0.5f);
             trt.anchoredPosition = new Vector2(0f, 8f);
             trt.sizeDelta = selected ? new Vector2(100f, 30f) : new Vector2(84f, 26f);
-            var tapeKey = selected ? "btn_tape_primary_idle" : "btn_tape_idle";
+            var tapeKey = selected ? "Shared/btn_tape_primary_idle" : "Shared/btn_tape_idle";
             var tapeSpr = VnArt.GetTitle(tapeKey);
             if (tapeSpr != null)
             {
@@ -690,6 +698,7 @@ namespace StreetCat.UI
                 tape.color = new Color(0.92f, 0.88f, 0.72f, 0.75f);
             }
             tape.raycastTarget = false;
+            if (artSticky) tape.gameObject.SetActive(false);
 
             var icon = CreateImage(go.transform, "Icon", new Color(0.12f, 0.10f, 0.08f, 0.82f));
             var irt = icon.rectTransform;
@@ -704,19 +713,26 @@ namespace StreetCat.UI
                 icon.color = new Color(0.15f, 0.12f, 0.10f, 0.88f);
             }
             icon.raycastTarget = false;
+            if (artSticky) icon.gameObject.SetActive(false);
 
             var label = CreateUiText(go.transform, "Label", 18, TextAnchor.UpperCenter,
                 new Color(0.10f, 0.08f, 0.06f, 1f), Vector2.zero, Vector2.zero);
             // Keep title inside the sticky face — art stickers have decorative margins.
-            Stretch(label.rectTransform, new Vector2(0.08f, 0.03f), new Vector2(0.92f, 0.34f), Vector2.zero, Vector2.zero);
+            Stretch(label.rectTransform,
+                artSticky ? new Vector2(0.12f, 0.22f) : new Vector2(0.08f, 0.03f),
+                artSticky ? new Vector2(0.88f, 0.72f) : new Vector2(0.92f, 0.34f),
+                Vector2.zero, Vector2.zero);
+            if (artSticky)
+                label.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             label.text = HardTextLoc.T(topic.title);
             label.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
             label.enableWordWrapping = true;
             label.overflowMode = TextOverflowModes.Ellipsis;
-            label.enableAutoSizing = true;
-            label.fontSizeMin = 13f;
-            label.fontSizeMax = 19f;
+            label.enableAutoSizing = false;
+            label.fontSize = 22f;
+            label.extraPadding = true;
             label.raycastTarget = false;
+            SharpenDialogueTmp(label);
 
             string id = topic.id;
             go.GetComponent<Button>().targetGraphic = face;

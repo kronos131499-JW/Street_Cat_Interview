@@ -14,10 +14,17 @@ namespace StreetCat.Editor
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
             importer.alphaIsTransparency = true;
-            importer.mipmapEnabled = false;
             importer.npotScale = TextureImporterNPOTScale.None;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.filterMode = UnityEngine.FilterMode.Bilinear;
+
+            // Phone mockups are 1700px tall and drawn much smaller. Mipmaps with a
+            // negative bias keep the post photos readable; other UI pieces stay 1:1.
+            var file = System.IO.Path.GetFileName(assetPath);
+            bool socialPost = file.StartsWith("手机界面帖子");
+            importer.mipmapEnabled = socialPost;
+            if (socialPost)
+                importer.mipMapBias = -0.75f;
         }
     }
 }

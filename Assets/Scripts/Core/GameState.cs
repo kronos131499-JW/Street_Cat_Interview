@@ -34,6 +34,10 @@ namespace StreetCat.Core
         public string lastArticleBody = "";
         public bool dafuCognitiveBoundaryHit;
         public int crossChecksCompleted;
+        /// <summary>guard or ling while a phone chat is on screen; empty when closed.</summary>
+        public string phoneChatId = "";
+        /// <summary>Beat index inside that chat, so a mid-chat save reopens the same picture.</summary>
+        public int phoneChatIndex;
     }
 
     [Serializable]

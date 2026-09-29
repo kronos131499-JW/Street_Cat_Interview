@@ -1,4 +1,5 @@
 using StreetCat.Investigation;
+using StreetCat.Loc;
 using StreetCat.UI;
 using UnityEditor;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace StreetCat.Editor
         public static void Open()
         {
             var window = GetWindow<UILayoutEditorWindow>("通用 UI 布局");
-            window.minSize = new Vector2(400f, 460f);
+            window.minSize = new Vector2(420f, 640f);
             window.Show();
         }
 
@@ -23,9 +24,20 @@ namespace StreetCat.Editor
             SetEditMode(!UILayoutEditMode.Enabled);
         }
 
+        [MenuItem("街角专访/文本样式编辑器", priority = 7)]
+        [MenuItem("StreetCat/Text Style Editor", priority = 7)]
+        public static void OpenTextStyle()
+        {
+            UILayoutEditMode.TextFocus = true;
+            SetEditMode(true);
+            Open();
+        }
+
         static void SetEditMode(bool enabled)
         {
             UILayoutEditMode.Enabled = enabled;
+            if (!enabled)
+                UILayoutEditMode.TextFocus = false;
             if (enabled)
             {
                 // Avoid two independent Game-view editors consuming the same pointer.
@@ -47,9 +59,12 @@ namespace StreetCat.Editor
                 "1. Play 并进入想修改的真实游戏界面\n" +
                 "2. 启用编辑模式\n" +
                 "3. Game 视图点击青色框选择组件（优先点最深层控件）\n" +
+                "   对话人名点文字本身（Name），拖动只挪名字\n" +
                 "4. 拖框内移动；拖四角缩放；松手自动保存\n" +
-                "5. 写入 Assets/Resources/UILayoutOverrides.asset\n\n" +
+                "5. 写入 Assets/Resources/UILayoutOverrides.asset\n" +
+                "文本样式模式：点文字本身，单独改字体、字号、字距、粗体和颜色。\n\n" +
                 "L / 下方勾选 = 锁定选中（点击不再改选）\n" +
+                "回退上一步 = 撤销最近一次移动、缩放、删除或去掉布局。\n" +
                 "Alt+点击选父级；方向键微调；Delete 删除；F7 隐藏面板。",
                 MessageType.Info);
 
@@ -58,6 +73,17 @@ namespace StreetCat.Editor
             var next = EditorGUILayout.ToggleLeft("启用 Game 视图编辑模式 / Enable edit mode", enabled);
             if (next != enabled)
                 SetEditMode(next);
+
+            var textFocus = UILayoutEditMode.TextFocus;
+            var textNext = EditorGUILayout.ToggleLeft(
+                "文本样式模式 / Edit text font & size（点选文字本身）",
+                textFocus);
+            if (textNext != textFocus)
+            {
+                UILayoutEditMode.TextFocus = textNext;
+                if (textNext && !UILayoutEditMode.Enabled)
+                    SetEditMode(true);
+            }
 
             EditorGUILayout.Space(6f);
             EditorGUILayout.LabelField("选择 / Selection", EditorStyles.boldLabel);
@@ -97,6 +123,15 @@ namespace StreetCat.Editor
                     selLabel = "* " + selLabel + "  (未保存拖动中)";
                 EditorGUILayout.LabelField("当前选择", selLabel);
 
+                using (new EditorGUI.DisabledScope(controller == null || !controller.CanUndoStep))
+                {
+                    var undoLabel = controller != null && controller.CanUndoStep
+                        ? "回退上一步 / Undo (" + controller.UndoStepCount + ")"
+                        : "回退上一步 / Undo";
+                    if (GUILayout.Button(undoLabel))
+                        controller.UndoLastStep();
+                }
+
                 using (new EditorGUI.DisabledScope(controller == null || !controller.HasSelection))
                 {
                     EditorGUILayout.BeginHorizontal();
@@ -126,6 +161,7 @@ namespace StreetCat.Editor
                 if (controller != null && GUILayout.Button("恢复全部已删除 / Restore all deleted"))
                     controller.RestoreAllDeleted();
 
+                DrawTextStyle(controller);
                 DrawStatusLine(controller);
             }
             else
@@ -154,6 +190,78 @@ namespace StreetCat.Editor
                 for (var i = 0; i < data.entries.Count; i++)
                     if (data.entries[i] != null && data.entries[i].deleted) deletedCount++;
             EditorGUILayout.LabelField("已删除组件", deletedCount.ToString());
+        }
+
+        static void DrawTextStyle(UILayoutEditController controller)
+        {
+            EditorGUILayout.Space(8f);
+            EditorGUILayout.LabelField("文本样式 / Text style", EditorStyles.boldLabel);
+            if (!UILayoutEditMode.TextFocus)
+            {
+                EditorGUILayout.HelpBox("勾选「文本样式模式」后，在 Game 视图点文字本身。按钮上的字不会再选成整个按钮。", MessageType.None);
+            }
+            if (controller == null || !controller.TryReadSelectedTextStyle(out var state))
+            {
+                EditorGUILayout.HelpBox("还没有选中文字。", MessageType.None);
+                return;
+            }
+
+            var options = FontCatalog.All;
+            var names = new string[options.Length + 1];
+            var ids = new string[options.Length + 1];
+            names[0] = "跟随全局设置";
+            ids[0] = "";
+            var fontIndex = 0;
+            for (var i = 0; i < options.Length; i++)
+            {
+                names[i + 1] = options[i].DisplayName;
+                ids[i + 1] = options[i].Id;
+                if (options[i].Id == state.fontId) fontIndex = i + 1;
+            }
+
+            var sample = state.sample ?? "";
+            sample = sample.Replace("\n", " ");
+            if (sample.Length > 48) sample = sample.Substring(0, 48) + "…";
+            EditorGUILayout.LabelField("内容", string.IsNullOrEmpty(sample) ? "（空）" : sample);
+
+            EditorGUI.BeginChangeCheck();
+            fontIndex = EditorGUILayout.Popup("字体", fontIndex, names);
+            var customSize = EditorGUILayout.Toggle("自定义字号", state.customSize);
+            var shownSize = customSize ? state.fontSize : state.liveSize;
+            var fontSize = EditorGUILayout.Slider("字号", Mathf.Clamp(shownSize, 10f, 72f), 10f, 72f);
+            if (!Mathf.Approximately(fontSize, shownSize)) customSize = true;
+
+            var customSpacing = EditorGUILayout.Toggle("自定义字距", state.customSpacing);
+            var spacing = EditorGUILayout.Slider("字距", state.letterSpacing, 0f, 12f);
+            if (!Mathf.Approximately(spacing, state.letterSpacing)) customSpacing = true;
+
+            var weight = EditorGUILayout.Popup("字重", state.weightMode, new[] { "跟随原来", "常规", "粗体" });
+            var customColor = EditorGUILayout.Toggle("自定义颜色", state.customColor);
+            var color = EditorGUILayout.ColorField("颜色", state.color);
+            if (color != state.color) customColor = true;
+            var changed = EditorGUI.EndChangeCheck();
+
+            if (GUILayout.Button("清除这个文字的单独样式"))
+            {
+                state.fontId = "";
+                state.customSize = false;
+                state.customSpacing = false;
+                state.weightMode = 0;
+                state.customColor = false;
+                controller.WriteSelectedTextStyle(state);
+                return;
+            }
+
+            if (!changed) return;
+            state.fontId = ids[Mathf.Clamp(fontIndex, 0, ids.Length - 1)];
+            state.customSize = customSize;
+            state.fontSize = fontSize;
+            state.customSpacing = customSpacing;
+            state.letterSpacing = spacing;
+            state.weightMode = weight;
+            state.customColor = customColor;
+            state.color = color;
+            controller.WriteSelectedTextStyle(state);
         }
 
         static void DrawStatusLine(UILayoutEditController controller)

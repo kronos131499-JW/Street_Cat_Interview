@@ -33,7 +33,7 @@
     { "key": "ui.click_return_map", "value": "点击返回平面图" },
     { "key": "ui.click_return_investigate", "value": "点击返回调查" },
     { "key": "ui.click_return_topics", "value": "点击返回话题" },
-    { "key": "ui.click_ctrl_skip", "value": "点击继续　长按Ctrl跳过" },
+    { "key": "ui.click_ctrl_skip", "value": "长按 Ctrl 跳过" },
     { "key": "ui.status_advance", "value": "点击继续　·　Ctrl / 跳过" },
     { "key": "ui.make_choice", "value": "做出选择" },
     { "key": "ui.dialogue.record_fmt", "value": "采访记录 {0:00}" },

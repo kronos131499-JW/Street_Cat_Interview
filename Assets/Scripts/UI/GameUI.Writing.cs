@@ -60,6 +60,7 @@ namespace StreetCat.UI
         TextMeshProUGUI writingPreviewBody;
         TextMeshProUGUI writingStatusHint;
         Button writingGoBtn;
+        Button writingPreviewBtn;
         Button writingReInterviewBtn;
         readonly List<GameObject> writingSpawned = new List<GameObject>();
         readonly List<Image> writingDotImages = new List<Image>();
@@ -77,36 +78,24 @@ namespace StreetCat.UI
             writingMatsRoot.transform.SetParent(parent, false);
             StretchFull(writingMatsRoot.GetComponent<RectTransform>());
 
+            // Full canvas so 背景.png (1920×1080) lines up with the title plate.
             var frame = CreateImage(writingMatsRoot.transform, "Frame", WmFrame);
-            Stretch(frame.rectTransform, new Vector2(0.02f, 0.03f), new Vector2(0.98f, 0.97f),
+            StretchFull(frame.rectTransform);
+
+            var cork = CreateImage(frame.transform, "Cork", new Color(0, 0, 0, 0));
+            StretchFull(cork.rectTransform);
+            cork.raycastTarget = false;
+
+            // 标题.png is a full-canvas plate; the banner only occupies the top-left.
+            var titlePlate = CreateImage(writingMatsRoot.transform, "TitlePlate", Color.white);
+            StretchFull(titlePlate.rectTransform);
+            titlePlate.raycastTarget = false;
+            titlePlate.enabled = false;
+
+            writingTapeTitle = CreateUiText(cork.transform, "TapeFallback", 28, TextAnchor.MiddleLeft,
+                new Color(0.98f, 0.96f, 0.90f, 1f), Vector2.zero, Vector2.zero);
+            Stretch(writingTapeTitle.rectTransform, new Vector2(0.04f, 0.88f), new Vector2(0.40f, 0.97f),
                 Vector2.zero, Vector2.zero);
-
-            var cork = CreateImage(frame.transform, "Cork", WmCorkA);
-            Stretch(cork.rectTransform, new Vector2(0.012f, 0.018f), new Vector2(0.988f, 0.982f),
-                Vector2.zero, Vector2.zero);
-            ApplyWritingCorkTexture(cork);
-
-            // Top-left tape title (axis-aligned — rotation blurs UI Text with pixelPerfect canvas)
-            var tapeHost = new GameObject("TapeTitle", typeof(RectTransform));
-            tapeHost.transform.SetParent(cork.transform, false);
-            Stretch(tapeHost.GetComponent<RectTransform>(), new Vector2(0.02f, 0.90f), new Vector2(0.38f, 0.99f),
-                Vector2.zero, Vector2.zero);
-
-            var tapeImg = CreateImage(tapeHost.transform, "Tape", new Color(0.90f, 0.82f, 0.62f, 0.95f));
-            StretchFull(tapeImg.rectTransform);
-            var tapeSpr = VnArt.GetTitle("btn_tape_idle");
-            if (tapeSpr != null)
-            {
-                tapeImg.sprite = tapeSpr;
-                tapeImg.preserveAspect = false;
-                tapeImg.type = Image.Type.Simple;
-                tapeImg.color = Color.white;
-            }
-
-            writingTapeTitle = CreateUiText(tapeHost.transform, "Label", 24, TextAnchor.MiddleCenter,
-                WmInk, Vector2.zero, Vector2.zero);
-            Stretch(writingTapeTitle.rectTransform, Vector2.zero, Vector2.one,
-                new Vector2(18f, 4f), new Vector2(-18f, -4f));
             writingTapeTitle.fontStyle = FontStyles.Bold;
             writingTapeTitle.enableWordWrapping = false;
             writingTapeTitle.overflowMode = TextOverflowModes.Overflow;
@@ -115,22 +104,28 @@ namespace StreetCat.UI
             // Top-right selected count + dots
             var topRight = new GameObject("SelectedHeader", typeof(RectTransform));
             topRight.transform.SetParent(cork.transform, false);
-            Stretch(topRight.GetComponent<RectTransform>(), new Vector2(0.58f, 0.90f), new Vector2(0.98f, 0.985f),
+            Stretch(topRight.GetComponent<RectTransform>(), new Vector2(0.52f, 0.885f), new Vector2(0.96f, 0.955f),
                 Vector2.zero, Vector2.zero);
 
-            // Light ink on dark cork / art-pack board (WmInk disappears into the wood).
-            writingSelectedCountText = CreateUiText(topRight.transform, "Count", 22, TextAnchor.MiddleRight,
-                new Color(0.97f, 0.95f, 0.90f, 1f), Vector2.zero, Vector2.zero);
-            Stretch(writingSelectedCountText.rectTransform, new Vector2(0f, 0.35f), new Vector2(0.42f, 1f),
+            var selectedLabel = CreateImage(topRight.transform, "LabelArt", Color.white);
+            Stretch(selectedLabel.rectTransform, new Vector2(0f, 0.05f), new Vector2(0.46f, 0.95f),
+                Vector2.zero, Vector2.zero);
+            selectedLabel.preserveAspect = true;
+            selectedLabel.raycastTarget = false;
+
+            writingSelectedCountText = CreateUiText(topRight.transform, "Count", 20, TextAnchor.MiddleRight,
+                new Color(0.96f, 0.90f, 0.72f, 1f), Vector2.zero, Vector2.zero);
+            Stretch(writingSelectedCountText.rectTransform, new Vector2(0f, 0f), new Vector2(0.46f, 1f),
                 Vector2.zero, Vector2.zero);
             writingSelectedCountText.fontStyle = FontStyles.Bold;
+            writingSelectedCountText.enableWordWrapping = false;
 
             writingProgressDots = new GameObject("Dots", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
             writingProgressDots.SetParent(topRight.transform, false);
-            Stretch(writingProgressDots.GetComponent<RectTransform>(), new Vector2(0.44f, 0.15f), new Vector2(1f, 0.95f),
+            Stretch(writingProgressDots.GetComponent<RectTransform>(), new Vector2(0.48f, 0f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
             var dh = writingProgressDots.GetComponent<HorizontalLayoutGroup>();
-            dh.spacing = 6f;
+            dh.spacing = 8f;
             dh.childAlignment = TextAnchor.MiddleRight;
             dh.childForceExpandWidth = false;
             dh.childForceExpandHeight = false;
@@ -141,39 +136,23 @@ namespace StreetCat.UI
             {
                 var dot = CreateImage(writingProgressDots, "Dot" + i, new Color(0.55f, 0.52f, 0.48f, 1f));
                 var drt = dot.rectTransform;
-                drt.sizeDelta = new Vector2(14f, 14f);
+                drt.sizeDelta = new Vector2(28f, 28f);
                 writingDotImages.Add(dot);
             }
 
-            // Left paragraph strip
-            var stripShadow = CreateImage(cork.transform, "StripShadow", new Color(0f, 0f, 0f, 0.28f));
-            Stretch(stripShadow.rectTransform, new Vector2(0.025f, 0.12f), new Vector2(0.23f, 0.88f),
+            var strip = CreateImage(cork.transform, "ParagraphStrip", new Color(0.90f, 0.84f, 0.72f, 0.96f));
+            Stretch(strip.rectTransform, new Vector2(0.045f, 0.15f), new Vector2(0.25f, 0.76f),
                 Vector2.zero, Vector2.zero);
-            stripShadow.rectTransform.anchoredPosition = new Vector2(4f, -5f);
-            stripShadow.raycastTarget = false;
 
-            var strip = CreateImage(cork.transform, "ParagraphStrip", WmStrip);
-            Stretch(strip.rectTransform, new Vector2(0.02f, 0.13f), new Vector2(0.225f, 0.885f),
+            var structureArt = CreateImage(strip.transform, "StructureArt", Color.white);
+            Stretch(structureArt.rectTransform, new Vector2(0.04f, 0.78f), new Vector2(0.96f, 0.98f),
                 Vector2.zero, Vector2.zero);
-            EnsureLinedPaperSprite();
-            if (notebookLinedPaperSprite != null)
-            {
-                strip.sprite = notebookLinedPaperSprite;
-                strip.type = Image.Type.Tiled;
-                strip.color = Color.white;
-            }
+            structureArt.preserveAspect = true;
+            structureArt.raycastTarget = false;
 
-            var stripPin = CreateImage(strip.transform, "Pin", WmOrange);
-            var pinRt = stripPin.rectTransform;
-            pinRt.anchorMin = pinRt.anchorMax = new Vector2(0.5f, 1f);
-            pinRt.pivot = new Vector2(0.5f, 0.5f);
-            pinRt.anchoredPosition = new Vector2(0f, 6f);
-            pinRt.sizeDelta = new Vector2(12f, 12f);
-            stripPin.raycastTarget = false;
-
-            var stripTitle = CreateUiText(strip.transform, "StripTitle", 17, TextAnchor.UpperLeft,
+            var stripTitle = CreateUiText(strip.transform, "StripTitle", 16, TextAnchor.MiddleCenter,
                 WmInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(stripTitle.rectTransform, new Vector2(0.08f, 0.86f), new Vector2(0.95f, 0.97f),
+            Stretch(stripTitle.rectTransform, new Vector2(0.06f, 0.78f), new Vector2(0.94f, 0.97f),
                 Vector2.zero, Vector2.zero);
             stripTitle.fontStyle = FontStyles.Bold;
             stripTitle.text = UiLoc.T("ui.writing.structure", "文章结构（固定段落）");
@@ -183,10 +162,10 @@ namespace StreetCat.UI
 
             writingParagraphList = new GameObject("ParagraphList", typeof(RectTransform), typeof(VerticalLayoutGroup)).transform;
             writingParagraphList.SetParent(strip.transform, false);
-            Stretch(writingParagraphList.GetComponent<RectTransform>(), new Vector2(0.04f, 0.04f), new Vector2(0.96f, 0.84f),
+            Stretch(writingParagraphList.GetComponent<RectTransform>(), new Vector2(0.06f, 0.04f), new Vector2(0.94f, 0.74f),
                 Vector2.zero, Vector2.zero);
             var pv = writingParagraphList.GetComponent<VerticalLayoutGroup>();
-            pv.spacing = 6f;
+            pv.spacing = 10f;
             pv.childForceExpandHeight = true;
             pv.childForceExpandWidth = true;
             pv.childControlHeight = true;
@@ -199,7 +178,7 @@ namespace StreetCat.UI
             // Center card grid
             var gridHost = new GameObject("CardGridHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             gridHost.transform.SetParent(cork.transform, false);
-            Stretch(gridHost.GetComponent<RectTransform>(), new Vector2(0.24f, 0.16f), new Vector2(0.68f, 0.88f),
+            Stretch(gridHost.GetComponent<RectTransform>(), new Vector2(0.265f, 0.15f), new Vector2(0.70f, 0.78f),
                 Vector2.zero, Vector2.zero);
             gridHost.GetComponent<Image>().color = new Color(0, 0, 0, 0.001f);
             writingCardScroll = gridHost.GetComponent<ScrollRect>();
@@ -222,27 +201,20 @@ namespace StreetCat.UI
             gcrt.sizeDelta = Vector2.zero;
             var grid = gridContent.GetComponent<GridLayoutGroup>();
             // Wider cells — previous 168×148 forced 12–15px type that looked tiny/blurry.
-            grid.cellSize = new Vector2(248f, 210f);
-            grid.spacing = new Vector2(14f, 16f);
-            grid.padding = new RectOffset(8, 8, 10, 10);
+            grid.cellSize = new Vector2(230f, 286f);
+            grid.spacing = new Vector2(18f, 16f);
+            grid.padding = new RectOffset(6, 6, 4, 8);
             grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
             grid.startAxis = GridLayoutGroup.Axis.Horizontal;
             grid.childAlignment = TextAnchor.UpperCenter;
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = 2;
+            grid.constraintCount = 3;
             gridContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             writingCardScroll.viewport = gridVp.GetComponent<RectTransform>();
             writingCardScroll.content = gcrt;
 
-            // Right detail paper
-            var detailShadow = CreateImage(cork.transform, "DetailShadow", new Color(0f, 0f, 0f, 0.32f));
-            Stretch(detailShadow.rectTransform, new Vector2(0.695f, 0.16f), new Vector2(0.975f, 0.88f),
-                Vector2.zero, Vector2.zero);
-            detailShadow.rectTransform.anchoredPosition = new Vector2(5f, -6f);
-            detailShadow.raycastTarget = false;
-
             var detail = CreateImage(cork.transform, "DetailPaper", WmPaper);
-            Stretch(detail.rectTransform, new Vector2(0.69f, 0.17f), new Vector2(0.97f, 0.885f),
+            Stretch(detail.rectTransform, new Vector2(0.715f, 0.17f), new Vector2(0.955f, 0.78f),
                 Vector2.zero, Vector2.zero);
 
             var clip = CreateImage(detail.transform, "Paperclip", Color.white);
@@ -251,7 +223,7 @@ namespace StreetCat.UI
             clipRt.pivot = new Vector2(0.5f, 0.85f);
             clipRt.anchoredPosition = new Vector2(0f, 10f);
             clipRt.sizeDelta = new Vector2(40f, 58f);
-            var clipSpr = VnArt.GetTitle("deco_paperclip");
+            var clipSpr = VnArt.GetTitle("Shared/deco_paperclip");
             if (clipSpr != null)
             {
                 clip.sprite = clipSpr;
@@ -265,14 +237,14 @@ namespace StreetCat.UI
 
             writingDetailTitle = CreateUiText(detail.transform, "Title", 26, TextAnchor.UpperLeft,
                 WmInk, Vector2.zero, Vector2.zero);
-            Stretch(writingDetailTitle.rectTransform, new Vector2(0.08f, 0.78f), new Vector2(0.92f, 0.94f),
+            Stretch(writingDetailTitle.rectTransform, new Vector2(0.12f, 0.72f), new Vector2(0.90f, 0.88f),
                 Vector2.zero, Vector2.zero);
             writingDetailTitle.fontStyle = FontStyles.Bold;
             writingDetailTitle.overflowMode = TextOverflowModes.Overflow;
             writingDetailTitle.enableAutoSizing = false;
 
             writingDetailTagBg = CreateImage(detail.transform, "Tag", WmOrange);
-            Stretch(writingDetailTagBg.rectTransform, new Vector2(0.08f, 0.68f), new Vector2(0.46f, 0.76f),
+            Stretch(writingDetailTagBg.rectTransform, new Vector2(0.12f, 0.62f), new Vector2(0.48f, 0.70f),
                 Vector2.zero, Vector2.zero);
             writingDetailTag = CreateUiText(writingDetailTagBg.transform, "TagLabel", 16, TextAnchor.MiddleCenter,
                 Color.white, Vector2.zero, Vector2.zero);
@@ -283,13 +255,13 @@ namespace StreetCat.UI
 
             writingDetailSource = CreateUiText(detail.transform, "Source", 16, TextAnchor.MiddleLeft,
                 WmInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(writingDetailSource.rectTransform, new Vector2(0.08f, 0.58f), new Vector2(0.92f, 0.67f),
+            Stretch(writingDetailSource.rectTransform, new Vector2(0.12f, 0.52f), new Vector2(0.90f, 0.61f),
                 Vector2.zero, Vector2.zero);
             writingDetailSource.enableAutoSizing = false;
 
             var detailHost = new GameObject("DetailBodyHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             detailHost.transform.SetParent(detail.transform, false);
-            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.56f),
+            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.12f, 0.10f), new Vector2(0.90f, 0.50f),
                 Vector2.zero, Vector2.zero);
             detailHost.GetComponent<Image>().color = new Color(1, 1, 1, 0.001f);
             var detailScroll = detailHost.GetComponent<ScrollRect>();
@@ -338,14 +310,20 @@ namespace StreetCat.UI
             doodle.raycastTarget = false;
 
             // Status hint (above bottom action row so it does not cover buttons)
-            writingStatusHint = CreateUiText(cork.transform, "StatusHint", 16, TextAnchor.MiddleLeft,
-                Color.white, Vector2.zero, Vector2.zero);
-            Stretch(writingStatusHint.rectTransform, new Vector2(0.03f, 0.105f), new Vector2(0.68f, 0.145f),
+            writingStatusHint = CreateUiText(cork.transform, "StatusHint", 15, TextAnchor.MiddleLeft,
+                new Color(0.96f, 0.93f, 0.84f, 0.95f), Vector2.zero, Vector2.zero);
+            Stretch(writingStatusHint.rectTransform, new Vector2(0.04f, 0.085f), new Vector2(0.52f, 0.145f),
                 Vector2.zero, Vector2.zero);
 
-            // Bottom-right actions
+            writingPreviewBtn = SpawnWritingActionButton(cork.transform, "PreviewBtn",
+                UiLoc.T("ui.writing.preview", "预览文章"), new Color(0.16f, 0.28f, 0.48f, 1f),
+                new Vector2(0.55f, 0.02f), new Vector2(0.74f, 0.145f), OnWritingPreviewArticle);
+            var previewTag = writingPreviewBtn.gameObject.AddComponent<LocTag>();
+            previewTag.key = "ui.writing.preview";
+            previewTag.target = writingPreviewBtn.GetComponentInChildren<TextMeshProUGUI>();
+
             writingGoBtn = SpawnWritingActionButton(cork.transform, "GoWriteBtn",
-                UiLoc.T("ui.writing.go_write", "前往写稿"), WmOrange, new Vector2(0.72f, 0.025f), new Vector2(0.97f, 0.11f),
+                UiLoc.T("ui.writing.go_write", "前往写稿"), WmOrange, new Vector2(0.755f, 0.02f), new Vector2(0.96f, 0.145f),
                 OnWritingGoToDesk);
             var goTag = writingGoBtn.gameObject.AddComponent<LocTag>();
             goTag.key = "ui.writing.go_write";
@@ -353,23 +331,29 @@ namespace StreetCat.UI
 
             // Secondary: back + notebook
             var backBtn = SpawnWritingActionButton(cork.transform, "BackDirBtn",
-                UiLoc.T("ui.writing.back_direction", "返回立意"), new Color(0.28f, 0.24f, 0.20f, 0.92f),
-                new Vector2(0.02f, 0.025f), new Vector2(0.14f, 0.10f),
+                UiLoc.T("ui.writing.back_direction", "返回立意"), new Color(0.93f, 0.88f, 0.76f, 0.94f),
+                new Vector2(0.04f, 0.02f), new Vector2(0.17f, 0.075f),
                 () => { writingMatsActive = false; HideWritingMaterialsBoard(); ShowWritingDirectionPick(); });
+            var backLabel = backBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (backLabel != null) backLabel.color = WmInk;
             var backTag = backBtn.gameObject.AddComponent<LocTag>();
             backTag.key = "ui.writing.back_direction";
-            backTag.target = backBtn.GetComponentInChildren<TextMeshProUGUI>();
+            backTag.target = backLabel;
 
             var nbBtn = SpawnWritingActionButton(cork.transform, "NotebookBtn",
-                UiLoc.T("ui.notebook", "笔记"), new Color(0.28f, 0.24f, 0.20f, 0.92f),
-                new Vector2(0.15f, 0.025f), new Vector2(0.25f, 0.10f), OpenNotebook);
+                UiLoc.T("ui.notebook", "笔记"), new Color(0.93f, 0.88f, 0.76f, 0.94f),
+                new Vector2(0.18f, 0.02f), new Vector2(0.28f, 0.075f), OpenNotebook);
+            var nbLabel = nbBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (nbLabel != null) nbLabel.color = WmInk;
 
             writingReInterviewBtn = SpawnWritingActionButton(cork.transform, "ReInterviewBtn",
-                UiLoc.T("ui.writing.reinterview", "返回采访"), new Color(0.32f, 0.22f, 0.18f, 0.95f),
-                new Vector2(0.26f, 0.025f), new Vector2(0.40f, 0.10f), ShowReInterviewMenu);
+                UiLoc.T("ui.writing.reinterview", "返回采访"), new Color(0.93f, 0.88f, 0.76f, 0.94f),
+                new Vector2(0.29f, 0.02f), new Vector2(0.44f, 0.075f), ShowReInterviewMenu);
+            var riLabel = writingReInterviewBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (riLabel != null) riLabel.color = WmInk;
             var riTag = writingReInterviewBtn.gameObject.AddComponent<LocTag>();
             riTag.key = "ui.writing.reinterview";
-            riTag.target = writingReInterviewBtn.GetComponentInChildren<TextMeshProUGUI>();
+            riTag.target = riLabel;
 
             // ArticlePreview overlay kept in code but unwired — players edit on the writing desk.
             BuildWritingPreviewPanel(cork.transform);
@@ -410,7 +394,7 @@ namespace StreetCat.UI
             Chrome(writingDetailSource, 16);
             Chrome(writingStatusHint, 16, wrap: true);
             if (writingStatusHint != null)
-                writingStatusHint.color = Color.white;
+                writingStatusHint.color = new Color(0.96f, 0.93f, 0.84f, 0.95f);
 
             if (writingDetailBody != null)
             {
@@ -607,7 +591,7 @@ namespace StreetCat.UI
         {
             var go = new GameObject("Para" + index, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
             go.transform.SetParent(writingParagraphList, false);
-            go.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.001f);
+            go.GetComponent<Image>().color = new Color(0.96f, 0.93f, 0.86f, 1f);
             go.GetComponent<LayoutElement>().flexibleHeight = 1f;
             int captured = index;
             go.GetComponent<Button>().onClick.AddListener(() =>
@@ -617,11 +601,6 @@ namespace StreetCat.UI
                 writingFocusMatId = null;
                 RefreshWritingMaterialsBoard();
             });
-
-            var bar = CreateImage(go.transform, "SelBar", WmRedBar);
-            Stretch(bar.rectTransform, new Vector2(0f, 0.15f), new Vector2(0f, 0.85f),
-                new Vector2(0f, 0f), new Vector2(5f, 0f));
-            bar.gameObject.name = "SelBar";
 
             float scale = GameSettings.FontSizeScale;
             var label = CreateUiText(go.transform, "Label", Mathf.RoundToInt(17f * scale),
@@ -638,7 +617,7 @@ namespace StreetCat.UI
             var crt = circle.rectTransform;
             crt.anchorMin = crt.anchorMax = new Vector2(0.90f, 0.5f);
             crt.pivot = new Vector2(0.5f, 0.5f);
-            crt.sizeDelta = new Vector2(16f, 16f);
+            crt.sizeDelta = new Vector2(18f, 18f);
             circle.raycastTarget = false;
         }
 
@@ -727,6 +706,11 @@ namespace StreetCat.UI
             {
                 var goLabel = writingGoBtn.GetComponentInChildren<TextMeshProUGUI>(true);
                 ApplyWritingActionArt(writingGoBtn, "GoWriteBtn", goLabel);
+            }
+            if (writingPreviewBtn != null)
+            {
+                var previewLabel = writingPreviewBtn.GetComponentInChildren<TextMeshProUGUI>(true);
+                ApplyWritingActionArt(writingPreviewBtn, "PreviewBtn", previewLabel);
             }
             if (writingMatsRoot.activeSelf)
                 RefreshWritingMaterialsBoard();
@@ -900,6 +884,20 @@ namespace StreetCat.UI
                 SpawnWritingMaterialCard(m, isUnlocked, isSelected, isFocus, idx);
                 idx++;
             }
+
+            for (; idx < 6; idx++)
+                SpawnWritingDecoSticky(idx);
+        }
+
+        void SpawnWritingDecoSticky(int visualIndex)
+        {
+            var go = new GameObject("DecoSticky", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(writingCardGrid, false);
+            writingSpawned.Add(go);
+            var img = go.GetComponent<Image>();
+            img.raycastTarget = false;
+            img.color = Color.white;
+            ApplyWritingCardArt(img, visualIndex);
         }
 
         void SpawnWritingMaterialCard(MaterialCard m, bool unlocked, bool selected, bool focus, int visualIndex)
@@ -908,141 +906,39 @@ namespace StreetCat.UI
             go.transform.SetParent(writingCardGrid, false);
             writingSpawned.Add(go);
 
-            var shadow = CreateImage(go.transform, "Shadow", new Color(0f, 0f, 0f, 0.28f));
-            StretchFull(shadow.rectTransform);
-            shadow.rectTransform.anchoredPosition = new Vector2(3f, -4f);
-            shadow.raycastTarget = false;
-
             var bg = go.GetComponent<Image>();
-            bg.color = unlocked ? ColorForMaterialType(m.type, visualIndex) : WmLocked;
+            bg.color = Color.white;
             ApplyWritingCardArt(bg, visualIndex);
-            if (!unlocked)
-                bg.color = new Color(0.42f, 0.42f, 0.42f, 0.82f);
+            if (bg.sprite == null)
+                bg.color = unlocked ? ColorForMaterialType(m.type, visualIndex) : WmLocked;
+            else if (!unlocked)
+                bg.color = new Color(0.72f, 0.72f, 0.72f, 1f);
             var btn = go.GetComponent<Button>();
             btn.targetGraphic = bg;
             string mid = m.id;
             btn.onClick.AddListener(() => OnWritingCardClicked(mid));
 
-            // No card tilt — rotated UI Text + pixelPerfect canvas reads as soft/blurry glyphs.
-
-            if (focus)
-            {
-                var rim = CreateImage(go.transform, "FocusRim", WmOrange);
-                Stretch(rim.rectTransform, Vector2.zero, Vector2.one, new Vector2(-3f, -3f), new Vector2(3f, 3f));
-                rim.transform.SetAsFirstSibling();
-                rim.raycastTarget = false;
-                shadow.transform.SetAsFirstSibling();
-            }
-
-            // Tape / paperclip deco
-            if (visualIndex % 3 == 0)
-            {
-                var tape = CreateImage(go.transform, "Tape", new Color(0.90f, 0.82f, 0.62f, 0.9f));
-                var trt = tape.rectTransform;
-                trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 1f);
-                trt.pivot = new Vector2(0.5f, 0.5f);
-                trt.anchoredPosition = new Vector2(0f, 4f);
-                trt.sizeDelta = new Vector2(64f, 16f);
-                var tSpr = VnArt.GetTitle(selected ? "btn_tape_primary_idle" : "btn_tape_idle");
-                if (tSpr != null)
-                {
-                    tape.sprite = tSpr;
-                    tape.preserveAspect = true;
-                    tape.color = Color.white;
-                }
-                tape.raycastTarget = false;
-            }
-            else if (visualIndex % 3 == 1)
-            {
-                var clip = CreateImage(go.transform, "Clip", Color.white);
-                var crt = clip.rectTransform;
-                crt.anchorMin = crt.anchorMax = new Vector2(0.12f, 1f);
-                crt.pivot = new Vector2(0.5f, 0.8f);
-                crt.anchoredPosition = new Vector2(0f, 6f);
-                crt.sizeDelta = new Vector2(26f, 36f);
-                var cSpr = VnArt.GetTitle("deco_paperclip");
-                if (cSpr != null)
-                {
-                    clip.sprite = cSpr;
-                    clip.preserveAspect = true;
-                }
-                else clip.color = new Color(0.7f, 0.72f, 0.76f, 0.9f);
-                clip.raycastTarget = false;
-            }
-
             float scale = GameSettings.FontSizeScale;
             int Sz(float baseSize) => Mathf.RoundToInt(baseSize * scale);
 
-            var idTx = CreateUiText(go.transform, "Id", Sz(15), TextAnchor.UpperLeft, WmInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(idTx.rectTransform, new Vector2(0.07f, 0.80f), new Vector2(0.38f, 0.96f), Vector2.zero, Vector2.zero);
-            idTx.fontStyle = FontStyles.Bold;
-            idTx.enableWordWrapping = false;
-            idTx.overflowMode = TextOverflowModes.Overflow;
-            idTx.enableAutoSizing = false;
-            idTx.text = m.id;
-            ApplyLetterSpacing(idTx, 0f);
-
-            var tagBg = CreateImage(go.transform, "TypeTag", new Color(1f, 1f, 1f, 0.55f));
-            Stretch(tagBg.rectTransform, new Vector2(0.40f, 0.80f), new Vector2(0.93f, 0.95f), Vector2.zero, Vector2.zero);
-            var tagTx = CreateUiText(tagBg.transform, "T", Sz(14), TextAnchor.MiddleCenter, WmInk, Vector2.zero, Vector2.zero);
-            StretchFull(tagTx.rectTransform);
-            tagTx.fontStyle = FontStyles.Bold;
-            tagTx.enableWordWrapping = false;
-            tagTx.enableAutoSizing = false;
-            tagTx.text = MaterialTypeLabel(m.type);
-            ApplyLetterSpacing(tagTx, 0f);
-
-            var titleTx = CreateUiText(go.transform, "Title", Sz(19), TextAnchor.UpperLeft, WmInk, Vector2.zero, Vector2.zero);
-            Stretch(titleTx.rectTransform, new Vector2(0.07f, 0.50f), new Vector2(0.93f, 0.78f), Vector2.zero, Vector2.zero);
-            titleTx.fontStyle = FontStyles.Bold;
+            var titleTx = CreateUiText(go.transform, "Title", Sz(22), TextAnchor.MiddleCenter, WmInk, Vector2.zero, Vector2.zero);
+            Stretch(titleTx.rectTransform, new Vector2(0.12f, 0.22f), new Vector2(0.88f, 0.72f), Vector2.zero, Vector2.zero);
+            titleTx.fontStyle = focus ? FontStyles.Bold : FontStyles.Normal;
             titleTx.enableWordWrapping = true;
             titleTx.overflowMode = TextOverflowModes.Truncate;
             titleTx.enableAutoSizing = false;
             titleTx.text = unlocked ? HardTextLoc.T(m.title) : "???";
             ApplyLetterSpacing(titleTx, 0f);
 
-            var bodyTx = CreateUiText(go.transform, "Body", Sz(15), TextAnchor.UpperLeft, WmInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(bodyTx.rectTransform, new Vector2(0.07f, 0.12f), new Vector2(0.78f, 0.48f), Vector2.zero, Vector2.zero);
-            bodyTx.enableWordWrapping = true;
-            bodyTx.overflowMode = TextOverflowModes.Truncate;
-            bodyTx.lineSpacing = 20f;
-            bodyTx.enableAutoSizing = false;
-            bodyTx.text = unlocked
-                ? Shorten(HardTextLoc.T(m.body), 52)
-                : UiLoc.T("ui.writing.locked", "尚未解锁");
-            ApplyLetterSpacing(bodyTx, 0f);
-
-            var status = CreateImage(go.transform, "Status", Color.white);
-            var srt = status.rectTransform;
-            srt.anchorMin = srt.anchorMax = new Vector2(0.88f, 0.14f);
-            srt.pivot = new Vector2(0.5f, 0.5f);
-            srt.sizeDelta = new Vector2(22f, 22f);
-            status.raycastTarget = false;
-            if (!unlocked)
-                status.color = new Color(0.35f, 0.32f, 0.28f, 0.95f);
-            else if (selected)
-                status.color = new Color(0.22f, 0.55f, 0.32f, 1f);
-            else
-                status.color = new Color(0.55f, 0.52f, 0.48f, 0.85f);
-
-            if (unlocked && selected)
+            if (selected)
             {
-                var check = CreateUiText(status.transform, "Check", Sz(14), TextAnchor.MiddleCenter, Color.white, Vector2.zero, Vector2.zero);
-                StretchFull(check.rectTransform);
-                check.enableWordWrapping = false;
-                check.enableAutoSizing = false;
-                check.text = "已";
-                check.fontStyle = FontStyles.Bold;
-                ApplyLetterSpacing(check, 0f);
-            }
-            else if (!unlocked)
-            {
-                var lockTx = CreateUiText(status.transform, "Lock", Sz(13), TextAnchor.MiddleCenter, Color.white, Vector2.zero, Vector2.zero);
-                StretchFull(lockTx.rectTransform);
-                lockTx.enableWordWrapping = false;
-                lockTx.enableAutoSizing = false;
-                lockTx.text = "锁";
-                ApplyLetterSpacing(lockTx, 0f);
+                var mark = CreateImage(go.transform, "Picked", Color.white);
+                var mrt = mark.rectTransform;
+                mrt.anchorMin = mrt.anchorMax = new Vector2(0.84f, 0.14f);
+                mrt.pivot = new Vector2(0.5f, 0.5f);
+                mrt.sizeDelta = new Vector2(28f, 28f);
+                mark.raycastTarget = false;
+                ApplyWritingDotArt(mark, true);
             }
         }
 
@@ -1108,7 +1004,23 @@ namespace StreetCat.UI
 
         void OnWritingPreviewArticle()
         {
-            // Preview button removed from player UI; desk is the editable 成稿 surface.
+            if (writingPreviewRoot == null) return;
+            var assembler = new ArticleAssembler();
+            if (!assembler.CanAssemble(pendingDir, selectedMats, out _))
+            {
+                if (writingStatusHint != null)
+                    writingStatusHint.text = UiLoc.T("ui.writing.preview_blocked", "还不能预览成稿。");
+                return;
+            }
+
+            assembler.Assemble(pendingDir, selectedMats);
+            if (writingPreviewBody != null)
+            {
+                var note = UiLoc.T("ui.writing.preview_note", "（预览稿；提交后由沈河评分。）");
+                writingPreviewBody.text = (assembler.Title ?? "") + "\n\n" + (assembler.Body ?? "") + "\n\n" + note;
+            }
+            writingPreviewRoot.SetActive(true);
+            writingPreviewRoot.transform.SetAsLastSibling();
         }
 
         void OnWritingGoToDesk()

@@ -163,7 +163,8 @@ namespace StreetCat.UI
             talkAwaitingClickReturn = false;
             playingGuardAppear = false;
             playingWaitForDafuOutro = false;
-            playingLinContactChat = false;
+            phoneSequence = null;
+            armGuardPhone = false;
             waitingForChoice = false;
 
             SetInvestigateChrome(false);

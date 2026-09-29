@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entries:
   - id: magazine_host
-    rect: {x: 0.07, y: 0.08, z: 0.9377469, w: 0.97989285}
+    rect: {x: 0.15, y: 0.1, z: 0.85, w: 0.9}
   - id: left_page
     rect: {x: 0.084039435, y: 0.10086666, z: 0.49951747, w: 0.9417361}
   - id: feature_art
@@ -40,7 +40,7 @@ MonoBehaviour:
   - id: tagline
     rect: {x: 0.18113145, y: 0.054913554, z: 0.8430248, w: 0.12534277}
   - id: prop_translator
-    rect: {x: 0.01, y: 0.02, z: 0.14, w: 0.42}
+    rect: {x: 0.01, y: 0.02, z: 0.16, w: 0.42}
   - id: prop_notes
     rect: {x: 0.85870886, y: 0.020765133, z: 0.98870885, w: 0.38076514}
   - id: prop_polaroid_a
@@ -49,6 +49,14 @@ MonoBehaviour:
     rect: {x: 0.88, y: 0.52, z: 0.995, w: 0.86}
   - id: prop_scraps
     rect: {x: 0.74578005, y: 0.001530184, z: 0.87911344, w: 0.21230747}
-  buttonWidth: 323
+  layerOrder:
+  - prop_translator
+  - magazine_host
+  - prop_notes
+  - prop_polaroid_b
+  - prop_polaroid_a
+  - prop_scraps
+  - desk_bg
+  buttonWidth: 307
   buttonHeight: 92
   buttonSpacing: 15.7

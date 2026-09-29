@@ -68,7 +68,7 @@ namespace StreetCat.Editor
             var data = PortraitLayout.Asset ?? PortraitLayout.EnsureAsset();
             if (data == null) return;
 
-            float minBottom = VnTheme.DialogueTop + 0.02f;
+            float minBottom = VnTheme.PortraitSlotBottomMin;
             float minTop = minBottom + PortraitLayout.MinSlotHeight;
 
             EditorGUILayout.LabelField("当前参数", EditorStyles.boldLabel);

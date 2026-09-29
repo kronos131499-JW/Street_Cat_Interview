@@ -1,0 +1,514 @@
+{
+    "lines": [
+        {
+            "key": "SC-02:6",
+            "text": "...Huh?",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-02:17",
+            "text": "Find one with a story. And if you can, pick one people around here know. Cats can’t exactly tell you everything, so you’ll need someone to fill in the gaps.",
+            "speakerName": "Shen He",
+            "choices": []
+        },
+        {
+            "key": "SC-02:19",
+            "text": "You can’t just take someone’s word for it. And a cat? Even less so.",
+            "speakerName": "Shen He",
+            "choices": []
+        },
+        {
+            "key": "SC-03:0",
+            "text": "Back at her desk, Ling checks local social media for a stray that might make a good story.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-03:4",
+            "text": "Post 2: \"Super Cute Tabby Cat Looking For A Forever Home\"",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-03:5",
+            "text": "Post 3: \"Our Neighborhood Security Guard Recently Got a New Colleague\"",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-03:9",
+            "text": "Meet Dafu, our neighborhood's unofficial security guard",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-03:10",
+            "text": "He clocks in every afternoon with our security guard, occasionally joins patrols, and gets paid in cat food and canned treats. His main duties include sleeping, sunbathing, and supervising the parcel lockers.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-03:11",
+            "text": "Hard to believe now, but Dafu was badly injured when he first showed up here. Some kind neighbors took him to the vet and helped him recover, and after that, he came right back.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-03:12",
+            "text": "Now he has people bringing him food and water, little shelters to sleep in, and a security guard who has basically accepted him as a coworker. On sunny days, he naps on the parcel lockers. At night, he goes out with his tabby friend.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-03:16",
+            "text": "I doubt they all remember it the same way.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-02:16",
+            "text": "Anything is fine. The gadget’s just a tool. What matters is finding a good story.",
+            "speakerName": "Shen He",
+            "choices": []
+        },
+        {
+            "key": "inv:tabby:4",
+            "text": "The tabby startles, then darts into the nearby bushes. For a moment, only the leaves continue to sway.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "inv:tabby:5",
+            "text": "...Fast little guy.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "inv:tabby:7",
+            "text": "Guess being looked after doesn’t mean they trust strangers.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "inv:water_bowl:1",
+            "text": "I’ve always wondered if cats just end up drinking their own fur.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "inv:bench:0",
+            "text": "An old wooden bench sits by the walkway. The green paint on its metal armrests is peeling, with rust showing through. The wooden slats are sun-faded and uneven, and one has started to warp.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "inv:bench:2",
+            "text": "Just like the printer back at Here&Now.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "inv:locker:3",
+            "text": "Guess Dafu’s not on duty yet.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-05:10",
+            "text": "Why are you looking for him?",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "SC-05:16",
+            "text": "Can I ask you a few questions about Dafu first?",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:appear_time:7",
+            "text": "No idea where he goes when it rains, but he always turns up at mealtime.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:appear_time:8",
+            "text": "Then I should be able to catch him here today.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:appear_time:10",
+            "text": "New Clue: Dafu usually appears around 4–5 p.m.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:0",
+            "text": "I saw online that Dafu hangs around with you at work every day.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:2",
+            "text": "I saw someone posted a photo of you two.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:5",
+            "text": "So you guys don't \"work\" together?",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:6",
+            "text": "That counts as work...?",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:8",
+            "text": "Anyway, he drops by to see me sometimes.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:9",
+            "text": "Looking for you, huh?",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:10",
+            "text": "Well, more like checking if there’s food.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:11",
+            "text": "So I guess that does make him a coworker.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:12",
+            "text": "None of my coworkers beg me for canned food every day.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:relation:13",
+            "text": "New Clue: Dafu is often seen near the guard booth.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:0",
+            "text": "New Clue: Dafu’s usual hours",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:1",
+            "text": "I think I’ve got it. Thanks, sir.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:11",
+            "text": "I’ll head over there, then. Thanks!",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:12",
+            "text": "Oh, by the way",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:14",
+            "text": "Don’t just walk up and grab him when you see him.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:15",
+            "text": "I won't.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:wait_dafu:16",
+            "text": "That should be fine. He used to be really shy. He’s gotten better, but he still backs off if strangers get too close.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "SC-06:2",
+            "text": "Evening. Ling sits on a bench, scrolling through her phone as she waits for Dafu.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-01:9",
+            "text": "My job? Interviews, commissions, edits, chasing deadlines—and hoping writers don’t notice when I cut a third of their piece.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-03:3",
+            "text": "Post 1: \"How to Scientifically Feed Stray Cats\"",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-06:3",
+            "text": "Hey, miss. Dafu’s here.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "SC-06:4",
+            "text": "Ling looks up. An orange cat emerges from between the parked e-bikes and pads toward the guard booth.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:8",
+            "text": "The guard steps out of the booth and pours a little food into Dafu’s bowl.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:9",
+            "text": "Here to clock in, are you?",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:10",
+            "text": "Ling gets up and walks over. Dafu notices her right away, pauses mid-bite, and cautiously backs away.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:11",
+            "text": "He’s shy around strangers. Give him a little space.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "SC-06:13",
+            "text": "Ling stays where she is, pulls out the meow translator, and switches it on.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:19",
+            "text": "Translates human speech into signals cats can understand, and interprets their meows and behavior.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-06:20",
+            "text": "Let’s give it a try.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:21",
+            "text": "Ling holds down the translate button and calls out to Dafu.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:24",
+            "text": "The device lets out a translated meow. Dafu’s ear twitches, and he looks up at Ling.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:28",
+            "text": "...Did he actually understand that?",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:29",
+            "text": "Dafu still keeps his distance. Ling thinks for a moment, then pulls a tube of cat treat from her bag.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:30",
+            "text": "Good thing I brought this.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:33",
+            "text": "Ling crouches down, keeps her distance, and presses the translate button.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:38",
+            "text": "Dafu sniffs the air, then takes a couple of cautious steps forward.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:39",
+            "text": "I won’t come any closer. You come to me.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:41",
+            "text": "\"Safe. You can come.\"",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:42",
+            "text": "After a moment, Dafu leans in for a lick. Once he gets a taste, he relaxes and starts eating.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:45",
+            "text": "By the time he’s halfway through the treat, Dafu has edged up beside Ling. She holds out a hand; he gives it a sniff and stays put. Ling gently scratches him on the head.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:47",
+            "text": "The treat is gone. Dafu licks his lips, then settles down beside Ling.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:61",
+            "text": "Dafu looks annoyed, but he doesn’t leave. He just settles down right there.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-06:64",
+            "text": "(thought) And I understood him. Wow.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-06:67",
+            "text": "If Dafu doesn’t understand a question, try phrasing it another way.",
+            "speakerName": "System",
+            "choices": []
+        },
+        {
+            "key": "SC-08:1",
+            "text": "After the interview, Dafu hops onto the lockers and stretches out. Ling puts away the translator and heads back to the guard booth.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-08:2",
+            "text": "Wait, were you just talking to the cat?",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "SC-08:3",
+            "text": "Uh... sort of? I can understand what cats are saying.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "talk:reply:who_rescued",
+            "text": "Ms. Lin. She lives in the neighborhood. When Dafu hurt his neck, she got some people together to catch him and take him to the vet. She was also the one who brought him back afterward.\r\n\r\nIf you want the whole story, you’ll have to ask her. I only know the basics.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "talk:reply:lin_info",
+            "text": "She still lives around here and comes by to see Dafu sometimes. If you want to talk to her, I can ask first. If she’s okay with it, I’ll pass along her contact info.",
+            "speakerName": "Security Guard",
+            "choices": []
+        },
+        {
+            "key": "SC-09:3",
+            "text": "She finds a seat farther inside and sets her notebook and phone on the table.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-09:4",
+            "text": "A little after three, Ms. Lin pushes open the door. Ling gets to her feet and waves.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-09:6",
+            "text": "Hi. Have you been waiting long?",
+            "speakerName": "Ms. Lin",
+            "choices": []
+        },
+        {
+            "key": "SC-09:7",
+            "text": "Not at all. I just got here. Thanks for taking the time to meet with me.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-09:8",
+            "text": "They sit down. Once the drinks arrive and the server walks away, Ling opens her notebook.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-09:9",
+            "text": "Yesterday, I spoke with the security guard and met Dafu in the neighborhood.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-09:10",
+            "text": "Today, I'd mainly like to confirm what happened when he was injured, how he was treated, and how he eventually came back to the neighborhood.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-09:12",
+            "text": "Would you mind if I record this? It’s just so I can keep my notes straight.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-09:15",
+            "text": "If anything makes you uncomfortable, just let me know. We can skip it and move on.",
+            "speakerName": "Ling",
+            "choices": []
+        },
+        {
+            "key": "SC-09:16",
+            "text": "Sure, that's fine. Ask whatever you need.",
+            "speakerName": "Ms. Lin",
+            "choices": []
+        },
+        {
+            "key": "SC-10:2",
+            "text": "Monday morning. Back at the newsroom, Ling lays out her community notes, the security guard’s account, her interview with Dafu, and the recording from Ms. Lin.",
+            "speakerName": "",
+            "choices": []
+        },
+        {
+            "key": "SC-10:3",
+            "text": "Alright. Time to turn all this into something we can publish.",
+            "speakerName": "Ling",
+            "choices": []
+        }
+    ]
+}

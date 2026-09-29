@@ -32,6 +32,15 @@ namespace StreetCat.Loc
             Load();
         }
 
+        /// <summary>English mapping only. Does not follow the current language setting.</summary>
+        public static bool TryEnglish(string zh, out string en)
+        {
+            en = null;
+            if (string.IsNullOrEmpty(zh)) return false;
+            Load();
+            return map.TryGetValue(zh, out en) && !string.IsNullOrEmpty(en);
+        }
+
         /// <summary>Return English when language is EN and a mapping exists; otherwise zh unchanged.</summary>
         public static string T(string zh)
         {

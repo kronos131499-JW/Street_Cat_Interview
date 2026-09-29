@@ -25,7 +25,7 @@ namespace StreetCat.UI
             {
                 var labels = choiceRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
                 for (var i = 0; i < labels.Length; i++)
-                    if (labels[i] != null) labels[i].color = colors.choice;
+                    SetChoiceLabelColor(labels[i], colors.choice);
             }
         }
 
@@ -41,8 +41,18 @@ namespace StreetCat.UI
             {
                 var labels = choiceRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
                 for (var i = 0; i < labels.Length; i++)
-                    if (labels[i] != null) labels[i].color = ArtPackInk;
+                    SetChoiceLabelColor(labels[i], ArtPackInk);
             }
+        }
+
+        static void SetChoiceLabelColor(TextMeshProUGUI label, Color color)
+        {
+            if (label == null) return;
+            var hover = label.GetComponentInParent<ChoiceHoverLabel>();
+            if (hover != null)
+                hover.SetIdle(color);
+            else
+                label.color = color;
         }
 
         void ApplyDialogueBodyColor(LineSpeaker kind)

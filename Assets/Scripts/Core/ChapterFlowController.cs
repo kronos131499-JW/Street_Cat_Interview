@@ -109,10 +109,10 @@ namespace StreetCat.Core
                 return;
             }
             // Community map only — do not force SC-05/SC-08 (booth dialogue/talk) into investigate UI.
+            // First arrival plays the SC-04 intro (tutorial + objective). Later visits open the map.
             if (mode == "investigate" || id == SceneIds.SC04)
             {
-                sceneDirector.PlayScene(id);
-                gameUi.ShowInvestigationMode();
+                PresentCommunityScene();
                 return;
             }
 
@@ -132,6 +132,10 @@ namespace StreetCat.Core
 
             if (id == SceneIds.SC08)
             {
+                // Mid-chat save reopens the picture the player left on.
+                if (gameUi.TryResumePhoneChat())
+                    return;
+
                 // After Dafu interview, SC-08 is booth verify/talk (ShowTalkMenu → post-interview).
                 // Do not dump the player onto the community investigate map.
                 if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
@@ -147,6 +151,24 @@ namespace StreetCat.Core
 
             sceneDirector.PlayScene(id);
             gameUi.ShowDialogueMode();
+        }
+
+        /// <summary>
+        /// SC-04 first visit plays the arrival script, including
+        /// 「当前目标更新——在社区内寻找大福的线索」. After that flag, reopen the map.
+        /// </summary>
+        void PresentCommunityScene()
+        {
+            if (!GameState.Instance.HasFlag(FlagIds.InvestigateTutorialShown))
+            {
+                GameState.Instance.Data.uiMode = "dialogue";
+                sceneDirector.PlayScene(SceneIds.SC04);
+                gameUi.ShowDialogueMode();
+                return;
+            }
+
+            GameState.Instance.Data.uiMode = "investigate";
+            gameUi.ShowInvestigationMode();
         }
 
         public void GoToScene(string sceneId)
@@ -201,9 +223,7 @@ namespace StreetCat.Core
                     gameUi.ShowEpilogue();
                     break;
                 case SceneIds.SC04:
-                    GameState.Instance.Data.uiMode = "investigate";
-                    sceneDirector.PlayScene(sceneId);
-                    gameUi.ShowInvestigationMode();
+                    PresentCommunityScene();
                     break;
                 case SceneIds.SC05:
                 case SceneIds.SC08:

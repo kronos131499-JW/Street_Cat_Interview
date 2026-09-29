@@ -13,7 +13,7 @@ namespace StreetCat.UI
 
         public static readonly Dictionary<string, Vector4> Defaults = new Dictionary<string, Vector4>
         {
-            { "magazine_host", new Vector4(0.07f, 0.08f, 0.93f, 0.96f) },
+            { "magazine_host", new Vector4(0.15f, 0.10f, 0.85f, 0.90f) },
             { "left_page", new Vector4(0.04f, 0.08f, 0.48f, 0.92f) },
             { "feature_art", new Vector4(0.06f, 0.38f, 0.94f, 0.96f) },
             { "logo_cn", new Vector4(0.08f, 0.78f, 0.92f, 0.96f) },
@@ -27,16 +27,49 @@ namespace StreetCat.UI
             { "contents_label", new Vector4(0.12f, 0.88f, 0.88f, 0.98f) },
             { "title_actions", new Vector4(0.16f, 0.20f, 0.84f, 0.82f) },
             { "tagline", new Vector4(0.08f, 0.06f, 0.92f, 0.18f) },
-            { "prop_translator", new Vector4(0.01f, 0.02f, 0.14f, 0.42f) },
+            { "prop_translator", new Vector4(0.01f, 0.02f, 0.16f, 0.42f) },
+            { "deco_title", new Vector4(0.06f, 0.62f, 0.46f, 0.94f) },
+            { "deco_mic", new Vector4(0.05f, 0.50f, 0.14f, 0.66f) },
+            { "deco_polaroid", new Vector4(0.06f, 0.18f, 0.42f, 0.64f) },
+            { "deco_tape", new Vector4(0.10f, 0.42f, 0.32f, 0.58f) },
+            { "deco_slogan", new Vector4(0.22f, 0.08f, 0.50f, 0.28f) },
+            { "deco_clip", new Vector4(0.42f, 0.14f, 0.52f, 0.32f) },
+            { "deco_camera", new Vector4(0.48f, 0.78f, 0.58f, 0.96f) },
+            { "deco_paws", new Vector4(0.82f, 0.42f, 0.98f, 0.92f) },
+            { "deco_lamp", new Vector4(0.46f, 0.06f, 0.54f, 0.40f) },
+            { "deco_skyline", new Vector4(0.52f, 0.04f, 0.74f, 0.20f) },
+            { "deco_cat", new Vector4(0.76f, 0.04f, 0.96f, 0.28f) },
             { "prop_notes", new Vector4(0.86f, 0.02f, 0.99f, 0.38f) },
             { "prop_polaroid_a", new Vector4(0.00f, 0.55f, 0.12f, 0.88f) },
             { "prop_polaroid_b", new Vector4(0.88f, 0.52f, 0.995f, 0.86f) },
             { "prop_scraps", new Vector4(0.78f, 0.00f, 0.92f, 0.22f) },
         };
 
+        /// <summary>Index 0 is the front-most layer (drawn on top).</summary>
+        public static readonly string[] DefaultLayerOrder =
+        {
+            "prop_translator",
+            "magazine_host",
+            "prop_notes",
+            "prop_polaroid_b",
+            "prop_polaroid_a",
+            "prop_scraps",
+            "desk_bg",
+        };
+
+        public static IReadOnlyList<string> LayerOrder
+        {
+            get
+            {
+                var asset = Asset;
+                if (asset != null && asset.layerOrder != null && asset.layerOrder.Count > 0)
+                    return asset.layerOrder;
+                return DefaultLayerOrder;
+            }
+        }
+
         public static readonly Dictionary<string, string> DisplayNames = new Dictionary<string, string>
         {
-            { "magazine_host", "杂志整体" },
             { "left_page", "左页区域" },
             { "feature_art", "左页插画" },
             { "logo_cn", "中文标题" },
@@ -49,7 +82,9 @@ namespace StreetCat.UI
             { "contents_label", "CONTENTS 文字" },
             { "title_actions", "菜单按钮区" },
             { "tagline", "右页标语" },
-            { "prop_translator", "翻译器" },
+            { "desk_bg", "背景" },
+            { "magazine_host", "杂志与按钮" },
+            { "prop_translator", "喵语翻译器" },
             { "prop_notes", "笔记本" },
             { "prop_polaroid_a", "拍立得A" },
             { "prop_polaroid_b", "拍立得B" },
@@ -173,6 +208,7 @@ namespace StreetCat.UI
             asset.buttonWidth = DefaultButtonWidth;
             asset.buttonHeight = DefaultButtonHeight;
             asset.buttonSpacing = DefaultButtonSpacing;
+            asset.layerOrder = new List<string>(DefaultLayerOrder);
 
             UnityEditor.AssetDatabase.CreateAsset(asset, path);
             UnityEditor.AssetDatabase.SaveAssets();
@@ -180,6 +216,35 @@ namespace StreetCat.UI
             _cached = asset;
             Debug.Log("[TitleMenu] created " + path);
             return asset;
+        }
+
+        public static void EnsureLayerOrder()
+        {
+            var asset = EnsureAsset();
+            if (asset == null) return;
+            if (asset.layerOrder == null)
+                asset.layerOrder = new List<string>();
+            bool dirty = false;
+            if (asset.layerOrder.Count == 0)
+            {
+                asset.layerOrder.AddRange(DefaultLayerOrder);
+                dirty = true;
+            }
+            else
+            {
+                for (int i = 0; i < DefaultLayerOrder.Length; i++)
+                {
+                    if (!asset.layerOrder.Contains(DefaultLayerOrder[i]))
+                    {
+                        asset.layerOrder.Add(DefaultLayerOrder[i]);
+                        dirty = true;
+                    }
+                }
+            }
+            if (!dirty) return;
+            UnityEditor.EditorUtility.SetDirty(asset);
+            UnityEditor.AssetDatabase.SaveAssets();
+            _cached = asset;
         }
 #endif
     }

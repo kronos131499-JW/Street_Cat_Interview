@@ -424,7 +424,7 @@ namespace StreetCat.UI
                 new Vector2(0.04f, 0.16f), new Vector2(0.96f, 0.83f),
                 Vector2.zero, Vector2.zero);
             var vlg = interviewHintRoot.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing = 5f;
+            vlg.spacing = 10f;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childForceExpandWidth = true;
             vlg.childForceExpandHeight = false;
@@ -498,7 +498,7 @@ namespace StreetCat.UI
             clipRt.anchoredPosition = Vector2.zero;
             clipRt.sizeDelta = new Vector2(w, h);
             clipRt.localEulerAngles = new Vector3(0f, 0f, rotZ);
-            var clipSpr = VnArt.GetTitle("deco_paperclip");
+            var clipSpr = VnArt.GetTitle("Shared/deco_paperclip");
             if (clipSpr != null)
             {
                 clip.sprite = clipSpr;
@@ -521,7 +521,7 @@ namespace StreetCat.UI
             trt.anchoredPosition = Vector2.zero;
             trt.sizeDelta = new Vector2(w, h);
             trt.localEulerAngles = new Vector3(0f, 0f, rotZ);
-            var tapeSpr = VnArt.GetTitle("btn_tape_idle");
+            var tapeSpr = VnArt.GetTitle("Shared/btn_tape_idle");
             if (tapeSpr != null)
             {
                 tape.sprite = tapeSpr;
@@ -696,6 +696,8 @@ namespace StreetCat.UI
 
             var ic = InterviewController.Instance;
             var who = ic.Subject == InterviewSubject.Dafu ? "大福" : "林女士";
+            if (LlmClient.Instance != null)
+                LlmClient.Instance.ReloadApiKey();
             bool llmReady = LlmClient.Instance != null
                 && LlmClient.Instance.IsConfigured
                 && ic.Subject != InterviewSubject.None;
@@ -743,8 +745,9 @@ namespace StreetCat.UI
             if (lines == null) return;
             foreach (var line in lines)
             {
-                if (!string.IsNullOrWhiteSpace(line))
-                    DialogueHistory.Instance.Add(who, line.Trim(), "interview");
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var shown = InterviewLoc.LocalizeReplyLine(line.Trim());
+                DialogueHistory.Instance.Add(who, shown, "interview");
             }
         }
 
@@ -1163,13 +1166,13 @@ namespace StreetCat.UI
             hrt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
 
             var face = CreateImage(host.transform, "Face", Color.white);
-            // Zoom into upper body / head — full-body portraits look like noise at tiny sizes.
+            // Keep the head inside the circle. The old box sat above the mask and cropped the face.
             var frt = face.rectTransform;
-            frt.anchorMin = new Vector2(-0.25f, 0.20f);
-            frt.anchorMax = new Vector2(1.25f, 1.55f);
+            frt.anchorMin = new Vector2(0.02f, -0.35f);
+            frt.anchorMax = new Vector2(0.98f, 1.02f);
             frt.offsetMin = Vector2.zero;
             frt.offsetMax = Vector2.zero;
-            face.preserveAspect = false;
+            face.preserveAspect = true;
             face.raycastTarget = false;
 
             Sprite spr = null;
@@ -1358,6 +1361,12 @@ namespace StreetCat.UI
 
             ClearButtons();
             RefreshInterviewView();
+            if (LlmClient.Instance == null || !LlmClient.Instance.IsConfigured)
+            {
+                ShowInterviewBanner(GameSettings.IsEnglish
+                    ? "AI is off — no API key, so replies stay on the rule script. Menu: StreetCat/LLM/Paste API Key."
+                    : "未接入 AI（没有 API Key），现在是规则台词。菜单：StreetCat/LLM/Paste API Key。");
+            }
         }
 
         void HideInterviewBanner()
@@ -1419,8 +1428,7 @@ namespace StreetCat.UI
             RebuildInterviewChatLog();
             UpdateInterviewMeters(InterviewController.Instance?.Stats);
 
-            // End stands alone (danger accent); quieter tools on a second row.
-            AddInterviewAction(UiLoc.T("ui.interview.end_short", "结束"), TryEndInterview, primary: true);
+            // End is the orange tape baked into the interview background (EndInterviewHit).
             if (InterviewController.Instance.IsReinterviewFromWriting)
                 AddInterviewAction(UiLoc.T("ui.interview.back_writing", "返回写稿"), () =>
                 {
@@ -1496,44 +1504,64 @@ namespace StreetCat.UI
 
             // Full question — wrap inside widened right column (no mid-word hard truncate).
             var go = new GameObject("Preset", typeof(RectTransform), typeof(Image), typeof(Button),
-                typeof(LayoutElement), typeof(Outline));
+                typeof(LayoutElement));
             go.transform.SetParent(interviewHintRoot, false);
-            go.GetComponent<Image>().color = IvChipFill;
-            go.GetComponent<Image>().raycastTarget = true;
-            var outline = go.GetComponent<Outline>();
-            outline.effectColor = IvChipOutline;
-            outline.effectDistance = new Vector2(1.2f, -1.2f);
-            outline.useGraphicAlpha = true;
+            var img = go.GetComponent<Image>();
+            var idle = LoadArtPackSprite("自由采访/笔记框（未选中）");
+            var hover = LoadArtPackSprite("自由采访/笔记框（选中）") ?? idle;
+            if (idle != null)
+            {
+                img.sprite = idle;
+                img.type = Image.Type.Simple;
+                img.preserveAspect = false;
+                img.color = Color.white;
+            }
+            else
+                img.color = IvChipFill;
+            img.raycastTarget = true;
+            var btn = go.GetComponent<Button>();
+            if (idle != null && hover != null)
+            {
+                btn.transition = Selectable.Transition.SpriteSwap;
+                btn.spriteState = new SpriteState
+                {
+                    highlightedSprite = hover,
+                    pressedSprite = hover,
+                    selectedSprite = hover,
+                    disabledSprite = idle
+                };
+            }
             var le = go.GetComponent<LayoutElement>();
-            le.minHeight = 70f;
-            le.preferredHeight = 78f;
+            le.minHeight = 92f;
+            le.preferredHeight = 100f;
             le.flexibleWidth = 1f;
+            le.flexibleHeight = 0f;
+
+            if (idle != null)
+            {
+                var cover = CreateImage(go.transform, "Cover", new Color(0.94f, 0.87f, 0.74f, 1f));
+                Stretch(cover.rectTransform, new Vector2(0.07f, 0.16f), new Vector2(0.93f, 0.84f),
+                    Vector2.zero, Vector2.zero);
+                cover.raycastTarget = false;
+            }
+
             string fill = question;
-            go.GetComponent<Button>().onClick.AddListener(() =>
+            btn.onClick.AddListener(() =>
             {
                 SfxController.Instance?.PlayUi();
                 FillInterviewInput(fill);
             });
 
-            var mark = CreateUiText(go.transform, "Mark", 12, TextAnchor.UpperCenter,
-                IvChipMarkTints[colorIdx % IvChipMarkTints.Length],
-                Vector2.zero, Vector2.zero);
-            Stretch(mark.rectTransform, new Vector2(0f, 0.55f), new Vector2(0f, 1f),
-                new Vector2(4f, 2f), new Vector2(20f, -2f));
-            mark.text = IvChipMarks[colorIdx % IvChipMarks.Length];
-            mark.fontStyle = FontStyles.Bold;
-            mark.raycastTarget = false;
-
             var tgo = new GameObject("L", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
             Stretch(tgo.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(1f, 1f),
-                new Vector2(22f, 5f), new Vector2(-6f, -5f));
+                new Vector2(18f, 14f), new Vector2(-16f, -12f));
             var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
-            tx.fontSize = 12.5f;
-            tx.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
-            tx.color = IvInk;
-            tx.text = question;
+            tx.fontSize = 20f;
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
+            tx.color = new Color(0.28f, 0.16f, 0.10f, 1f);
+            tx.text = (colorIdx + 1) + "  " + question;
             tx.raycastTarget = false;
             tx.enableWordWrapping = true;
             tx.overflowMode = TextOverflowModes.Truncate;

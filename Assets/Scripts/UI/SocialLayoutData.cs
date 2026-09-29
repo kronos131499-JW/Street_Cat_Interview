@@ -23,8 +23,8 @@ namespace StreetCat.UI
 
         public void Clamp()
         {
-            width = Mathf.Clamp(width, 220f, 1100f);
-            height = Mathf.Clamp(height, 360f, 1600f);
+            width = Mathf.Clamp(width, 220f, 1400f);
+            height = Mathf.Clamp(height, 360f, 2000f);
             anchorX = Mathf.Clamp01(anchorX);
             anchorY = Mathf.Clamp01(anchorY);
             detailScale = Mathf.Clamp(detailScale, 0.85f, 1.4f);
@@ -32,8 +32,8 @@ namespace StreetCat.UI
 
         public void ApplyDefaults()
         {
-            width = 540f;
-            height = 790f;
+            width = 620f;
+            height = 1020f;
             anchorX = 0.5f;
             anchorY = 0.58f;
             detailScale = 1.06f;

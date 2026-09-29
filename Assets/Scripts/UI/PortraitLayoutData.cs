@@ -15,7 +15,7 @@ namespace StreetCat.UI
         public float slotRight = 0.99f;
         [Tooltip("Top edge (below top HUD)")]
         public float slotTop = 0.98f;
-        [Tooltip("Bottom edge — keep above dialogue panel")]
+        [Tooltip("Bottom edge of the portrait (feet). Lower than the dialogue top lets the figure overlap the text panel.")]
         public float slotBottom = 0.34f;
 
         [Header("Fit within slot")]
@@ -36,7 +36,7 @@ namespace StreetCat.UI
             slotBottom = Mathf.Clamp01(slotBottom);
             if (slotRight - slotLeft < 0.06f)
                 slotRight = Mathf.Min(1f, slotLeft + 0.06f);
-            float minBottom = VnTheme.DialogueTop + 0.02f;
+            float minBottom = VnTheme.PortraitSlotBottomMin;
             if (slotBottom < minBottom)
                 slotBottom = minBottom;
             float minTop = slotBottom + PortraitLayout.MinSlotHeight;

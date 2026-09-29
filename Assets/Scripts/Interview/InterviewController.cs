@@ -138,6 +138,14 @@ namespace StreetCat.Interview
                 log.Add(InterviewLoc.FormatBehavior(reply.behavior));
 
             var lines = overrideLines ?? reply.replyLines;
+            if (GameSettings.IsEnglish && lines != null)
+            {
+                var localized = new List<string>(lines.Count);
+                foreach (var line in lines)
+                    localized.Add(InterviewLoc.LocalizeReplyLine(line));
+                lines = localized;
+                reply.replyLines = localized;
+            }
             var prefix = InterviewLoc.SpeakerPrefix(subject);
             if (lines != null)
             {

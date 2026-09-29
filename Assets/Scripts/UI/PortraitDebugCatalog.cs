@@ -79,7 +79,7 @@ namespace StreetCat.UI
                 return "lin";
             if (name == "Lin" || name.StartsWith("Lin ") || name.EndsWith(" Lin"))
                 return "lin";
-            if (name.Contains("保安") || name.Contains("Uncle Guard") || name.Contains("Guard"))
+            if (name.Contains("保安") || name.Contains("Security Guard") || name.Contains("Uncle Guard") || name.Contains("Guard"))
                 return "guard";
             if (name.Contains("梨花") || name.Contains("李华") || name.Contains("狸花") || name.Contains("Lihua"))
                 return "lihua";

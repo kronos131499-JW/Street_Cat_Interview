@@ -34,6 +34,7 @@ namespace StreetCat.Loc
             new Option { Id = "papernotes", DisplayName = "Papernotes", ResourcesName = "Papernotes", LatinOnly = true, SizeScale = S, LetterSpacing = Sp },
             new Option { Id = "papernotes_bold", DisplayName = "Papernotes Bold", ResourcesName = "PapernotesBold", LatinOnly = true, SizeScale = S, LetterSpacing = Sp },
             new Option { Id = "papernotes_sketch", DisplayName = "Papernotes Sketch", ResourcesName = "PapernotesSketch", LatinOnly = true, SizeScale = S, LetterSpacing = Sp },
+            new Option { Id = "patrick_hand", DisplayName = "Patrick Hand", ResourcesName = "PatrickHand", LatinOnly = true, SizeScale = 1.24f, LetterSpacing = 2.2f },
             new Option { Id = "elegant_bloom", DisplayName = "Elegant Bloom", ResourcesName = "ElegantBloom", LatinOnly = true, SizeScale = S, LetterSpacing = Sp },
             new Option { Id = "barlow", DisplayName = "Barlow Condensed", ResourcesName = "BarlowCondensed", LatinOnly = true, SizeScale = 1.22f, LetterSpacing = 3.5f },
             new Option { Id = "barlow_semibold", DisplayName = "Barlow Condensed SemiBold", ResourcesName = "BarlowCondensedSemiBold", LatinOnly = true, SizeScale = 1.22f, LetterSpacing = 3.5f },

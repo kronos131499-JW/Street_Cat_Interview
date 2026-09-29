@@ -1,11 +1,14 @@
 using StreetCat.UI;
 using UnityEditor;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace StreetCat.Editor
 {
     public class TitleMenuEditorWindow : EditorWindow
     {
+        ReorderableList _layers;
+        TitleMenuLayoutData _layerAsset;
         [MenuItem("街角专访/主菜单布局编辑器")]
         public static void Open()
         {
@@ -33,6 +36,7 @@ namespace StreetCat.Editor
                 "3. Game 视图拖拽青色半透明框：中间移动，四角缩放\n" +
                 "4. 松手写入 Resources/TitleMenuLayout.asset\n" +
                 "CONTENTS 文字与装饰线可分开拖。\n" +
+                "下方列表可拖动调整层级：越靠上越盖在前面。喵语翻译器默认盖在杂志上。\n" +
                 "下方滑条可调胶带按钮宽高（Play 中即时生效）。",
                 MessageType.Info);
 
@@ -81,6 +85,8 @@ namespace StreetCat.Editor
             }
 
             EditorGUILayout.Space(8);
+            DrawLayerOrder();
+
             if (GUILayout.Button("创建 / 选中 Layout 资源"))
             {
                 asset = TitleMenuLayout.EnsureAsset();
@@ -103,11 +109,19 @@ namespace StreetCat.Editor
                     asset.buttonWidth = TitleMenuLayout.DefaultButtonWidth;
                     asset.buttonHeight = TitleMenuLayout.DefaultButtonHeight;
                     asset.buttonSpacing = TitleMenuLayout.DefaultButtonSpacing;
+                    if (asset.layerOrder == null)
+                        asset.layerOrder = new System.Collections.Generic.List<string>();
+                    asset.layerOrder.Clear();
+                    asset.layerOrder.AddRange(TitleMenuLayout.DefaultLayerOrder);
                     EditorUtility.SetDirty(asset);
                     AssetDatabase.SaveAssets();
                     TitleMenuLayout.InvalidateCache();
+                    _layers = null;
                     if (Application.isPlaying && GameUI.Instance != null)
+                    {
                         GameUI.Instance.ApplyTitleButtonMetrics();
+                        GameUI.Instance.ApplyTitleLayerOrder();
+                    }
                 }
             }
 
@@ -142,5 +156,38 @@ namespace StreetCat.Editor
         }
 
         void OnInspectorUpdate() => Repaint();
+
+        void DrawLayerOrder()
+        {
+            TitleMenuLayout.EnsureLayerOrder();
+            var asset = TitleMenuLayout.Asset;
+            if (asset == null || asset.layerOrder == null) return;
+
+            if (_layers == null || _layerAsset != asset)
+            {
+                _layerAsset = asset;
+                _layers = new ReorderableList(asset.layerOrder, typeof(string), true, true, false, false);
+                _layers.drawHeaderCallback = rect =>
+                    EditorGUI.LabelField(rect, "组件层级（拖到上方 = 盖在最上面）");
+                _layers.drawElementCallback = (rect, index, active, focused) =>
+                {
+                    if (index < 0 || index >= asset.layerOrder.Count) return;
+                    var id = asset.layerOrder[index];
+                    var name = TitleMenuLayout.DisplayNames.TryGetValue(id, out var n) ? n : id;
+                    EditorGUI.LabelField(rect, name);
+                };
+                _layers.onReorderCallback = _ =>
+                {
+                    EditorUtility.SetDirty(asset);
+                    AssetDatabase.SaveAssets();
+                    TitleMenuLayout.InvalidateCache();
+                    if (Application.isPlaying && GameUI.Instance != null)
+                        GameUI.Instance.ApplyTitleLayerOrder();
+                };
+            }
+
+            EditorGUILayout.LabelField("组件层级", EditorStyles.boldLabel);
+            _layers.DoLayoutList();
+        }
     }
 }

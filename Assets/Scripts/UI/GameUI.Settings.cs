@@ -527,7 +527,7 @@ namespace StreetCat.UI
                 ShowInvestigationMode();
         }
 
-        /// <summary>Top-right Skip / Backlog / Menu chips — UiLoc TMP in EN, icons-only in ZH.</summary>
+        /// <summary>Top-right Skip / Backlog / Menu chips — live labels so the settings font applies.</summary>
         void RefreshHudChipLocalizedChrome()
         {
             if (hudActionsRoot == null) return;
@@ -545,39 +545,19 @@ namespace StreetCat.UI
 
         void RebuildTitleActionsOnly()
         {
-            ClearButtons();
-            AddAction(UiLoc.T("ui.title.new_game"), () => ChapterFlowController.Instance.StartNewGame(), true);
-            AddAction(UiLoc.T("ui.title.continue"), () => ChapterFlowController.Instance.ContinueOrNew());
-            AddAction(UiLoc.T("ui.title.load"), () => OpenSaveLoad(false));
-            AddAction(UiLoc.T("ui.title.clear_saves"), () =>
-            {
-                SaveSystem.Delete();
-                SetTitleTaglineMessage(true);
-            });
-            AddAction(UiLoc.T("ui.title.settings"), OpenSettings);
-            AddAction(UiLoc.T("ui.title.quit"), () =>
-            {
-#if UNITY_EDITOR
-                UnityEditor.EditorApplication.isPlaying = false;
-#else
-                Application.Quit();
-#endif
-            });
+            BuildTitleMenuButtons();
             ApplyTitleLanguageVisuals();
         }
 
         void ApplyTitleLanguageVisuals()
         {
-            bool en = GameSettings.IsEnglish;
             if (titleLogoCn != null)
-                titleLogoCn.gameObject.SetActive(!en && titleLogoCn.sprite != null);
+                titleLogoCn.gameObject.SetActive(false);
             if (titleLogoEn != null)
-                titleLogoEn.gameObject.SetActive(en && titleLogoEn.sprite != null);
+                titleLogoEn.gameObject.SetActive(false);
             if (titleBrand != null)
             {
-                bool showBrand = (en ? titleLogoEn == null || titleLogoEn.sprite == null
-                    : titleLogoCn == null || titleLogoCn.sprite == null);
-                titleBrand.gameObject.SetActive(showBrand);
+                titleBrand.gameObject.SetActive(true);
                 titleBrand.text = UiLoc.T("ui.title.brand");
                 StyleTitleMenuFittedText(titleBrand, 50, true);
             }

@@ -134,7 +134,7 @@
     },
     {
       "key": "ui.click_ctrl_skip",
-      "value": "Click to continue · Hold Ctrl to skip"
+      "value": "Hold Ctrl to skip"
     },
     {
       "key": "ui.status_advance",
@@ -870,11 +870,11 @@
     },
     {
       "key": "ui.interview.miss.past_afraid",
-      "value": "Whether it used to fear people / why it stays near the booth"
+      "value": "Whether he used to fear people / why he stays near the booth"
     },
     {
       "key": "ui.interview.miss.neck",
-      "value": "Old neck injury / whatever was around its neck"
+      "value": "Old neck injury / whatever was around his neck"
     },
     {
       "key": "ui.interview.miss.feeding",
@@ -922,7 +922,7 @@
     },
     {
       "key": "ui.interview.miss.release",
-      "value": "Why it was returned to the neighborhood"
+      "value": "Why he was returned to the neighborhood"
     },
     {
       "key": "ui.interview.miss.community",
@@ -950,7 +950,7 @@
     },
     {
       "key": "ui.interview.hint.boundary",
-      "value": "That hit concepts it can't understand. Ask about pain, smell, the cage, or waking up."
+      "value": "That hit concepts he can't understand. Ask about pain, smell, the cage, or waking up."
     },
     {
       "key": "ui.interview.hint.repeat",
@@ -962,7 +962,7 @@
     },
     {
       "key": "ui.interview.hint.generic_dafu",
-      "value": "Try its daily life, old injury, or people it knows."
+      "value": "Try his daily life, old injury, or people he knows."
     },
     {
       "key": "ui.interview.hint.generic_lin",
@@ -990,7 +990,7 @@
     },
     {
       "key": "ui.interview.hint.open_dafu",
-      "value": "Start with daily life, the neck injury, or people it knows."
+      "value": "Start with daily life, the neck injury, or people he knows."
     },
     {
       "key": "ui.interview.hint.open_lin",
@@ -1014,7 +1014,7 @@
     },
     {
       "key": "ui.interview.chip.lin_next_capture",
-      "value": "After the wound worsened, how did you get it to a clinic?"
+      "value": "After the wound worsened, how did you get him to a clinic?"
     },
     {
       "key": "ui.interview.chip.lin_next_injury",
@@ -1038,7 +1038,7 @@
     },
     {
       "key": "ui.interview.chip.lin_next_community",
-      "value": "After the return, did anyone keep looking after it?"
+      "value": "After the return, did anyone keep looking after him?"
     },
     {
       "key": "ui.interview.chip.dafu_next_past",
@@ -1102,7 +1102,7 @@
     },
     {
       "key": "ui.interview.chip.lin_fb3",
-      "value": "Why send it back to the community?"
+      "value": "Why send him back to the community?"
     },
     {
       "key": "ui.interview.chip.dafu_fb1",
@@ -1134,7 +1134,7 @@
     },
     {
       "key": "ui.interview.chip.lin_fb8",
-      "value": "After the return, did anyone keep looking after it?"
+      "value": "After the return, did anyone keep looking after him?"
     },
     {
       "key": "ui.interview.chip.dafu_fb4",

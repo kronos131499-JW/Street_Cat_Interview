@@ -75,7 +75,49 @@ namespace StreetCat.Interview
                 return "too_broad";
             if (ContainsAny(input, "提示词", "系统", "忽略设定", "完整剧情", "总统", "写诗"))
                 return "oob";
+            var english = ClassifyEnglish(input);
+            if (english != null)
+                return english;
             return "generic";
+        }
+
+        /// <summary>English free-interview prompts. Chinese matches return earlier.</summary>
+        string ClassifyEnglish(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return null;
+            if (ContainsAny(input, "surgery", "hospital", "veterinarian", "panleuk", "distemper",
+                    "adoption", "how much", "medical bill", "owner"))
+                return "cognitive_boundary";
+            if (ContainsAny(input, "recover", "got better", "loosened", "take it off", "took it off",
+                    "untied", "rubbed off", "rubbed it"))
+                return "strange_place";
+            if (ContainsAny(input, "neck", "hurt", "wound", "rope", "scar", "strangl"))
+                return "neck";
+            if (ContainsAny(input, "hungry", "food today", "got food", "treats", "snack", "want to eat"))
+                return "hungry";
+            if (ContainsAny(input, "woman", "fed you", "bring you food", "who feeds", "who gave you"))
+                return "woman";
+            if (ContainsAny(input, "cage", "carrier", "take you away", "taken away", "caught you"))
+                return "capture";
+            if (ContainsAny(input, "bright", "smell", "slept", "woke"))
+                return "strange_place";
+            if (ContainsAny(input, "brought you back", "bring you back", "sent you back", "who brought", "come back"))
+                return "return";
+            if (ContainsAny(input, "used to", "afraid", "scared of", "used to hide"))
+                return "past_fear";
+            if (ContainsAny(input, "your name", "what's your name", "what is your name"))
+                return "name";
+            if (ContainsAny(input, "happy", "do you like", "comfortable"))
+                return "feeling";
+            if (ContainsAny(input, "hello", "hi there", "good morning"))
+                return "greeting";
+            if (ContainsAny(input, "guard", "locker", "booth", "usually come", "usually show", "where do you", "when do you"))
+                return "daily";
+            if (ContainsAny(input, "whole story", "tell me everything", "everything that"))
+                return "too_broad";
+            if (ContainsAny(input, "system prompt", "ignore the setting", "ignore instructions"))
+                return "oob";
+            return null;
         }
 
         protected override InterviewReply BuildReply(string input, string intent)

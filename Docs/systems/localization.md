@@ -19,12 +19,14 @@ Bundled files live in `Assets/Resources/Fonts/`. Latin display fonts lack Chines
 **Barlow Condensed / Lora** use larger size scale (~1.18–1.22) and extra letter spacing via `UILetterSpacing`.
 | `Assets/Scripts/Loc/ScriptLoc.cs` | Script overlay by `sceneId:lineIndex` |
 | `Assets/Resources/Loc/ui_zh.json` / `ui_en.json` | Shell UI |
-| `Assets/Resources/Loc/scripts_en.json` | Chapter 1 fixed dialogue EN |
+| `Assets/Resources/Loc/scripts_en.json` | Chapter 1 fixed dialogue EN (generated base) |
+| `Assets/Resources/Loc/scripts_overrides_en.json` | Per-line English edits from 街角专访/对白文本编辑器 |
+| `Assets/Resources/Loc/scripts_overrides_zh.json` | Per-line Chinese edits; applied only in zh |
 | `Tools/gen_scripts_en.py` | Regenerates `scripts_en.json` from `BuiltInScripts.cs` |
 
 ## Speaker names (EN)
 
-小凌→Ling, 沈禾→Shen He, 保安叔叔→Uncle Guard, 大福→Dafu, 林女士→Ms. Lin, 系统→System
+小凌→Ling, 沈禾→Shen He, 保安叔叔→Security Guard, 大福→Dafu, 林女士→Ms. Lin, 系统→System
 
 ## Deferred (still Chinese in EN mode)
 
@@ -37,3 +39,5 @@ python Tools/gen_scripts_en.py
 ```
 
 (Requires editing the `TR` map in that script when Chinese lines change.)
+
+Line edits from **街角专访 / 对白文本编辑器** are stored in the override files, not in `scripts_en.json`, so regenerating the English base does not wipe them. An English edit never writes the Chinese file, and the reverse.

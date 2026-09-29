@@ -67,6 +67,40 @@ namespace StreetCat.UI
             return asset;
         }
 
+        /// <summary>
+        /// Generic UI editor selected the phone frame. Store its size and anchor in this asset.
+        /// </summary>
+        public static bool TrySaveFromRect(RectTransform target)
+        {
+            if (target == null) return false;
+            var phone = target.name == "Phone" ? target : target.parent as RectTransform;
+            if (phone == null || phone.name != "Phone") return false;
+
+            var asset = EnsureAsset();
+            if (asset == null) return false;
+
+            float visualScale = Mathf.Max(0.01f, phone.lossyScale.x);
+            var canvas = phone.GetComponentInParent<Canvas>();
+            float canvasScale = canvas != null && canvas.scaleFactor > 0.01f ? canvas.scaleFactor : 1f;
+            float local = visualScale / canvasScale;
+            asset.width = Mathf.Max(40f, phone.rect.width * local);
+            asset.height = Mathf.Max(40f, phone.rect.height * local);
+
+            float ax = phone.anchorMin.x;
+            float ay = phone.anchorMin.y;
+            var parent = phone.parent as RectTransform;
+            if (parent != null && parent.rect.width > 1f && parent.rect.height > 1f)
+            {
+                ax += phone.anchoredPosition.x / parent.rect.width;
+                ay += phone.anchoredPosition.y / parent.rect.height;
+            }
+            asset.anchorX = ax;
+            asset.anchorY = ay;
+            asset.Clamp();
+            SaveCurrent();
+            return true;
+        }
+
         public static void SaveCurrent()
         {
             var asset = EnsureAsset();

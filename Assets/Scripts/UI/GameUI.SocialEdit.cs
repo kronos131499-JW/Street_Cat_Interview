@@ -110,11 +110,11 @@ namespace StreetCat.UI
             }
 
             bool changed = false;
-            float nw = GUILayout.HorizontalSlider(d.width, 220f, 1100f);
+            float nw = GUILayout.HorizontalSlider(d.width, 220f, 1400f);
             GUILayout.Label($"宽度 {nw:F0}");
             if (!Mathf.Approximately(nw, d.width)) { d.width = nw; changed = true; }
 
-            float nh = GUILayout.HorizontalSlider(d.height, 360f, 1600f);
+            float nh = GUILayout.HorizontalSlider(d.height, 360f, 2000f);
             GUILayout.Label($"高度 {nh:F0}");
             if (!Mathf.Approximately(nh, d.height)) { d.height = nh; changed = true; }
 
@@ -325,20 +325,20 @@ namespace StreetCat.UI
                     d.anchorY = Mathf.Clamp01(_socialDragAy - deltaGui.y / sh);
                     break;
                 case SocialDragBR:
-                    d.width = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, 1100f);
-                    d.height = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 1600f);
+                    d.width = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, 1400f);
+                    d.height = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 2000f);
                     break;
                 case SocialDragBL:
-                    d.width = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, 1100f);
-                    d.height = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 1600f);
+                    d.width = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, 1400f);
+                    d.height = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 2000f);
                     break;
                 case SocialDragTR:
-                    d.width = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, 1100f);
-                    d.height = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 1600f);
+                    d.width = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, 1400f);
+                    d.height = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 2000f);
                     break;
                 case SocialDragTL:
-                    d.width = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, 1100f);
-                    d.height = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 1600f);
+                    d.width = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, 1400f);
+                    d.height = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 2000f);
                     break;
             }
             d.Clamp();

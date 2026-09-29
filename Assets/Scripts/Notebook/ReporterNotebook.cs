@@ -242,6 +242,12 @@ namespace StreetCat.Notebook
                 UnlockNote("rescuer", "r_id_1", "当年把大福送去治疗的人是社区居民林女士。", "保安叔叔", TopicStatus.Open);
                 UnlockNote("rescuer", "r_id_2", "保安确认，大福康复后也是由她送回社区。", "保安叔叔", TopicStatus.Open);
             }
+            if (gs.HasFlag(FlagIds.LinAppointmentNoted) || gs.HasFlag(FlagIds.LingPhoneChatDone))
+            {
+                UnlockNote("rescuer", "r_meet",
+                    "明天下午三点，在槐安社区南门外的咖啡馆见林敏。",
+                    "消息", TopicStatus.Open);
+            }
             else
             {
                 SetTitle("rescuer", "大福的救助者");

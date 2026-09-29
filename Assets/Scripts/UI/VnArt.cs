@@ -204,7 +204,7 @@ namespace StreetCat.UI
             // Avoid matching "Ling" via substring "Lin".
             if (name == "Lin" || name.StartsWith("Lin ") || name.EndsWith(" Lin"))
                 return ResolveLinExpression(name, expression);
-            if (name.Contains("保安") || name.Contains("Uncle Guard") || name.Contains("Guard"))
+            if (name.Contains("保安") || name.Contains("Security Guard") || name.Contains("Uncle Guard") || name.Contains("Guard"))
                 return ResolveGuardExpression(name, expression);
             if (name.Contains("梨花") || name.Contains("李华") || name.Contains("狸花") || name.Contains("Lihua"))
                 return "ch_lihua_default";
@@ -387,6 +387,7 @@ namespace StreetCat.UI
                 // UI mockups / stage plates: prefer crisp sampling once loaded.
                 // Import settings should also be uncompressed; this covers stale caches.
                 bool uiOrBg = resourcesPath.StartsWith("VnArt/UI/", System.StringComparison.Ordinal)
+                              || resourcesPath.StartsWith("VnArt/Title/", System.StringComparison.Ordinal)
                               || resourcesPath.StartsWith("VnArt/Backgrounds/", System.StringComparison.Ordinal)
                               || resourcesPath.StartsWith("VnArt/KeyArt/", System.StringComparison.Ordinal);
                 if (uiOrBg)

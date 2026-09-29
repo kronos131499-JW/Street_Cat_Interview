@@ -26,13 +26,22 @@ namespace StreetCat.UI
 
         const float SocialFadeDuration = 0.32f;
         /// <summary>Fallback when SocialLayout.asset is missing.</summary>
-        const float SocialDefaultWidth = 540f;
-        const float SocialDefaultHeight = 790f;
+        const float SocialDefaultWidth = 620f;
+        const float SocialDefaultHeight = 1020f;
         const float SocialDefaultDetailScale = 1.06f;
-        /// <summary>Normalized gap above the dialogue parchment / below top HUD.</summary>
-        const float SocialDialogueClearance = 0.018f;
-        const float SocialTopClearance = 0.008f;
+        /// <summary>Keep a hair of air above the dialogue parchment and under the screen top.</summary>
+        const float SocialDialogueClearance = 0.006f;
+        const float SocialTopClearance = 0f;
         bool socialShowingDetail;
+
+        static void SharpenSocialSprite(Sprite sprite)
+        {
+            var tex = sprite != null ? sprite.texture : null;
+            if (tex == null) return;
+            tex.filterMode = FilterMode.Bilinear;
+            tex.anisoLevel = 0;
+            tex.mipMapBias = -1.5f;
+        }
 
         static bool IsSocialHideCue(string cue)
         {
@@ -52,35 +61,48 @@ namespace StreetCat.UI
             float detailScale = d != null && d.detailScale > 0.1f ? d.detailScale : SocialDefaultDetailScale;
             float scale = detail ? detailScale : 1f;
 
-            // Fit between dialogue top and HUD using the live canvas height (not a hardcoded 1080).
-            float canvasH = 1080f;
-            if (canvasRt != null && canvasRt.rect.height > 1f)
-                canvasH = canvasRt.rect.height;
+            // Fit between dialogue top and HUD in screen pixels.
+            // sizeDelta is in canvas units and CanvasScaler multiplies by scaleFactor.
+            // Using canvas.rect.height (often already the screen height) on top of that
+            // shrinks the phone twice, so a 1700px mockup lands on ~200px and looks soft.
+            float pixelScale = 1f;
+            if (canvasRt != null)
+            {
+                var root = canvasRt.GetComponent<Canvas>();
+                if (root != null && !root.isRootCanvas && root.rootCanvas != null)
+                    root = root.rootCanvas;
+                if (root != null && root.scaleFactor > 0.01f)
+                    pixelScale = root.scaleFactor;
+            }
 
             float dialogueTop = VnTheme.DialogueTop;
             if (dialoguePanel != null)
                 dialogueTop = Mathf.Max(dialogueTop, dialoguePanel.rectTransform.anchorMax.y);
             float botLimit = dialogueTop + SocialDialogueClearance;
-            float topLimit = VnTheme.TopHudBottom - SocialTopClearance;
+            // Top HUD is a thin corner strip. A centered phone can sit higher without covering it.
+            float topLimit = 0.99f - SocialTopClearance;
             float availNorm = Mathf.Max(0.28f, topLimit - botLimit);
-            float maxPhonePx = availNorm * canvasH;
-            float phonePx = h * scale;
-            if (phonePx > maxPhonePx && h > 1f)
+            float screenH = Mathf.Max(1f, Screen.height);
+            float availPx = availNorm * screenH;
+            float phonePx = h * scale * pixelScale;
+            // The generic UI editor and the social editor both resize this frame.
+            // Don't immediately scale that size back down, or the click looks like a miss.
+            bool editingLayout = false;
+#if UNITY_EDITOR
+            editingLayout = UILayoutEditMode.Enabled || SocialEditMode.Enabled;
+#endif
+            if (!editingLayout && phonePx > availPx && h > 1f)
             {
-                scale *= maxPhonePx / phonePx;
-                phonePx = h * scale;
+                scale *= availPx / phonePx;
+                phonePx = h * scale * pixelScale;
             }
 
             // Soft clamp: only nudge when the saved anchor would clip past dialogue/HUD.
-            // Skip in social edit mode so Game-view drags match what you save.
-            float halfHNorm = phonePx / canvasH * 0.5f;
+            // Skip while editing so Game-view drags match what you save.
+            float halfHNorm = phonePx / Mathf.Max(1f, Screen.height) * 0.5f;
             float minAy = botLimit + halfHNorm;
             float maxAy = topLimit - halfHNorm;
-            bool editingSocial = false;
-#if UNITY_EDITOR
-            editingSocial = SocialEditMode.Enabled;
-#endif
-            if (!editingSocial)
+            if (!editingLayout)
             {
                 if (minAy <= maxAy)
                     ay = Mathf.Clamp(ay, minAy, maxAy);
@@ -249,6 +271,7 @@ namespace StreetCat.UI
             socialRoot.SetActive(true);
 
             var sprite = ArtPackSocialSprite(resourceKey) ?? VnArt.GetUi("Social/" + resourceKey);
+            SharpenSocialSprite(sprite);
             if (sprite == null)
             {
                 Debug.LogWarning("[GameUI] Social sprite missing: Social/" + resourceKey);
@@ -258,6 +281,48 @@ namespace StreetCat.UI
 
             if (socialCo != null) StopCoroutine(socialCo);
             socialCo = StartCoroutine(SocialCrossfadeCo(sprite, resourceKey, detail, instant));
+        }
+
+        /// <summary>
+        /// Show one final chat screenshot in the existing phone frame.
+        /// Swaps in place: same rect, original aspect, no extra scroll.
+        /// </summary>
+        void ShowMessageScreen(string fileStem)
+        {
+            if (string.IsNullOrEmpty(fileStem)) return;
+            if (!socialBuilt && canvasRt != null)
+                BuildSocialOverlay(canvasRt);
+            if (socialRoot == null) return;
+
+            var sprite = VnArt.GetUi("Messages/" + fileStem);
+            SharpenSocialSprite(sprite);
+            if (sprite == null)
+            {
+                Debug.LogWarning("[GameUI] Message screen missing: Messages/" + fileStem);
+                return;
+            }
+
+            if (socialCo != null)
+            {
+                StopCoroutine(socialCo);
+                socialCo = null;
+            }
+
+            socialRoot.SetActive(true);
+            socialRootFade.alpha = 1f;
+            ApplySocialPhoneLayout(detail: false);
+
+            socialLayerA.sprite = sprite;
+            socialLayerA.type = Image.Type.Simple;
+            socialLayerA.preserveAspect = true;
+            socialLayerA.color = Color.white;
+            socialLayerA.enabled = true;
+            socialFadeA.alpha = 1f;
+            socialLayerB.sprite = null;
+            socialFadeB.alpha = 0f;
+            socialAIsFront = true;
+            socialSpriteKey = "msg:" + fileStem;
+            socialShowingDetail = false;
         }
 
         void SocialHide(bool instant)

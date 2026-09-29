@@ -55,18 +55,58 @@ namespace StreetCat.Investigation
         }
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// Persist the hotspot's visible box. Anchors alone miss a dragged
+        /// anchoredPosition, which the generic UI editor uses.
+        /// </summary>
+        public static bool TrySaveFromRect(RectTransform rt)
+        {
+            if (rt == null || string.IsNullOrEmpty(rt.name) || !rt.name.StartsWith("Spot_"))
+                return false;
+            var id = rt.name.Substring("Spot_".Length);
+            if (!TryReadNormalizedRect(rt, out var rect))
+                return false;
+            return WriteRect(id, rect);
+        }
+
         public static void SaveRectFromTransform(string hotspotId, RectTransform rt)
         {
             if (string.IsNullOrEmpty(hotspotId) || rt == null) return;
-            var asset = EnsureAsset();
-            if (asset == null) return;
+            if (!TryReadNormalizedRect(rt, out var rect))
+                rect = new Vector4(rt.anchorMin.x, rt.anchorMin.y, rt.anchorMax.x, rt.anchorMax.y);
+            WriteRect(hotspotId, rect);
+        }
 
-            var rect = new Vector4(rt.anchorMin.x, rt.anchorMin.y, rt.anchorMax.x, rt.anchorMax.y);
+        static bool WriteRect(string hotspotId, Vector4 rect)
+        {
+            var asset = EnsureAsset();
+            if (asset == null) return false;
             asset.SetRect(hotspotId, rect);
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _cached = asset;
             Debug.Log($"[InvestigateHotspot] saved {hotspotId} = ({rect.x:F3}, {rect.y:F3}, {rect.z:F3}, {rect.w:F3})");
+            return true;
+        }
+
+        static bool TryReadNormalizedRect(RectTransform rt, out Vector4 rect)
+        {
+            rect = default;
+            var parent = rt.parent as RectTransform;
+            if (parent == null) return false;
+            var bounds = parent.rect;
+            if (bounds.width < 1f || bounds.height < 1f) return false;
+
+            var corners = new Vector3[4];
+            rt.GetWorldCorners(corners);
+            var bl = parent.InverseTransformPoint(corners[0]);
+            var tr = parent.InverseTransformPoint(corners[2]);
+            rect = new Vector4(
+                Mathf.InverseLerp(bounds.xMin, bounds.xMax, bl.x),
+                Mathf.InverseLerp(bounds.yMin, bounds.yMax, bl.y),
+                Mathf.InverseLerp(bounds.xMin, bounds.xMax, tr.x),
+                Mathf.InverseLerp(bounds.yMin, bounds.yMax, tr.y));
+            return true;
         }
 
         public static InvestigateHotspotLayoutData EnsureAsset()

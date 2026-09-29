@@ -15,7 +15,7 @@ MonoBehaviour:
   slotLeft: 0.6300498
   slotRight: 0.9621884
   slotTop: 0.8745362
-  slotBottom: 0.3
+  slotBottom: 0.253
   heightScale: 1.080317
   centerBias: 0.5775123
-  offsetY: -0.14144279
+  offsetY: 0

@@ -14,6 +14,8 @@ namespace StreetCat.UI
         public static bool LockSelection { get => EditorPrefs.GetBool(Prefix + "LockSel", false); set => EditorPrefs.SetBool(Prefix + "LockSel", value); }
         /// <summary>Skip near-fullscreen dimmers / catchers when picking.</summary>
         public static bool SkipFullscreenCatchers { get => EditorPrefs.GetBool(Prefix + "SkipFS", true); set => EditorPrefs.SetBool(Prefix + "SkipFS", value); }
+        /// <summary>Clicks select the text itself so font and size can be edited.</summary>
+        public static bool TextFocus { get => EditorPrefs.GetBool(Prefix + "TextFocus", false); set => EditorPrefs.SetBool(Prefix + "TextFocus", value); }
     }
 }
 #endif

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using TMPro;
 using UnityEngine;
 
 namespace StreetCat.UI
@@ -63,7 +64,7 @@ namespace StreetCat.UI
             if (target != null && IsProtectedSystemOverlay(target.name))
                 return false;
             var path = GetPath(canvas, target);
-            if (IsSocialOwnedPath(path))
+            if (IsSocialOwnedPath(path) || IsInvestigateHotspotPath(path))
                 return false;
             var data = Asset;
             if (data == null) return false;
@@ -92,6 +93,24 @@ namespace StreetCat.UI
             return path.IndexOf("SocialOverlay", System.StringComparison.Ordinal) >= 0;
         }
 
+        /// <summary>
+        /// Map hotspots are owned by InvestigateHotspotLayout.asset.
+        /// A generic override here wins on the next visit and looks like the hotspot editor failed to save.
+        /// </summary>
+        public static bool IsInvestigateHotspotPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            return path.IndexOf("HotspotLayer", System.StringComparison.Ordinal) >= 0
+                   && path.IndexOf("/Spot_", System.StringComparison.Ordinal) >= 0;
+        }
+
+        public static bool IsInvestigateHotspotSpot(RectTransform target)
+        {
+            if (target == null || string.IsNullOrEmpty(target.name) || !target.name.StartsWith("Spot_"))
+                return false;
+            return target.parent != null && target.parent.name == "HotspotLayer";
+        }
+
         public static void Apply(RectTransform target, UILayoutOverrideEntry entry)
         {
             if (target == null || entry == null) return;
@@ -112,6 +131,75 @@ namespace StreetCat.UI
             target.pivot = entry.pivot;
             target.sizeDelta = entry.sizeDelta;
             target.anchoredPosition = entry.anchoredPosition;
+            var fitter = target.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+            if (fitter != null) fitter.enabled = false;
+            ApplyTextStyle(target.GetComponent<TextMeshProUGUI>(), entry);
+        }
+
+        public static bool HasTextStyle(UILayoutOverrideEntry entry)
+        {
+            if (entry == null) return false;
+            return !string.IsNullOrEmpty(entry.fontId)
+                   || entry.fontSize > 1f
+                   || entry.overrideLetterSpacing
+                   || entry.overrideFontStyle
+                   || entry.overrideColor;
+        }
+
+        public static void ApplyTextStyle(TextMeshProUGUI text, UILayoutOverrideEntry entry)
+        {
+            if (text == null || entry == null || !HasTextStyle(entry)) return;
+            if (!string.IsNullOrEmpty(entry.fontId))
+            {
+                var face = StreetCat.Loc.TmpFontCatalog.Resolve(entry.fontId);
+                if (face != null) text.font = face;
+            }
+            if (entry.fontSize > 1f)
+            {
+                text.enableAutoSizing = false;
+                text.fontSize = entry.fontSize;
+            }
+            if (entry.overrideLetterSpacing)
+                VnText.ApplyLetterSpacing(text, entry.letterSpacing);
+            if (entry.overrideFontStyle)
+            {
+                var style = text.fontStyle;
+                style = entry.bold ? (style | FontStyles.Bold) : (style & ~FontStyles.Bold);
+                text.fontStyle = style;
+            }
+            if (entry.overrideColor)
+                text.color = entry.textColor;
+
+            var input = text.GetComponentInParent<TMP_InputField>();
+            if (input != null && text.font != null &&
+                (input.textComponent == text || input.placeholder == text))
+                input.fontAsset = text.font;
+        }
+
+        /// <summary>
+        /// Put per-text font/size/spacing/color back after the global settings font is applied.
+        /// </summary>
+        public static void ReapplyTextStyles()
+        {
+            var data = Asset;
+            if (data == null || data.entries == null || data.entries.Count == 0) return;
+            var canvases = Object.FindObjectsOfType<Canvas>(true);
+            var rects = new List<RectTransform>(256);
+            for (var c = 0; c < canvases.Length; c++)
+            {
+                var canvas = canvases[c];
+                if (canvas == null || !canvas.isRootCanvas) continue;
+                rects.Clear();
+                canvas.GetComponentsInChildren(true, rects);
+                for (var i = 0; i < rects.Count; i++)
+                {
+                    var target = rects[i];
+                    if (target == null) continue;
+                    var entry = data.Find(GetPath(canvas, target));
+                    if (entry == null || entry.deleted || !HasTextStyle(entry)) continue;
+                    ApplyTextStyle(target.GetComponent<TextMeshProUGUI>(), entry);
+                }
+            }
         }
 
         static int GetSameNameIndex(Transform target)
@@ -130,6 +218,16 @@ namespace StreetCat.UI
 
 #if UNITY_EDITOR
         static string Timestamp() => System.DateTime.Now.ToString("HH:mm:ss");
+
+        static void DropStaleHotspotOverride(string path)
+        {
+            var asset = Asset;
+            if (asset == null || string.IsNullOrEmpty(path) || !asset.Remove(path)) return;
+            UnityEditor.EditorUtility.SetDirty(asset);
+            UnityEditor.AssetDatabase.SaveAssets();
+            _cached = asset;
+            _revision++;
+        }
 
         public static UILayoutOverrideData EnsureAsset()
         {
@@ -159,7 +257,23 @@ namespace StreetCat.UI
             var path = GetPath(canvas, target);
             if (IsSocialOwnedPath(path))
             {
+                if (SocialLayout.TrySaveFromRect(target))
+                {
+                    RecordOperation(true, "saved social phone → SocialLayout.asset @ " + Timestamp());
+                    return true;
+                }
                 RecordOperation(false, "save blocked — use 社交帖子布局编辑器 for " + path + " @ " + Timestamp());
+                return false;
+            }
+            if (IsInvestigateHotspotPath(path) || IsInvestigateHotspotSpot(target))
+            {
+                if (StreetCat.Investigation.InvestigateHotspotLayout.TrySaveFromRect(target))
+                {
+                    DropStaleHotspotOverride(path);
+                    RecordOperation(true, "saved hotspot → InvestigateHotspotLayout.asset | " + target.name + " @ " + Timestamp());
+                    return true;
+                }
+                RecordOperation(false, "hotspot save failed — " + target.name + " @ " + Timestamp());
                 return false;
             }
             if (string.IsNullOrEmpty(path))
@@ -180,6 +294,61 @@ namespace StreetCat.UI
             _cached = asset;
             _revision++;
             RecordOperation(true, "saved → " + AssetDiskPath + " | " + path + " @ " + Timestamp());
+            return true;
+        }
+
+        public static bool SaveTextStyle(
+            Canvas canvas,
+            RectTransform target,
+            string fontId,
+            bool customSize,
+            float fontSize,
+            bool customSpacing,
+            float spacing,
+            bool customStyle,
+            bool bold,
+            bool customColor,
+            Color color)
+        {
+            if (target != null && IsProtectedSystemOverlay(target.name))
+            {
+                RecordOperation(false, "text style blocked — system overlay @ " + Timestamp());
+                return false;
+            }
+            var path = GetPath(canvas, target);
+            if (string.IsNullOrEmpty(path) || IsSocialOwnedPath(path) || IsInvestigateHotspotPath(path))
+            {
+                RecordOperation(false, "text style failed — invalid path @ " + Timestamp());
+                return false;
+            }
+            var asset = EnsureAsset();
+            if (asset == null)
+            {
+                RecordOperation(false, "text style failed — no asset @ " + Timestamp());
+                return false;
+            }
+            UnityEditor.Undo.RecordObject(asset, "Save Text Style");
+            if (asset.Find(path) == null)
+                asset.Set(path, target);
+            var entry = asset.Find(path);
+            if (entry == null)
+            {
+                RecordOperation(false, "text style failed — no entry @ " + Timestamp());
+                return false;
+            }
+            entry.fontId = fontId ?? "";
+            entry.fontSize = customSize ? Mathf.Clamp(fontSize, 8f, 96f) : 0f;
+            entry.overrideLetterSpacing = customSpacing;
+            entry.letterSpacing = Mathf.Clamp(spacing, 0f, 20f);
+            entry.overrideFontStyle = customStyle;
+            entry.bold = bold;
+            entry.overrideColor = customColor;
+            entry.textColor = color;
+            UnityEditor.EditorUtility.SetDirty(asset);
+            UnityEditor.AssetDatabase.SaveAssets();
+            _cached = asset;
+            _revision++;
+            RecordOperation(true, "text style → " + path + " @ " + Timestamp());
             return true;
         }
 
@@ -212,6 +381,11 @@ namespace StreetCat.UI
                 RecordOperation(false, "delete blocked — system overlay (" + target.name + ") @ " + Timestamp());
                 return false;
             }
+            if (IsInvestigateHotspotSpot(target))
+            {
+                RecordOperation(false, "调查热点不能从通用布局删除，请用调查热点编辑器移动 @ " + Timestamp());
+                return false;
+            }
             var path = GetPath(canvas, target);
             if (IsSocialOwnedPath(path))
             {
@@ -236,6 +410,29 @@ namespace StreetCat.UI
             _cached = asset;
             _revision++;
             RecordOperation(true, "deleted (hidden) " + path + " @ " + Timestamp());
+            return true;
+        }
+
+        public static bool ApplyUndoSnapshot(bool hadSavedEntry, UILayoutOverrideEntry snapshot)
+        {
+            if (snapshot == null || string.IsNullOrEmpty(snapshot.path))
+            {
+                RecordOperation(false, "undo failed — empty snapshot @ " + Timestamp());
+                return false;
+            }
+            var asset = EnsureAsset();
+            if (asset == null)
+            {
+                RecordOperation(false, "undo failed — no asset @ " + Timestamp());
+                return false;
+            }
+            UnityEditor.Undo.RecordObject(asset, "Undo UI Layout");
+            asset.WriteSnapshot(hadSavedEntry, snapshot);
+            UnityEditor.EditorUtility.SetDirty(asset);
+            UnityEditor.AssetDatabase.SaveAssets();
+            _cached = asset;
+            _revision++;
+            RecordOperation(true, "undid → " + snapshot.path + " @ " + Timestamp());
             return true;
         }
 

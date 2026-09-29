@@ -31,10 +31,13 @@ namespace StreetCat.UI
         Vector2 _dragStartLocal;
         Vector2 _dragStartPosition;
         Vector2 _dragStartSize;
+        float _dragStartFont;
         Camera _dragCamera;
         string _lastDeletedPath;
         RectTransform _lastDeletedTarget;
         Canvas _lastDeletedCanvas;
+        readonly List<LayoutUndoStep> _undoSteps = new List<LayoutUndoStep>();
+        LayoutUndoStep _pendingUndo;
         bool _dirty;
         string _statusLine = "";
         bool _statusOk = true;
@@ -42,6 +45,8 @@ namespace StreetCat.UI
         public bool HasSelection => _selected != null;
         public bool IsDirty => _dirty;
         public bool CanRestoreLastDeleted => !string.IsNullOrEmpty(_lastDeletedPath);
+        public bool CanUndoStep => _undoSteps.Count > 0;
+        public int UndoStepCount => _undoSteps.Count;
         public string LastDeletedDisplayName => string.IsNullOrEmpty(_lastDeletedPath) ? "无" : _lastDeletedPath;
         public bool SelectionControlledByLayout => IsControlledByLayout(_selected);
         public string SelectedDisplayName => _selected != null
@@ -130,6 +135,7 @@ namespace StreetCat.UI
             if (Input.GetKeyDown(KeyCode.UpArrow)) delta.y += step;
             if (delta != Vector2.zero)
             {
+                RememberUndoPoint(_selected);
                 _selected.anchoredPosition += delta;
                 _dirty = true;
                 SaveSelection();
@@ -232,6 +238,11 @@ namespace StreetCat.UI
                     _dragMode = 0;
                     return;
                 }
+                if (UILayoutEditMode.TextFocus)
+                {
+                    _dragMode = 0;
+                    return;
+                }
                 BeginDragOnSelected(eventData);
                 return;
             }
@@ -244,9 +255,11 @@ namespace StreetCat.UI
             }
             var picked = PickBest(eventData.position);
             if (picked == null) return;
-            picked = ResolveEditableTarget(picked, true);
+            picked = ResolveEditableTarget(picked, !UILayoutEditMode.TextFocus);
+            if (picked == null) return;
 
-            if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
+            if (!UILayoutEditMode.TextFocus &&
+                (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)))
             {
                 var parent = picked.parent as RectTransform;
                 if (parent != null && parent != _targetCanvas.transform)
@@ -256,6 +269,13 @@ namespace StreetCat.UI
             if (_selected != picked)
                 _dirty = false;
             _selected = picked;
+            if (UILayoutEditMode.TextFocus)
+            {
+                _dragMode = 0;
+                _pendingUndo = null;
+                UnityEditor.Selection.activeGameObject = picked.gameObject;
+                return;
+            }
             BeginDragOnSelected(eventData);
             UnityEditor.Selection.activeGameObject = picked.gameObject;
         }
@@ -263,6 +283,7 @@ namespace StreetCat.UI
         void BeginDragOnSelected(PointerEventData eventData)
         {
             if (_selected == null) return;
+            RememberUndoPoint(_selected);
             _dragMode = PickDragMode(_selected, eventData.position);
             _dragCamera = eventData.pressEventCamera;
             var parentRect = _selected.parent as RectTransform;
@@ -274,22 +295,50 @@ namespace StreetCat.UI
             }
             _dragStartPosition = _selected.anchoredPosition;
             _dragStartSize = _selected.rect.size;
+            var startText = _selected.GetComponent<TMPro.TextMeshProUGUI>();
+            _dragStartFont = startText != null ? startText.fontSize : 0f;
+        }
+
+        static bool IsUnderNotebook(RectTransform picked)
+        {
+            for (var t = picked; t != null; t = t.parent as RectTransform)
+            {
+                if (t.name == "NotebookOverlay") return true;
+            }
+            return false;
         }
 
         RectTransform ResolveEditableTarget(RectTransform picked, bool releaseFromLayout)
         {
             if (picked == null) return null;
 
-            // Text/icon children visually fill a button and are often the smallest hit.
-            // Editing the child would move only the decoration, so select its owning control.
-            for (var current = picked; current != null && current != _targetCanvas.transform;
-                 current = current.parent as RectTransform)
+            if (UILayoutEditMode.TextFocus)
+                return picked.GetComponent<TMPro.TextMeshProUGUI>() != null ? picked : null;
+
+            if (picked.GetComponent<TMPro.TextMeshProUGUI>() != null && IsUnderNotebook(picked))
+                return picked;
+
+            // Post sprites fill the phone. Edit the phone frame so size and position stick.
+            if (picked.name == "LayerA" || picked.name == "LayerB" || picked.name == "Phone")
             {
-                if (current.GetComponent<Selectable>() != null)
+                var phone = picked.name == "Phone" ? picked : picked.parent as RectTransform;
+                if (phone != null && phone.name == "Phone")
+                    return phone;
+            }
+
+            // A label that fills its button should edit the button, not the decoration.
+            // Do not walk up to a large click-target such as the dialogue panel, or the
+            // speaker name inside it can never be selected.
+            var ancestor = picked.parent as RectTransform;
+            while (ancestor != null && ancestor != _targetCanvas.transform)
+            {
+                if (ancestor.GetComponent<Selectable>() != null)
                 {
-                    picked = current;
+                    if (SelectableOwnsPick(ancestor, picked))
+                        picked = ancestor;
                     break;
                 }
+                ancestor = ancestor.parent as RectTransform;
             }
 
             // The dialogue HUD is intentionally a single aligned three-button toolbar.
@@ -311,6 +360,21 @@ namespace StreetCat.UI
                 Canvas.ForceUpdateCanvases();
             }
             return picked;
+        }
+
+        /// <summary>
+        /// True when the clicked rect is the button's own label, not a nested control
+        /// sitting on a much larger click-to-advance panel.
+        /// </summary>
+        bool SelectableOwnsPick(RectTransform selectable, RectTransform picked)
+        {
+            if (selectable == null || picked == null) return false;
+            if (picked.parent == selectable) return true;
+            var hitRect = GetScreenRect(picked);
+            var hit = Mathf.Abs(hitRect.width * hitRect.height);
+            if (hit < 1f) return true;
+            var owner = Mathf.Abs(GetScreenRect(selectable).width * GetScreenRect(selectable).height);
+            return owner <= hit * 2.5f;
         }
 
         public void PointerDrag(PointerEventData eventData)
@@ -360,12 +424,89 @@ namespace StreetCat.UI
             _selected.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
             _selected.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
             _selected.anchoredPosition = position;
+            var text = _selected.GetComponent<TMPro.TextMeshProUGUI>();
+            if (text != null && IsUnderNotebook(_selected) && _dragStartFont > 1f && _dragStartSize.y > 1f)
+            {
+                text.enableAutoSizing = false;
+                text.fontSize = Mathf.Clamp(_dragStartFont * (size.y / _dragStartSize.y), 12f, 72f);
+            }
         }
 
         public void PointerUp(PointerEventData eventData)
         {
             if (_selected != null && _dragMode != 0) SaveSelection();
             _dragMode = 0;
+        }
+
+        public TextMeshProUGUI SelectedText =>
+            _selected != null ? _selected.GetComponent<TextMeshProUGUI>() : null;
+
+        public struct TextStyleState
+        {
+            public string fontId;
+            public bool customSize;
+            public float fontSize;
+            public float liveSize;
+            public bool customSpacing;
+            public float letterSpacing;
+            public int weightMode;
+            public bool customColor;
+            public Color color;
+            public string sample;
+        }
+
+        public bool TryReadSelectedTextStyle(out TextStyleState state)
+        {
+            state = default;
+            var text = SelectedText;
+            if (text == null || _targetCanvas == null) return false;
+            state.liveSize = text.fontSize;
+            state.fontSize = text.fontSize;
+            state.letterSpacing = StreetCat.Loc.GameSettings.LetterSpacing;
+            state.color = text.color;
+            state.sample = text.text ?? "";
+            var entry = UILayoutOverrides.Asset != null
+                ? UILayoutOverrides.Asset.Find(UILayoutOverrides.GetPath(_targetCanvas, _selected))
+                : null;
+            if (entry == null) return true;
+            state.fontId = entry.fontId ?? "";
+            state.customSize = entry.fontSize > 1f;
+            if (state.customSize) state.fontSize = entry.fontSize;
+            state.customSpacing = entry.overrideLetterSpacing;
+            if (state.customSpacing) state.letterSpacing = entry.letterSpacing;
+            state.weightMode = entry.overrideFontStyle ? (entry.bold ? 2 : 1) : 0;
+            state.customColor = entry.overrideColor;
+            if (state.customColor) state.color = entry.textColor;
+            return true;
+        }
+
+        public bool WriteSelectedTextStyle(TextStyleState state)
+        {
+            if (_selected == null || _targetCanvas == null || SelectedText == null)
+            {
+                SetStatus(false, "文本样式失败 — 先点选一个文字");
+                return false;
+            }
+            RememberUndoPoint(_selected);
+            var ok = UILayoutOverrides.SaveTextStyle(
+                _targetCanvas,
+                _selected,
+                state.fontId,
+                state.customSize,
+                state.fontSize,
+                state.customSpacing,
+                state.letterSpacing,
+                state.weightMode != 0,
+                state.weightMode == 2,
+                state.customColor,
+                state.color);
+            if (ok && GameUI.Instance != null)
+                GameUI.Instance.RefreshTypography();
+            _statusLine = UILayoutOverrides.LastOperationMessage;
+            _statusOk = ok;
+            if (ok) CommitUndoPoint();
+            else _pendingUndo = null;
+            return ok;
         }
 
         public bool SaveSelection()
@@ -379,7 +520,120 @@ namespace StreetCat.UI
             _dirty = !ok;
             _statusLine = UILayoutOverrides.LastOperationMessage;
             _statusOk = ok;
+            if (ok) CommitUndoPoint();
+            else _pendingUndo = null;
             return ok;
+        }
+
+        public void UndoLastStep()
+        {
+            if (_undoSteps.Count == 0)
+            {
+                SetStatus(false, "没有可回退的上一步");
+                return;
+            }
+            var step = _undoSteps[_undoSteps.Count - 1];
+            _undoSteps.RemoveAt(_undoSteps.Count - 1);
+            _pendingUndo = null;
+            if (step == null || step.before == null || !UILayoutOverrides.ApplyUndoSnapshot(step.hadSavedEntry, step.before))
+            {
+                SetStatus(false, "回退失败");
+                return;
+            }
+            ApplyUndoToLive(step.before);
+            SetStatus(true, "已回退上一步 / " + step.before.path);
+        }
+
+        void RememberUndoPoint(RectTransform target)
+        {
+            if (_pendingUndo != null || target == null || _targetCanvas == null) return;
+            var path = UILayoutOverrides.GetPath(_targetCanvas, target);
+            if (string.IsNullOrEmpty(path)) return;
+            var saved = UILayoutOverrides.Asset != null ? UILayoutOverrides.Asset.CloneEntry(path) : null;
+            var before = new UILayoutOverrideEntry();
+            before.Capture(path, target);
+            _pendingUndo = new LayoutUndoStep
+            {
+                hadSavedEntry = saved != null,
+                before = before
+            };
+        }
+
+        void CommitUndoPoint()
+        {
+            var pending = _pendingUndo;
+            _pendingUndo = null;
+            if (pending == null || pending.before == null) return;
+            var live = FindRectByPath(pending.before.path);
+            if (live != null)
+            {
+                var now = new UILayoutOverrideEntry();
+                now.Capture(pending.before.path, live);
+                if (LayoutPoseEquals(now, pending.before)) return;
+            }
+            _undoSteps.Add(pending);
+            if (_undoSteps.Count > 30)
+                _undoSteps.RemoveAt(0);
+        }
+
+        void ApplyUndoToLive(UILayoutOverrideEntry snapshot)
+        {
+            var live = FindRectByPath(snapshot.path);
+            if (live == null) return;
+            if (!snapshot.deleted && !live.gameObject.activeSelf)
+                live.gameObject.SetActive(true);
+            UILayoutOverrides.Apply(live, snapshot);
+            if (snapshot.fontSize <= 1f && GameUI.Instance != null)
+                GameUI.Instance.RefreshTypography();
+            if (live == _selected)
+                _dirty = false;
+        }
+
+        RectTransform FindRectByPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return null;
+            var canvases = FindObjectsOfType<Canvas>(true);
+            var rects = new List<RectTransform>(256);
+            for (var c = 0; c < canvases.Length; c++)
+            {
+                var canvas = canvases[c];
+                if (canvas == null || !canvas.isRootCanvas || canvas.gameObject == _captureRoot) continue;
+                rects.Clear();
+                canvas.GetComponentsInChildren(true, rects);
+                for (var i = 0; i < rects.Count; i++)
+                {
+                    var target = rects[i];
+                    if (target == null) continue;
+                    if (UILayoutOverrides.GetPath(canvas, target) == path)
+                        return target;
+                }
+            }
+            return null;
+        }
+
+        static bool LayoutPoseEquals(UILayoutOverrideEntry a, UILayoutOverrideEntry b)
+        {
+            if (a == null || b == null) return false;
+            return a.deleted == b.deleted
+                   && a.anchorMin == b.anchorMin
+                   && a.anchorMax == b.anchorMax
+                   && a.pivot == b.pivot
+                   && a.anchoredPosition == b.anchoredPosition
+                   && a.sizeDelta == b.sizeDelta
+                   && Mathf.Abs(a.fontSize - b.fontSize) < 0.05f
+                   && a.fontId == b.fontId
+                   && a.overrideLetterSpacing == b.overrideLetterSpacing
+                   && Mathf.Abs(a.letterSpacing - b.letterSpacing) < 0.05f
+                   && a.overrideFontStyle == b.overrideFontStyle
+                   && a.bold == b.bold
+                   && a.overrideColor == b.overrideColor
+                   && a.textColor == b.textColor;
+        }
+
+        sealed class LayoutUndoStep
+        {
+            public bool hadSavedEntry;
+            public UILayoutOverrideEntry before;
         }
 
         public bool RevertSelection()
@@ -410,7 +664,11 @@ namespace StreetCat.UI
                 SetStatus(false, "删除布局失败 — 无选中");
                 return;
             }
+            _pendingUndo = null;
+            RememberUndoPoint(_selected);
             var ok = UILayoutOverrides.Remove(_targetCanvas, _selected);
+            if (ok) CommitUndoPoint();
+            else _pendingUndo = null;
             _statusLine = UILayoutOverrides.LastOperationMessage;
             _statusOk = ok;
             _dirty = false;
@@ -429,12 +687,16 @@ namespace StreetCat.UI
 
             var target = _selected;
             var canvas = _targetCanvas;
+            _pendingUndo = null;
+            RememberUndoPoint(target);
             if (!UILayoutOverrides.Delete(canvas, target))
             {
+                _pendingUndo = null;
                 _statusLine = UILayoutOverrides.LastOperationMessage;
                 _statusOk = false;
                 return;
             }
+            CommitUndoPoint();
             _lastDeletedPath = path;
             _lastDeletedTarget = target;
             _lastDeletedCanvas = canvas;
@@ -550,6 +812,7 @@ namespace StreetCat.UI
                 var target = _rects[i];
                 if (target == null || !ContainsScreenPoint(target, screenPoint)) continue;
                 if (IsIgnorablePick(target)) continue;
+                if (UILayoutEditMode.TextFocus && target.GetComponent<TMPro.TextMeshProUGUI>() == null) continue;
 
                 var screenRect = GetScreenRect(target);
                 var area = Mathf.Abs(screenRect.width * screenRect.height);
@@ -581,6 +844,7 @@ namespace StreetCat.UI
                     var target = _rects[i];
                     if (target == null || !ContainsScreenPoint(target, screenPoint)) continue;
                     if (IsIgnorablePick(target)) continue;
+                    if (UILayoutEditMode.TextFocus && target.GetComponent<TMPro.TextMeshProUGUI>() == null) continue;
                     var screenRect = GetScreenRect(target);
                     var area = Mathf.Abs(screenRect.width * screenRect.height);
                     var depth = 0;
@@ -610,15 +874,7 @@ namespace StreetCat.UI
             var n = target.name;
             if (string.IsNullOrEmpty(n)) return false;
             if (UILayoutOverrides.IsProtectedSystemOverlay(n)) return true;
-            // Social phone is edited via SocialLayout editor only.
-            {
-                var p = target;
-                while (p != null)
-                {
-                    if (p.name == "SocialOverlay") return true;
-                    p = p.parent as RectTransform;
-                }
-            }
+            // Dim wash and the fullscreen root steal clicks. Phone / post layers stay selectable.
             // Common full-screen input/dim layers that steal the "smallest" or only hit.
             if (ContainsIgnoreToken(n, "Catcher")) return true;
             if (ContainsIgnoreToken(n, "Dimmer")) return true;
@@ -691,7 +947,8 @@ namespace StreetCat.UI
                 for (var i = 0; i < _rects.Count; i++)
                 {
                     var target = _rects[i];
-                    if (target != null && target != _selected && !IsIgnorablePick(target))
+                    if (target != null && target != _selected && !IsIgnorablePick(target) &&
+                        (!UILayoutEditMode.TextFocus || target.GetComponent<TMPro.TextMeshProUGUI>() != null))
                         DrawOutline(ToGuiRect(GetScreenRect(target)), new Color(0.15f, 0.75f, 1f, 0.16f), 1f);
                 }
             }
@@ -720,12 +977,17 @@ namespace StreetCat.UI
                 if (_selected != null) extra += 22f;
                 if (SelectionControlledByLayout) extra += 22f;
                 if (!string.IsNullOrEmpty(StatusLine)) extra += 36f;
+                var textMode = UILayoutEditMode.TextFocus;
                 var panel = new Rect(12f, 12f, 380f, 118f + extra);
-                GUI.Box(panel, locked ? "通用 UI 布局 · 已锁定 (F7 隐藏)" : "通用 UI 布局 (F7 隐藏)");
-                GUI.Label(new Rect(22f, 36f, 360f, 20f),
-                    "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
-                GUI.Label(new Rect(22f, 54f, 360f, 20f),
-                    "松手自动保存 · 方向键微调 · Delete 删除 · L 锁定选中");
+                GUI.Box(panel, textMode
+                    ? "文本样式 (F7 隐藏)"
+                    : (locked ? "通用 UI 布局 · 已锁定 (F7 隐藏)" : "通用 UI 布局 (F7 隐藏)"));
+                GUI.Label(new Rect(22f, 36f, 360f, 20f), textMode
+                    ? "点击文字 · 在「文本样式」窗口里改字体和字号"
+                    : "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
+                GUI.Label(new Rect(22f, 54f, 360f, 20f), textMode
+                    ? "改完立刻保存 · 未单独设置的文字仍跟随全局字体"
+                    : "松手自动保存 · 方向键微调 · Delete 删除 · L 锁定选中");
 
                 var y = 76f;
                 var lockNext = GUI.Toggle(new Rect(22f, y, 360f, 20f), locked,

@@ -75,6 +75,12 @@ namespace StreetCat.Data
         public const string WaitingForDafu = "WAITING_FOR_DAFU";
         public const string DafuInterviewDone = "DAFU_INTERVIEW_DONE";
         public const string LinUnlocked = "LIN_UNLOCKED";
+        /// <summary>Guard has shown Lin the request on his phone. Does not start Ling's chat.</summary>
+        public const string GuardPhoneChatDone = "GUARD_PHONE_CHAT_DONE";
+        /// <summary>Appointment line has been shown. Notebook may record the café time.</summary>
+        public const string LinAppointmentNoted = "LIN_APPOINTMENT_NOTED";
+        /// <summary>Ling's chat with Lin has been closed. Does not unlock treatment facts.</summary>
+        public const string LingPhoneChatDone = "LING_PHONE_CHAT_DONE";
         public const string LinInterviewDone = "LIN_INTERVIEW_DONE";
         /// <summary>SC-09 cafe meeting dialogue finished; free interview may open.</summary>
         public const string LinCafeIntroDone = "LIN_CAFE_INTRO_DONE";

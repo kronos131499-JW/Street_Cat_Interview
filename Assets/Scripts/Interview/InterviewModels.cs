@@ -85,9 +85,13 @@ namespace StreetCat.Interview
         {
             if (string.IsNullOrEmpty(input)) return false;
             var t = input.Trim().TrimEnd('。', '！', '?', '？', '~', '～');
-            return t == "对" || t == "是的" || t == "是" || t == "好" || t == "好吧"
-                   || t == "嗯" || t == "嗯嗯" || t == "行" || t == "可以" || t == "明白"
-                   || t == "知道了" || t == "哦" || t == "噢";
+            if (t == "对" || t == "是的" || t == "是" || t == "好" || t == "好吧"
+                || t == "嗯" || t == "嗯嗯" || t == "行" || t == "可以" || t == "明白"
+                || t == "知道了" || t == "哦" || t == "噢")
+                return true;
+            var lower = t.ToLowerInvariant();
+            return lower == "yes" || lower == "yeah" || lower == "ok" || lower == "okay"
+                   || lower == "right" || lower == "sure" || lower == "got it";
         }
 
         public InterviewReply Process(string rawInput)
@@ -103,24 +107,19 @@ namespace StreetCat.Interview
                 };
             }
 
-            if (input.Length > 50)
-            {
-                return new InterviewReply
-                {
-                    understood = false,
-                    systemHint = "问题有些长，可以一次问一件事。",
-                    replyLines = { "？" }
-                };
-            }
+            // Length used to hard-fail above 50 characters with a single "？" and
+            // understood=false, which also skipped DeepSeek. English prompts and
+            // normal reporter questions regularly exceed that, so they all looked identical.
+            var classifyInput = InterviewLoc.CanonicalQuestion(input);
 
-            if (IsHostile(input))
+            if (IsHostile(classifyInput) || IsHostile(input))
             {
                 var hostile = HandleHostile();
                 stats.Apply(hostile);
                 return hostile;
             }
 
-            var intent = IsShortConfirmation(input) ? "followup" : Classify(input);
+            var intent = IsShortConfirmation(input) ? "followup" : Classify(classifyInput);
             var reply = BuildReply(input, intent);
             // BuildReply may remap followup → concrete topic (Lin); use final intent for stickiness.
             var finalIntent = reply.intent ?? intent;

@@ -17,6 +17,9 @@ namespace StreetCat.UI
     {
         public List<TitleRectEntry> entries = new List<TitleRectEntry>();
 
+        /// <summary>Front to back: index 0 draws on top. Ids match TitleMenuLayout.DefaultLayerOrder.</summary>
+        public List<string> layerOrder = new List<string>();
+
         [Header("Tape menu button size (px)")]
         public float buttonWidth = 260f;
         public float buttonHeight = 72f;

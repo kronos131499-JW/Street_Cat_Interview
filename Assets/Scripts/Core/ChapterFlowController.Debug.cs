@@ -5,6 +5,7 @@ using StreetCat.Interview;
 using StreetCat.Narrative;
 using StreetCat.Notebook;
 using StreetCat.UI;
+using StreetCat.Writing;
 using UnityEngine;
 
 namespace StreetCat.Core
@@ -83,8 +84,7 @@ namespace StreetCat.Core
                     SeedThroughInvestigationMap();
                     GameState.Instance.SetScene(SceneIds.SC04);
                     GameState.Instance.Data.uiMode = "investigate";
-                    GameState.Instance.SetObjective("在槐安社区调查大福的日常。");
-                    sceneDirector.PlayScene(SceneIds.SC04);
+                    GameState.Instance.SetObjective("在社区内寻找大福的线索。");
                     gameUi.ShowInvestigationMode();
                     return;
 
@@ -126,7 +126,6 @@ namespace StreetCat.Core
                     GameState.Instance.GrantIntel(IntelIds.DafuRestSpot, "大福有固定休息点。");
                     GameState.Instance.SetScene(SceneIds.SC04);
                     GameState.Instance.Data.uiMode = "investigate";
-                    sceneDirector.PlayScene(SceneIds.SC04);
                     gameUi.ShowInvestigationMode();
                     gameUi.DebugOpenNotebook();
                     return;
@@ -159,7 +158,11 @@ namespace StreetCat.Core
                     return;
 
                 case SceneIds.SC04:
-                    SeedThroughInvestigationMap();
+                    SeedFlags(
+                        FlagIds.HasTranslator,
+                        FlagIds.FoundDafu,
+                        FlagIds.UnlockedHuaiAn);
+                    GameState.Instance.SetObjective("前往槐安社区寻找大福。");
                     EnterSceneImmediate(SceneIds.SC04);
                     return;
 
@@ -282,7 +285,7 @@ namespace StreetCat.Core
             var data = GameState.Instance.Data;
             data.writingDirection = (int)WritingDirection.GuardCatToday;
             data.lastReviewScore = 82;
-            data.lastArticleTitle = "大福今天也在上班";
+            data.lastArticleTitle = ArticleAssembler.HeadlineFor(WritingDirection.GuardCatToday);
             data.lastArticleBody = "（调试跳转示例正文）";
             if (!data.selectedMaterials.Contains(MaterialIds.M01))
                 data.selectedMaterials.Add(MaterialIds.M01);
