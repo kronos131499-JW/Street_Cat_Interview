@@ -118,8 +118,9 @@ namespace StreetCat.UI
             Stretch(topRight.GetComponent<RectTransform>(), new Vector2(0.58f, 0.90f), new Vector2(0.98f, 0.985f),
                 Vector2.zero, Vector2.zero);
 
+            // Light ink on dark cork / art-pack board (WmInk disappears into the wood).
             writingSelectedCountText = CreateUiText(topRight.transform, "Count", 22, TextAnchor.MiddleRight,
-                WmInk, Vector2.zero, Vector2.zero);
+                new Color(0.97f, 0.95f, 0.90f, 1f), Vector2.zero, Vector2.zero);
             Stretch(writingSelectedCountText.rectTransform, new Vector2(0f, 0.35f), new Vector2(0.42f, 1f),
                 Vector2.zero, Vector2.zero);
             writingSelectedCountText.fontStyle = FontStyles.Bold;
@@ -338,7 +339,7 @@ namespace StreetCat.UI
 
             // Status hint (above bottom action row so it does not cover buttons)
             writingStatusHint = CreateUiText(cork.transform, "StatusHint", 16, TextAnchor.MiddleLeft,
-                new Color(0.95f, 0.90f, 0.82f, 0.92f), Vector2.zero, Vector2.zero);
+                Color.white, Vector2.zero, Vector2.zero);
             Stretch(writingStatusHint.rectTransform, new Vector2(0.03f, 0.105f), new Vector2(0.68f, 0.145f),
                 Vector2.zero, Vector2.zero);
 
@@ -402,10 +403,14 @@ namespace StreetCat.UI
 
             Chrome(writingTapeTitle, 24, true);
             Chrome(writingSelectedCountText, 22, true);
+            if (writingSelectedCountText != null)
+                writingSelectedCountText.color = new Color(0.97f, 0.95f, 0.90f, 1f);
             Chrome(writingDetailTitle, 26, true, wrap: true);
             Chrome(writingDetailTag, 16, true);
             Chrome(writingDetailSource, 16);
             Chrome(writingStatusHint, 16, wrap: true);
+            if (writingStatusHint != null)
+                writingStatusHint.color = Color.white;
 
             if (writingDetailBody != null)
             {
@@ -694,6 +699,7 @@ namespace StreetCat.UI
             writingMatsRoot.SetActive(true);
             writingMatsRoot.transform.SetAsLastSibling();
             BringOverlayStackToFront();
+            ApplyWritingBoardSkin();
             RefreshWritingMatsLocalizedChrome();
             RefreshWritingMaterialsBoard();
         }
@@ -707,13 +713,20 @@ namespace StreetCat.UI
         void RefreshWritingMatsLocalizedChrome()
         {
             if (writingMatsRoot == null) return;
-            if (writingTapeTitle != null)
+            // Tape art-pack sprite already bakes the chapter title — don't resurrect TMP over it.
+            if (writingTapeTitle != null && writingTapeTitle.gameObject.activeSelf)
                 writingTapeTitle.text = UiLoc.T("ui.writing.tape_title", "第一章 写稿 / 素材卡库");
             foreach (var tag in writingMatsRoot.GetComponentsInChildren<LocTag>(true))
             {
                 if (tag == null || string.IsNullOrEmpty(tag.key)) continue;
                 var tx = tag.target != null ? tag.target : tag.GetComponentInChildren<TextMeshProUGUI>();
-                if (tx != null) tx.text = UiLoc.T(tag.key);
+                if (tx != null && tx.gameObject.activeSelf) tx.text = UiLoc.T(tag.key);
+            }
+            // Re-apply GoWrite art so EN doesn't re-show a doubled TMP caption.
+            if (writingGoBtn != null)
+            {
+                var goLabel = writingGoBtn.GetComponentInChildren<TextMeshProUGUI>(true);
+                ApplyWritingActionArt(writingGoBtn, "GoWriteBtn", goLabel);
             }
             if (writingMatsRoot.activeSelf)
                 RefreshWritingMaterialsBoard();
@@ -985,7 +998,7 @@ namespace StreetCat.UI
             titleTx.enableWordWrapping = true;
             titleTx.overflowMode = TextOverflowModes.Truncate;
             titleTx.enableAutoSizing = false;
-            titleTx.text = unlocked ? m.title : "？？？";
+            titleTx.text = unlocked ? HardTextLoc.T(m.title) : "???";
             ApplyLetterSpacing(titleTx, 0f);
 
             var bodyTx = CreateUiText(go.transform, "Body", Sz(15), TextAnchor.UpperLeft, WmInkMuted, Vector2.zero, Vector2.zero);
@@ -994,7 +1007,9 @@ namespace StreetCat.UI
             bodyTx.overflowMode = TextOverflowModes.Truncate;
             bodyTx.lineSpacing = 20f;
             bodyTx.enableAutoSizing = false;
-            bodyTx.text = unlocked ? Shorten(m.body, 52) : UiLoc.T("ui.writing.locked", "尚未解锁");
+            bodyTx.text = unlocked
+                ? Shorten(HardTextLoc.T(m.body), 52)
+                : UiLoc.T("ui.writing.locked", "尚未解锁");
             ApplyLetterSpacing(bodyTx, 0f);
 
             var status = CreateImage(go.transform, "Status", Color.white);
@@ -1068,7 +1083,9 @@ namespace StreetCat.UI
 
             bool unlocked = GameState.Instance != null &&
                             GameState.Instance.Data.unlockedMaterials.Contains(m.id);
-            writingDetailTitle.text = unlocked ? (m.id + "  " + m.title) : (m.id + "  ？？？");
+            writingDetailTitle.text = unlocked
+                ? (m.id + "  " + HardTextLoc.T(m.title))
+                : (m.id + "  ???");
             if (writingDetailTagBg != null)
             {
                 writingDetailTagBg.gameObject.SetActive(true);
@@ -1085,7 +1102,7 @@ namespace StreetCat.UI
             }
             if (writingDetailBody != null)
                 writingDetailBody.text = unlocked
-                    ? m.body
+                    ? HardTextLoc.T(m.body)
                     : UiLoc.T("ui.writing.detail_locked", "继续采访与调查后，这张素材才会解锁。");
         }
 

@@ -7,16 +7,16 @@ namespace StreetCat.UI
     public class SocialLayoutData : ScriptableObject
     {
         [Tooltip("Phone frame width in canvas pixels (reference 1920-wide UI).")]
-        public float width = 480f;
+        public float width = 540f;
 
         [Tooltip("Phone frame height in canvas pixels.")]
-        public float height = 700f;
+        public float height = 790f;
 
         [Tooltip("Normalized anchor X (0–1).")]
         public float anchorX = 0.5f;
 
         [Tooltip("Normalized anchor Y (0–1, bottom origin).")]
-        public float anchorY = 0.62f;
+        public float anchorY = 0.58f;
 
         [Tooltip("Extra scale when showing post detail.")]
         public float detailScale = 1.06f;
@@ -32,10 +32,10 @@ namespace StreetCat.UI
 
         public void ApplyDefaults()
         {
-            width = 480f;
-            height = 700f;
+            width = 540f;
+            height = 790f;
             anchorX = 0.5f;
-            anchorY = 0.62f;
+            anchorY = 0.58f;
             detailScale = 1.06f;
         }
     }

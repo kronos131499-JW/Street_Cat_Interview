@@ -62,9 +62,12 @@ namespace StreetCat.UI
         {
             if (target != null && IsProtectedSystemOverlay(target.name))
                 return false;
+            var path = GetPath(canvas, target);
+            if (IsSocialOwnedPath(path))
+                return false;
             var data = Asset;
             if (data == null) return false;
-            var entry = data.Find(GetPath(canvas, target));
+            var entry = data.Find(path);
             if (entry == null) return false;
             Apply(target, entry);
             return true;
@@ -75,7 +78,18 @@ namespace StreetCat.UI
         {
             if (string.IsNullOrEmpty(objectName)) return false;
             return objectName == "SceneFade"
-                   || objectName == "EventSystem";
+                   || objectName == "AdvanceCatcher"
+                   || objectName == "Atmosphere"
+                   || objectName == "Vignette"
+                   || objectName == "EventSystem"
+                   || objectName == "SocialOverlay";
+        }
+
+        /// <summary>Phone overlay is owned by SocialLayout.asset — never generic UI overrides.</summary>
+        public static bool IsSocialOwnedPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            return path.IndexOf("SocialOverlay", System.StringComparison.Ordinal) >= 0;
         }
 
         public static void Apply(RectTransform target, UILayoutOverrideEntry entry)
@@ -143,6 +157,11 @@ namespace StreetCat.UI
                 return false;
             }
             var path = GetPath(canvas, target);
+            if (IsSocialOwnedPath(path))
+            {
+                RecordOperation(false, "save blocked — use 社交帖子布局编辑器 for " + path + " @ " + Timestamp());
+                return false;
+            }
             if (string.IsNullOrEmpty(path))
             {
                 RecordOperation(false, "save failed — invalid path @ " + Timestamp());
@@ -194,6 +213,11 @@ namespace StreetCat.UI
                 return false;
             }
             var path = GetPath(canvas, target);
+            if (IsSocialOwnedPath(path))
+            {
+                RecordOperation(false, "delete blocked — social overlay owned by SocialLayout @ " + Timestamp());
+                return false;
+            }
             if (string.IsNullOrEmpty(path))
             {
                 RecordOperation(false, "delete failed — invalid path @ " + Timestamp());

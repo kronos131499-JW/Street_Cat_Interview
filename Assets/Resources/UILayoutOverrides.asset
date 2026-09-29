@@ -69,14 +69,6 @@ MonoBehaviour:
     pivot: {x: 0.5, y: 1}
     anchoredPosition: {x: -66.78259, y: 0}
     sizeDelta: {x: -215.19995, y: 28.01}
-  - path: VnCanvas/AdvanceCatcher#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 1, y: 0.935}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 14.191284, y: 44.2435}
-    sizeDelta: {x: 28.382568, y: 88.486984}
   - path: VnCanvas/LetterboxTop#0
     deleted: 1
     ignoreParentLayout: 0
@@ -109,14 +101,6 @@ MonoBehaviour:
     pivot: {x: 0, y: 0}
     anchoredPosition: {x: 28, y: 12}
     sizeDelta: {x: 480, y: 24}
-  - path: VnCanvas/SocialOverlay#0/Phone#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0.5, y: 0.5}
-    anchorMax: {x: 0.5, y: 0.5}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 8.4, y: 125.99999}
-    sizeDelta: {x: 520, y: 854}
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0
     deleted: 0
     ignoreParentLayout: 0
@@ -148,22 +132,6 @@ MonoBehaviour:
     anchorMax: {x: 1, y: 0.955}
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 8.4, y: 16.8}
-    sizeDelta: {x: 0, y: 0}
-  - path: VnCanvas/Vignette#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 1, y: 1}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 0, y: -8.400024}
-    sizeDelta: {x: 0, y: 0}
-  - path: VnCanvas/SocialOverlay#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 1, y: 1}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: -0, y: -0}
     sizeDelta: {x: 0, y: 0}
   - path: VnCanvas/InvestigateOverlay#0/ThinChrome#0/IntelHint#0
     deleted: 1
@@ -219,7 +187,7 @@ MonoBehaviour:
     anchorMin: {x: 0, y: 0}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: -0, y: -0}
+    anchoredPosition: {x: 0, y: 8.4}
     sizeDelta: {x: 0, y: 0}
   - path: VnCanvas/LetterboxBottom#0
     deleted: 1
@@ -228,22 +196,6 @@ MonoBehaviour:
     anchorMax: {x: 1, y: 0.045}
     pivot: {x: 0.5, y: 0.5}
     anchoredPosition: {x: 0, y: 0}
-    sizeDelta: {x: 0, y: 0}
-  - path: VnCanvas/SocialOverlay#0/Phone#0/LayerA#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 1, y: 1}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: -8.4, y: -8.4}
-    sizeDelta: {x: 0, y: 0}
-  - path: VnCanvas/SocialOverlay#0/Phone#0/LayerB#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0, y: 0}
-    anchorMax: {x: 1, y: 1}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 243.59999, y: -201.59999}
     sizeDelta: {x: 0, y: 0}
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_cat_house#0
     deleted: 0

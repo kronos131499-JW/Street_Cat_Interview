@@ -251,8 +251,16 @@ namespace StreetCat.UI
         void ApplyNotebookSkin()
         {
             if (notebookInspirePanel == null) return;
-            if (!ApplyArtPackImage(notebookInspirePanel, "记者笔记/问题灵感", true))
+            // Stretch to fill host (no preserveAspect) so lined notebook paper doesn't show through.
+            if (!ApplyArtPackImage(notebookInspirePanel, "记者笔记/问题灵感", false))
                 return;
+            notebookInspirePanel.type = Image.Type.Simple;
+            notebookInspirePanel.color = Color.white;
+
+            // Keep inspire above the lined page after skinning.
+            var host = notebookInspirePanel.transform.parent;
+            if (host != null)
+                host.SetAsLastSibling();
 
             // Art already has paperclip + "QUESTION INSPIRATION" — hide duplicates.
             HideChild(notebookInspirePanel.transform, "Paperclip");
@@ -263,7 +271,7 @@ namespace StreetCat.UI
             // Body copy sits in the blank brown area under the baked stamp.
             if (notebookInspireBodyText != null)
             {
-                Stretch(notebookInspireBodyText.rectTransform, new Vector2(0.06f, 0.08f), new Vector2(0.94f, 0.58f),
+                Stretch(notebookInspireBodyText.rectTransform, new Vector2(0.08f, 0.10f), new Vector2(0.92f, 0.55f),
                     Vector2.zero, Vector2.zero);
                 notebookInspireBodyText.color = new Color(0.08f, 0.05f, 0.03f, 1f);
                 notebookInspireBodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
@@ -273,10 +281,41 @@ namespace StreetCat.UI
 
         void ApplyWritingBoardSkin()
         {
+            if (writingMatsRoot == null) return;
+
+            // Full board mock (wood frame + cork). Procedural cork on top reads as a dark film.
+            var frame = FindImage(writingMatsRoot, "Frame");
+            var cork = FindImage(writingMatsRoot, "Frame/Cork");
+            if (ApplyArtPackImage(frame, "写稿素材卡库/背景", false) && cork != null)
+            {
+                cork.sprite = null;
+                cork.color = Color.clear;
+                cork.enabled = true;
+            }
+
             var tape = FindImage(writingMatsRoot, "Frame/Cork/TapeTitle/Tape");
-            ApplyArtPackImage(tape, "写稿素材卡库/标题", true);
+            // Title sprite bakes English "CHAPTER ONE / WRITING…" — only use it in EN.
+            if (GameSettings.IsEnglish
+                && ApplyArtPackImage(tape, "写稿素材卡库/标题", true)
+                && writingTapeTitle != null)
+            {
+                writingTapeTitle.gameObject.SetActive(false);
+            }
+            else if (writingTapeTitle != null)
+            {
+                writingTapeTitle.gameObject.SetActive(true);
+                writingTapeTitle.text = UiLoc.T("ui.writing.tape_title", "第一章 写稿 / 素材卡库");
+            }
+
+            // Keep lined paper + UiLoc paragraph rows (full strip sprite would bury the list).
             ApplyArtPackImage(FindImage(writingMatsRoot, "Frame/Cork/DetailPaper"),
                 "写稿素材卡库/右侧便签", true);
+
+            // Shadows against art-pack cork look like an extra black film.
+            var stripShadow = FindImage(writingMatsRoot, "Frame/Cork/StripShadow");
+            if (stripShadow != null) stripShadow.gameObject.SetActive(false);
+            var detailShadow = FindImage(writingMatsRoot, "Frame/Cork/DetailShadow");
+            if (detailShadow != null) detailShadow.gameObject.SetActive(false);
         }
 
         Sprite ArtPackSocialSprite(string resourceKey)
@@ -466,13 +505,15 @@ namespace StreetCat.UI
         void ApplyNotebookStickyArt(Image image, int visualIndex)
         {
             int n = Mathf.Abs(visualIndex) % 6 + 1;
-            ApplyArtPackImage(image, $"记者笔记/贴纸{n}", true);
+            // Fill the grid cell — preserveAspect letterboxes and makes stickies look tiny.
+            ApplyArtPackImage(image, $"记者笔记/贴纸{n}", false);
         }
 
         void ApplyWritingCardArt(Image image, int visualIndex)
         {
             int n = Mathf.Abs(visualIndex) % 6 + 1;
-            ApplyArtPackImage(image, $"写稿素材卡库/中间贴纸{n}", true);
+            // Fill the cell — preserveAspect letterboxes dark cork into the card.
+            ApplyArtPackImage(image, $"写稿素材卡库/中间贴纸{n}", false);
         }
 
         void ApplyWritingDotArt(Image image, bool selected)
@@ -490,8 +531,22 @@ namespace StreetCat.UI
             if (button == null) return;
             bool applied = false;
             if (name == "GoWriteBtn")
-                applied = ApplyArtPackButton(button, "写稿素材卡库/写作按键", "写稿素材卡库/写作按键");
-            else if (name == "BackMats")
+            {
+                // Sprite bakes English "GO TO WRITING". EN: art only. ZH: solid button + UiLoc TMP.
+                if (GameSettings.IsEnglish)
+                {
+                    applied = ApplyArtPackButton(button, "写稿素材卡库/写作按键", "写稿素材卡库/写作按键");
+                    if (applied && label != null)
+                        label.gameObject.SetActive(false);
+                }
+                else if (label != null)
+                {
+                    label.gameObject.SetActive(true);
+                    label.text = UiLoc.T("ui.writing.go_write", "前往写稿");
+                }
+                return;
+            }
+            if (name == "BackMats")
                 applied = ApplyArtPackButton(button, "成稿界面/返回图标（未选中）", "成稿界面/返回图标（选中）");
             else if (name == "AiPolish")
                 applied = ApplyArtPackButton(button, "成稿界面/编辑图标（未选中）", "成稿界面/编辑图标（选中）");

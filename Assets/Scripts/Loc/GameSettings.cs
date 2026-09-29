@@ -6,6 +6,7 @@ namespace StreetCat.Loc
     /// <summary>
     /// Persisted player preferences (language, audio, reading, display).
     /// Font family / size / letter-spacing are stored per language.
+    /// Supports a "last session" profile and a player-saved "defaults" profile.
     /// </summary>
     public static class GameSettings
     {
@@ -20,6 +21,23 @@ namespace StreetCat.Loc
         const string PrefAutoPlay = "sci.autoPlay";
         const string PrefAutoDelay = "sci.autoDelay";
         const string PrefFullscreen = "sci.fullscreen";
+        const string PrefRememberLast = "sci.rememberLast";
+        const string PrefHasCustomDefaults = "sci.default.has";
+
+        // Player-saved defaults snapshot (from "Save as default").
+        const string PrefDefLang = "sci.default.lang";
+        const string PrefDefBgm = "sci.default.bgm";
+        const string PrefDefSfx = "sci.default.sfx";
+        const string PrefDefTextSpeed = "sci.default.textSpeed";
+        const string PrefDefAutoPlay = "sci.default.autoPlay";
+        const string PrefDefAutoDelay = "sci.default.autoDelay";
+        const string PrefDefFullscreen = "sci.default.fullscreen";
+        const string PrefDefFontZh = "sci.default.font.zh";
+        const string PrefDefFontEn = "sci.default.font.en";
+        const string PrefDefFontSizeZh = "sci.default.fontSize.zh";
+        const string PrefDefFontSizeEn = "sci.default.fontSize.en";
+        const string PrefDefLetterSpZh = "sci.default.letterSpacing.zh";
+        const string PrefDefLetterSpEn = "sci.default.letterSpacing.en";
 
         const string DefaultFontZh = "simhei";
         const string DefaultFontEn = "barlow";
@@ -42,6 +60,7 @@ namespace StreetCat.Loc
         static bool autoPlay;
         static float autoDelay = 1.2f;
         static bool fullscreen = true;
+        static bool rememberLast = true;
 
         public static GameLanguage Language
         {
@@ -51,9 +70,9 @@ namespace StreetCat.Loc
                 EnsureLoaded();
                 if (language == value) return;
                 language = value;
-                PlayerPrefs.SetString(PrefLang, value == GameLanguage.En ? "en" : "zh");
+                PersistString(PrefLang, value == GameLanguage.En ? "en" : "zh");
                 LoadFontProfileFor(language);
-                PlayerPrefs.Save();
+                FlushPersist();
                 UiLoc.Reload();
                 ScriptLoc.Reload();
                 HardTextLoc.Reload();
@@ -72,9 +91,9 @@ namespace StreetCat.Loc
                 if (!IsKnownFont(id)) id = DefaultFontId(language);
                 if (uiFontId == id) return;
                 uiFontId = id;
-                PlayerPrefs.SetString(PrefFont(language), uiFontId);
+                PersistString(PrefFont(language), uiFontId);
                 ApplyFontRecommendedMetrics(notify: false);
-                PlayerPrefs.Save();
+                FlushPersist();
                 Notify();
             }
         }
@@ -89,8 +108,8 @@ namespace StreetCat.Loc
                 float v = Mathf.Clamp(value, FontSizeMin, FontSizeMax);
                 if (Mathf.Approximately(fontSizeScale, v)) return;
                 fontSizeScale = v;
-                PlayerPrefs.SetFloat(PrefFontSize(language), fontSizeScale);
-                PlayerPrefs.Save();
+                PersistFloat(PrefFontSize(language), fontSizeScale);
+                FlushPersist();
                 Notify();
             }
         }
@@ -105,8 +124,8 @@ namespace StreetCat.Loc
                 float v = Mathf.Clamp(value, LetterSpacingMin, LetterSpacingMax);
                 if (Mathf.Approximately(letterSpacing, v)) return;
                 letterSpacing = v;
-                PlayerPrefs.SetFloat(PrefLetterSpacing(language), letterSpacing);
-                PlayerPrefs.Save();
+                PersistFloat(PrefLetterSpacing(language), letterSpacing);
+                FlushPersist();
                 Notify();
             }
         }
@@ -127,11 +146,11 @@ namespace StreetCat.Loc
             var opt = FontCatalog.Get(uiFontId);
             fontSizeScale = Mathf.Clamp(opt.SizeScale > 0.01f ? opt.SizeScale : 1.15f, FontSizeMin, FontSizeMax);
             letterSpacing = Mathf.Clamp(opt.LetterSpacing, LetterSpacingMin, LetterSpacingMax);
-            PlayerPrefs.SetFloat(PrefFontSize(language), fontSizeScale);
-            PlayerPrefs.SetFloat(PrefLetterSpacing(language), letterSpacing);
+            PersistFloat(PrefFontSize(language), fontSizeScale);
+            PersistFloat(PrefLetterSpacing(language), letterSpacing);
             if (notify)
             {
-                PlayerPrefs.Save();
+                FlushPersist();
                 Notify();
             }
         }
@@ -143,8 +162,8 @@ namespace StreetCat.Loc
             {
                 EnsureLoaded();
                 bgmVolume = Mathf.Clamp01(value);
-                PlayerPrefs.SetFloat(PrefBgm, bgmVolume);
-                PlayerPrefs.Save();
+                PersistFloat(PrefBgm, bgmVolume);
+                FlushPersist();
                 Notify();
             }
         }
@@ -156,8 +175,8 @@ namespace StreetCat.Loc
             {
                 EnsureLoaded();
                 sfxVolume = Mathf.Clamp01(value);
-                PlayerPrefs.SetFloat(PrefSfx, sfxVolume);
-                PlayerPrefs.Save();
+                PersistFloat(PrefSfx, sfxVolume);
+                FlushPersist();
                 Notify();
             }
         }
@@ -170,8 +189,8 @@ namespace StreetCat.Loc
             {
                 EnsureLoaded();
                 textSpeed = Mathf.Clamp(value, 0, 2);
-                PlayerPrefs.SetInt(PrefTextSpeed, textSpeed);
-                PlayerPrefs.Save();
+                PersistInt(PrefTextSpeed, textSpeed);
+                FlushPersist();
                 Notify();
             }
         }
@@ -191,8 +210,8 @@ namespace StreetCat.Loc
                 EnsureLoaded();
                 if (autoPlay == value) return;
                 autoPlay = value;
-                PlayerPrefs.SetInt(PrefAutoPlay, autoPlay ? 1 : 0);
-                PlayerPrefs.Save();
+                PersistInt(PrefAutoPlay, autoPlay ? 1 : 0);
+                FlushPersist();
                 Notify();
             }
         }
@@ -204,8 +223,8 @@ namespace StreetCat.Loc
             {
                 EnsureLoaded();
                 autoDelay = Mathf.Clamp(value, 0.3f, 5f);
-                PlayerPrefs.SetFloat(PrefAutoDelay, autoDelay);
-                PlayerPrefs.Save();
+                PersistFloat(PrefAutoDelay, autoDelay);
+                FlushPersist();
                 Notify();
             }
         }
@@ -218,10 +237,40 @@ namespace StreetCat.Loc
                 EnsureLoaded();
                 if (fullscreen == value) return;
                 fullscreen = value;
-                PlayerPrefs.SetInt(PrefFullscreen, fullscreen ? 1 : 0);
-                PlayerPrefs.Save();
+                PersistInt(PrefFullscreen, fullscreen ? 1 : 0);
+                FlushPersist();
                 ApplyDisplay();
                 Notify();
+            }
+        }
+
+        /// <summary>
+        /// When true (default), changes are written to the last-session profile and restored on launch.
+        /// When false, launch loads the defaults profile; in-session tweaks stay until quit.
+        /// </summary>
+        public static bool RememberLastSettings
+        {
+            get { EnsureLoaded(); return rememberLast; }
+            set
+            {
+                EnsureLoaded();
+                if (rememberLast == value) return;
+                rememberLast = value;
+                // Always persist this toggle itself.
+                PlayerPrefs.SetInt(PrefRememberLast, rememberLast ? 1 : 0);
+                if (rememberLast)
+                    WriteLastProfile();
+                PlayerPrefs.Save();
+                Notify();
+            }
+        }
+
+        public static bool HasCustomDefaults
+        {
+            get
+            {
+                EnsureLoaded();
+                return PlayerPrefs.GetInt(PrefHasCustomDefaults, 0) == 1;
             }
         }
 
@@ -232,19 +281,14 @@ namespace StreetCat.Loc
             if (loaded) return;
             loaded = true;
 
-            var lang = PlayerPrefs.GetString(PrefLang, "zh");
-            language = lang == "en" ? GameLanguage.En : GameLanguage.Zh;
+            rememberLast = PlayerPrefs.GetInt(PrefRememberLast, 1) == 1;
             MigrateLegacyFontPrefsIfNeeded();
-            LoadFontProfileFor(language);
 
-            bgmVolume = PlayerPrefs.HasKey(PrefBgm) ? Mathf.Clamp01(PlayerPrefs.GetFloat(PrefBgm)) : 0.7f;
-            sfxVolume = PlayerPrefs.HasKey(PrefSfx) ? Mathf.Clamp01(PlayerPrefs.GetFloat(PrefSfx)) : 0.8f;
-            textSpeed = PlayerPrefs.HasKey(PrefTextSpeed) ? Mathf.Clamp(PlayerPrefs.GetInt(PrefTextSpeed), 0, 2) : 1;
-            autoPlay = PlayerPrefs.GetInt(PrefAutoPlay, 0) == 1;
-            autoDelay = PlayerPrefs.HasKey(PrefAutoDelay)
-                ? Mathf.Clamp(PlayerPrefs.GetFloat(PrefAutoDelay), 0.3f, 5f)
-                : 1.2f;
-            fullscreen = PlayerPrefs.GetInt(PrefFullscreen, Screen.fullScreen ? 1 : 0) == 1;
+            if (rememberLast)
+                LoadLastProfile();
+            else
+                LoadDefaultsProfile();
+
             ApplyDisplay();
         }
 
@@ -253,6 +297,61 @@ namespace StreetCat.Loc
             EnsureLoaded();
             if (Screen.fullScreen != fullscreen)
                 Screen.fullScreen = fullscreen;
+        }
+
+        /// <summary>Snapshot the current settings as the player's personal defaults.</summary>
+        public static void SaveAsDefaults()
+        {
+            EnsureLoaded();
+            PlayerPrefs.SetInt(PrefHasCustomDefaults, 1);
+            PlayerPrefs.SetString(PrefDefLang, language == GameLanguage.En ? "en" : "zh");
+            PlayerPrefs.SetFloat(PrefDefBgm, bgmVolume);
+            PlayerPrefs.SetFloat(PrefDefSfx, sfxVolume);
+            PlayerPrefs.SetInt(PrefDefTextSpeed, textSpeed);
+            PlayerPrefs.SetInt(PrefDefAutoPlay, autoPlay ? 1 : 0);
+            PlayerPrefs.SetFloat(PrefDefAutoDelay, autoDelay);
+            PlayerPrefs.SetInt(PrefDefFullscreen, fullscreen ? 1 : 0);
+
+            // Store font profiles for both languages: active from memory, other from last prefs / catalog.
+            SaveDefaultFontSlot(GameLanguage.Zh);
+            SaveDefaultFontSlot(GameLanguage.En);
+            // Active language overrides with live values.
+            if (language == GameLanguage.Zh)
+            {
+                PlayerPrefs.SetString(PrefDefFontZh, uiFontId);
+                PlayerPrefs.SetFloat(PrefDefFontSizeZh, fontSizeScale);
+                PlayerPrefs.SetFloat(PrefDefLetterSpZh, letterSpacing);
+            }
+            else
+            {
+                PlayerPrefs.SetString(PrefDefFontEn, uiFontId);
+                PlayerPrefs.SetFloat(PrefDefFontSizeEn, fontSizeScale);
+                PlayerPrefs.SetFloat(PrefDefLetterSpEn, letterSpacing);
+            }
+
+            if (rememberLast)
+                WriteLastProfile();
+            PlayerPrefs.Save();
+            Notify();
+        }
+
+        /// <summary>Apply defaults (custom snapshot if any, else factory). Also updates last profile when remembering.</summary>
+        public static void RestoreDefaults()
+        {
+            EnsureLoaded();
+            var prevLang = language;
+            LoadDefaultsProfile();
+            if (rememberLast)
+                WriteLastProfile();
+            PlayerPrefs.Save();
+            ApplyDisplay();
+            if (prevLang != language)
+            {
+                UiLoc.Reload();
+                ScriptLoc.Reload();
+                HardTextLoc.Reload();
+            }
+            Notify();
         }
 
         /// <summary>Master BGM level before per-clip gain (matches prior ~0.38 peak feel at default 0.7).</summary>
@@ -278,21 +377,160 @@ namespace StreetCat.Loc
             return false;
         }
 
+        static void PersistString(string key, string value)
+        {
+            if (!rememberLast) return;
+            PlayerPrefs.SetString(key, value);
+        }
+
+        static void PersistFloat(string key, float value)
+        {
+            if (!rememberLast) return;
+            PlayerPrefs.SetFloat(key, value);
+        }
+
+        static void PersistInt(string key, int value)
+        {
+            if (!rememberLast) return;
+            PlayerPrefs.SetInt(key, value);
+        }
+
+        static void FlushPersist()
+        {
+            if (rememberLast)
+                PlayerPrefs.Save();
+        }
+
+        static void WriteLastProfile()
+        {
+            PlayerPrefs.SetString(PrefLang, language == GameLanguage.En ? "en" : "zh");
+            PlayerPrefs.SetFloat(PrefBgm, bgmVolume);
+            PlayerPrefs.SetFloat(PrefSfx, sfxVolume);
+            PlayerPrefs.SetInt(PrefTextSpeed, textSpeed);
+            PlayerPrefs.SetInt(PrefAutoPlay, autoPlay ? 1 : 0);
+            PlayerPrefs.SetFloat(PrefAutoDelay, autoDelay);
+            PlayerPrefs.SetInt(PrefFullscreen, fullscreen ? 1 : 0);
+            PlayerPrefs.SetString(PrefFont(language), uiFontId);
+            PlayerPrefs.SetFloat(PrefFontSize(language), fontSizeScale);
+            PlayerPrefs.SetFloat(PrefLetterSpacing(language), letterSpacing);
+        }
+
+        static void LoadLastProfile()
+        {
+            var lang = PlayerPrefs.GetString(PrefLang, "zh");
+            language = lang == "en" ? GameLanguage.En : GameLanguage.Zh;
+            LoadFontProfileFor(language);
+
+            bgmVolume = PlayerPrefs.HasKey(PrefBgm) ? Mathf.Clamp01(PlayerPrefs.GetFloat(PrefBgm)) : 0.7f;
+            sfxVolume = PlayerPrefs.HasKey(PrefSfx) ? Mathf.Clamp01(PlayerPrefs.GetFloat(PrefSfx)) : 0.8f;
+            textSpeed = PlayerPrefs.HasKey(PrefTextSpeed) ? Mathf.Clamp(PlayerPrefs.GetInt(PrefTextSpeed), 0, 2) : 1;
+            autoPlay = PlayerPrefs.GetInt(PrefAutoPlay, 0) == 1;
+            autoDelay = PlayerPrefs.HasKey(PrefAutoDelay)
+                ? Mathf.Clamp(PlayerPrefs.GetFloat(PrefAutoDelay), 0.3f, 5f)
+                : 1.2f;
+            fullscreen = PlayerPrefs.GetInt(PrefFullscreen, Screen.fullScreen ? 1 : 0) == 1;
+        }
+
+        static void LoadDefaultsProfile()
+        {
+            if (PlayerPrefs.GetInt(PrefHasCustomDefaults, 0) == 1)
+            {
+                var lang = PlayerPrefs.GetString(PrefDefLang, "zh");
+                language = lang == "en" ? GameLanguage.En : GameLanguage.Zh;
+                bgmVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefDefBgm, 0.7f));
+                sfxVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefDefSfx, 0.8f));
+                textSpeed = Mathf.Clamp(PlayerPrefs.GetInt(PrefDefTextSpeed, 1), 0, 2);
+                autoPlay = PlayerPrefs.GetInt(PrefDefAutoPlay, 0) == 1;
+                autoDelay = Mathf.Clamp(PlayerPrefs.GetFloat(PrefDefAutoDelay, 1.2f), 0.3f, 5f);
+                fullscreen = PlayerPrefs.GetInt(PrefDefFullscreen, Screen.fullScreen ? 1 : 0) == 1;
+                LoadFontFromDefaults(language);
+            }
+            else
+            {
+                ApplyFactoryDefaults();
+            }
+        }
+
+        static void ApplyFactoryDefaults()
+        {
+            language = GameLanguage.Zh;
+            bgmVolume = 0.7f;
+            sfxVolume = 0.8f;
+            textSpeed = 1;
+            autoPlay = false;
+            autoDelay = 1.2f;
+            fullscreen = true;
+            uiFontId = DefaultFontZh;
+            var opt = FontCatalog.Get(uiFontId);
+            fontSizeScale = Mathf.Clamp(opt.SizeScale > 0.01f ? opt.SizeScale : 1.15f, FontSizeMin, FontSizeMax);
+            letterSpacing = Mathf.Clamp(opt.LetterSpacing, LetterSpacingMin, LetterSpacingMax);
+        }
+
+        static void SaveDefaultFontSlot(GameLanguage lang)
+        {
+            string defId = DefaultFontId(lang);
+            string id = PlayerPrefs.GetString(PrefFont(lang), defId);
+            if (!IsKnownFont(id)) id = defId;
+            var opt = FontCatalog.Get(id);
+            float size = PlayerPrefs.HasKey(PrefFontSize(lang))
+                ? PlayerPrefs.GetFloat(PrefFontSize(lang))
+                : (opt.SizeScale > 0.01f ? opt.SizeScale : 1.15f);
+            float spacing = PlayerPrefs.HasKey(PrefLetterSpacing(lang))
+                ? PlayerPrefs.GetFloat(PrefLetterSpacing(lang))
+                : opt.LetterSpacing;
+
+            if (lang == GameLanguage.Zh)
+            {
+                PlayerPrefs.SetString(PrefDefFontZh, id);
+                PlayerPrefs.SetFloat(PrefDefFontSizeZh, Mathf.Clamp(size, FontSizeMin, FontSizeMax));
+                PlayerPrefs.SetFloat(PrefDefLetterSpZh, Mathf.Clamp(spacing, LetterSpacingMin, LetterSpacingMax));
+            }
+            else
+            {
+                PlayerPrefs.SetString(PrefDefFontEn, id);
+                PlayerPrefs.SetFloat(PrefDefFontSizeEn, Mathf.Clamp(size, FontSizeMin, FontSizeMax));
+                PlayerPrefs.SetFloat(PrefDefLetterSpEn, Mathf.Clamp(spacing, LetterSpacingMin, LetterSpacingMax));
+            }
+        }
+
+        static void LoadFontFromDefaults(GameLanguage lang)
+        {
+            string defId = DefaultFontId(lang);
+            string idKey = lang == GameLanguage.En ? PrefDefFontEn : PrefDefFontZh;
+            string sizeKey = lang == GameLanguage.En ? PrefDefFontSizeEn : PrefDefFontSizeZh;
+            string spKey = lang == GameLanguage.En ? PrefDefLetterSpEn : PrefDefLetterSpZh;
+
+            string id = PlayerPrefs.GetString(idKey, defId);
+            if (!IsKnownFont(id)) id = defId;
+            uiFontId = id;
+            var opt = FontCatalog.Get(uiFontId);
+            fontSizeScale = PlayerPrefs.HasKey(sizeKey)
+                ? Mathf.Clamp(PlayerPrefs.GetFloat(sizeKey), FontSizeMin, FontSizeMax)
+                : Mathf.Clamp(opt.SizeScale > 0.01f ? opt.SizeScale : 1.15f, FontSizeMin, FontSizeMax);
+            letterSpacing = PlayerPrefs.HasKey(spKey)
+                ? Mathf.Clamp(PlayerPrefs.GetFloat(spKey), LetterSpacingMin, LetterSpacingMax)
+                : Mathf.Clamp(opt.LetterSpacing, LetterSpacingMin, LetterSpacingMax);
+        }
+
         /// <summary>
         /// One-time: copy legacy global font keys into the currently saved language slot.
         /// The other language keeps its catalog defaults until the player sets them.
         /// </summary>
         static void MigrateLegacyFontPrefsIfNeeded()
         {
-            string fontKey = PrefFont(language);
+            // Need language hint before full load — peek last lang key.
+            var peek = PlayerPrefs.GetString(PrefLang, "zh");
+            var peekLang = peek == "en" ? GameLanguage.En : GameLanguage.Zh;
+
+            string fontKey = PrefFont(peekLang);
             if (PlayerPrefs.HasKey(fontKey)) return;
             if (!PlayerPrefs.HasKey(PrefFontLegacy)
                 && !PlayerPrefs.HasKey(PrefFontSizeLegacy)
                 && !PlayerPrefs.HasKey(PrefLetterSpacingLegacy))
                 return;
 
-            string id = PlayerPrefs.GetString(PrefFontLegacy, DefaultFontId(language));
-            if (!IsKnownFont(id)) id = DefaultFontId(language);
+            string id = PlayerPrefs.GetString(PrefFontLegacy, DefaultFontId(peekLang));
+            if (!IsKnownFont(id)) id = DefaultFontId(peekLang);
             PlayerPrefs.SetString(fontKey, id);
 
             var opt = FontCatalog.Get(id);
@@ -302,8 +540,8 @@ namespace StreetCat.Loc
             float spacing = PlayerPrefs.HasKey(PrefLetterSpacingLegacy)
                 ? PlayerPrefs.GetFloat(PrefLetterSpacingLegacy)
                 : opt.LetterSpacing;
-            PlayerPrefs.SetFloat(PrefFontSize(language), Mathf.Clamp(size, FontSizeMin, FontSizeMax));
-            PlayerPrefs.SetFloat(PrefLetterSpacing(language), Mathf.Clamp(spacing, LetterSpacingMin, LetterSpacingMax));
+            PlayerPrefs.SetFloat(PrefFontSize(peekLang), Mathf.Clamp(size, FontSizeMin, FontSizeMax));
+            PlayerPrefs.SetFloat(PrefLetterSpacing(peekLang), Mathf.Clamp(spacing, LetterSpacingMin, LetterSpacingMax));
             PlayerPrefs.Save();
         }
 

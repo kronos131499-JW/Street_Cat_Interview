@@ -610,6 +610,15 @@ namespace StreetCat.UI
             var n = target.name;
             if (string.IsNullOrEmpty(n)) return false;
             if (UILayoutOverrides.IsProtectedSystemOverlay(n)) return true;
+            // Social phone is edited via SocialLayout editor only.
+            {
+                var p = target;
+                while (p != null)
+                {
+                    if (p.name == "SocialOverlay") return true;
+                    p = p.parent as RectTransform;
+                }
+            }
             // Common full-screen input/dim layers that steal the "smallest" or only hit.
             if (ContainsIgnoreToken(n, "Catcher")) return true;
             if (ContainsIgnoreToken(n, "Dimmer")) return true;

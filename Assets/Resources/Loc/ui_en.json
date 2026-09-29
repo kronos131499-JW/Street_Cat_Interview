@@ -257,6 +257,34 @@
       "value": "Display"
     },
     {
+      "key": "ui.settings.remember",
+      "value": "Remember last settings"
+    },
+    {
+      "key": "ui.settings.remember_on",
+      "value": "On"
+    },
+    {
+      "key": "ui.settings.remember_off",
+      "value": "Off"
+    },
+    {
+      "key": "ui.settings.save_defaults",
+      "value": "Save as defaults"
+    },
+    {
+      "key": "ui.settings.restore_defaults",
+      "value": "Restore defaults"
+    },
+    {
+      "key": "ui.settings.saved_defaults",
+      "value": "Saved as defaults"
+    },
+    {
+      "key": "ui.settings.restored_defaults",
+      "value": "Defaults restored"
+    },
+    {
       "key": "ui.settings.close",
       "value": "Close"
     },

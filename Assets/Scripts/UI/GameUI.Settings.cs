@@ -169,6 +169,33 @@ namespace StreetCat.UI
             settingsWindowedBtn = AddSettingsToggle(dispRow, "Win", "ui.settings.windowed",
                 () => GameSettings.Fullscreen = false);
 
+            // Remember last session + defaults profile
+            AddSettingsLabel(list.transform, "RememberLabel", "ui.settings.remember");
+            var rememberRow = AddSettingsRow(list.transform, "RememberRow");
+            settingsRememberOnBtn = AddSettingsToggle(rememberRow, "RememberOn", "ui.settings.remember_on",
+                () => GameSettings.RememberLastSettings = true);
+            settingsRememberOffBtn = AddSettingsToggle(rememberRow, "RememberOff", "ui.settings.remember_off",
+                () => GameSettings.RememberLastSettings = false);
+
+            AddSettingsButton(list.transform, "SaveDefaults", "ui.settings.save_defaults", () =>
+            {
+                GameSettings.SaveAsDefaults();
+                ShowSettingsStatus(UiLoc.T("ui.settings.saved_defaults", "已保存为默认设置"));
+                SyncSettingsWidgets();
+            });
+            AddSettingsButton(list.transform, "RestoreDefaults", "ui.settings.restore_defaults", () =>
+            {
+                GameSettings.RestoreDefaults();
+                ShowSettingsStatus(UiLoc.T("ui.settings.restored_defaults", "已恢复默认设置"));
+                SyncSettingsWidgets();
+                RefreshSettingsLabels();
+            });
+
+            settingsStatusHint = CreateUiText(list.transform, "StatusHint", 14, TextAnchor.MiddleCenter,
+                VnTheme.Accent, Vector2.zero, new Vector2(400, 22));
+            settingsStatusHint.gameObject.AddComponent<LayoutElement>().preferredHeight = 22;
+            settingsStatusHint.text = "";
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             {
                 var go = new GameObject("DebugJump", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
@@ -420,6 +447,25 @@ namespace StreetCat.UI
             HighlightToggle(settingsAutoOffBtn, !GameSettings.AutoPlay);
             HighlightToggle(settingsFullscreenBtn, GameSettings.Fullscreen);
             HighlightToggle(settingsWindowedBtn, !GameSettings.Fullscreen);
+            HighlightToggle(settingsRememberOnBtn, GameSettings.RememberLastSettings);
+            HighlightToggle(settingsRememberOffBtn, !GameSettings.RememberLastSettings);
+        }
+
+        void ShowSettingsStatus(string message)
+        {
+            if (settingsStatusHint == null) return;
+            settingsStatusHint.text = message ?? "";
+            if (settingsStatusCo != null)
+                StopCoroutine(settingsStatusCo);
+            settingsStatusCo = StartCoroutine(ClearSettingsStatusAfter(2.4f));
+        }
+
+        System.Collections.IEnumerator ClearSettingsStatusAfter(float seconds)
+        {
+            yield return new WaitForSecondsRealtime(seconds);
+            if (settingsStatusHint != null)
+                settingsStatusHint.text = "";
+            settingsStatusCo = null;
         }
 
         static void HighlightToggle(TextMeshProUGUI label, bool on)

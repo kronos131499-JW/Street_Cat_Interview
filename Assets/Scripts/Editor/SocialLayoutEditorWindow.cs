@@ -54,7 +54,7 @@ namespace StreetCat.Editor
             if (GUILayout.Button("恢复默认尺寸"))
             {
                 if (EditorUtility.DisplayDialog("重置社交布局",
-                        "用默认 520×854 覆盖 SocialLayout.asset？", "重置", "取消"))
+                        "用默认 540×790 覆盖 SocialLayout.asset？", "重置", "取消"))
                 {
                     StreetCat.UI.SocialLayout.ResetToDefaults();
                     if (Application.isPlaying && StreetCat.UI.GameUI.Instance != null)

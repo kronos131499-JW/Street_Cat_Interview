@@ -91,6 +91,10 @@ namespace StreetCat.UI
         TextMeshProUGUI settingsAutoOffBtn;
         TextMeshProUGUI settingsFullscreenBtn;
         TextMeshProUGUI settingsWindowedBtn;
+        TextMeshProUGUI settingsRememberOnBtn;
+        TextMeshProUGUI settingsRememberOffBtn;
+        TextMeshProUGUI settingsStatusHint;
+        Coroutine settingsStatusCo;
         Coroutine autoPlayCo;
         GameObject backlogRoot;
         GameObject notebookRoot;
@@ -392,6 +396,11 @@ namespace StreetCat.UI
                 backlogTitleText.font = font;
                 ApplyLetterSpacing(backlogTitleText, 0f);
             }
+            if (backlogCloseLabel != null)
+            {
+                backlogCloseLabel.font = font;
+                ApplyLetterSpacing(backlogCloseLabel, 0f);
+            }
             if (backlogText != null)
             {
                 backlogText.font = font;
@@ -461,14 +470,15 @@ namespace StreetCat.UI
             stageArt.raycastTarget = false;
             stageArt.enabled = false;
 
-            atmosphereWash = CreateFillImage(canvasGo.transform, "Atmosphere", VnTheme.StageWash);
+            // Atmosphere / vignette used to sit as a persistent semi-transparent dark film over stage art.
+            // Disabled — art packs already deliver the intended lighting; keep objects for sibling anchors.
+            atmosphereWash = CreateFillImage(canvasGo.transform, "Atmosphere", Color.clear);
             atmosphereWash.raycastTarget = false;
+            atmosphereWash.enabled = false;
 
-            vignetteImage = CreateFillImage(canvasGo.transform, "Vignette", Color.white);
-            vignetteImage.sprite = VnTheme.SpriteFromTexture(VnTheme.SoftVignette(160));
-            vignetteImage.type = Image.Type.Simple;
-            vignetteImage.color = Color.white;
+            vignetteImage = CreateFillImage(canvasGo.transform, "Vignette", Color.clear);
             vignetteImage.raycastTarget = false;
+            vignetteImage.enabled = false;
 
             // Letterboxes kept as inactive layer anchors (no cinematic bars over stage art).
             var lbTop = CreateImage(canvasGo.transform, "LetterboxTop", VnTheme.Letterbox);
@@ -558,8 +568,9 @@ namespace StreetCat.UI
 #endif
 
             // Stage click catcher (VN: click to advance). Stops below TopHud so 回看/菜单 stay clickable.
+            // Fully transparent — any non-zero alpha reads as a dark film over stage art.
             // Kept under title/dialogue/choices; TopBar is raised above this via EnsureTopHudClickable.
-            advanceCatcher = CreateFillImage(canvasGo.transform, "AdvanceCatcher", new Color(0, 0, 0, 0.001f));
+            advanceCatcher = CreateFillImage(canvasGo.transform, "AdvanceCatcher", Color.clear);
             Stretch(advanceCatcher.rectTransform, Vector2.zero, new Vector2(1f, VnTheme.TopHudBottom),
                 Vector2.zero, Vector2.zero);
             advanceCatcher.raycastTarget = true;
@@ -651,12 +662,12 @@ namespace StreetCat.UI
             chRt.pivot = new Vector2(1, 0);
             clickHintText.text = UiLoc.T("ui.click_continue");
 
-            // Choice band — soft panel above dialogue
+            // Choice band — soft panel above dialogue (wide for English parchment strips)
             choiceHostImage = CreateImage(canvasGo.transform, "ChoiceHost", new Color(0, 0, 0, 0.001f));
             choiceHostImage.sprite = null;
             choiceHostImage.type = Image.Type.Simple;
             choiceHostImage.color = new Color(0f, 0f, 0f, 0.001f);
-            Stretch(choiceHostImage.rectTransform, new Vector2(0.16f, VnTheme.ChoiceBottom), new Vector2(0.84f, VnTheme.ChoiceTop),
+            Stretch(choiceHostImage.rectTransform, new Vector2(0.04f, VnTheme.ChoiceBottom), new Vector2(0.96f, VnTheme.ChoiceTop),
                 Vector2.zero, Vector2.zero);
             var choiceHost = choiceHostImage;
             var choiceScroll = choiceHost.gameObject.AddComponent<ScrollRect>();
@@ -674,12 +685,12 @@ namespace StreetCat.UI
             crt.pivot = new Vector2(0.5f, 1);
             crt.sizeDelta = Vector2.zero;
             var vlg = choiceRoot.GetComponent<VerticalLayoutGroup>();
-            vlg.spacing = 10;
+            vlg.spacing = 16;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childForceExpandWidth = false;
             vlg.childControlHeight = true;
             vlg.childControlWidth = true;
-            vlg.padding = new RectOffset(12, 12, 8, 8);
+            vlg.padding = new RectOffset(16, 16, 12, 12);
             choiceRoot.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             choiceScroll.viewport = choiceViewport.rectTransform;
             choiceScroll.content = crt;
@@ -2300,8 +2311,10 @@ namespace StreetCat.UI
             });
 
             var le = go.GetComponent<LayoutElement>();
-            const float choiceArtAspect = 828f / 229f;
-            const float choiceHeight = 104f;
+            // Wider than native 828/229 so long EN lines fit inside the parchment body
+            // after left-arrow + right-edge insets (sprite stretches; preserveAspect off).
+            const float choiceArtAspect = 4.85f;
+            const float choiceHeight = 168f;
             le.minHeight = wide ? choiceHeight : (mode == Mode.Title ? 48 : 36);
             le.preferredHeight = wide ? choiceHeight : (mode == Mode.Title ? 48 : 36);
             if (wide)
@@ -2329,17 +2342,32 @@ namespace StreetCat.UI
 
             var tgo = new GameObject("Label", typeof(RectTransform));
             tgo.transform.SetParent(go.transform, false);
-            Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, new Vector2(18, 0), new Vector2(-16, 0));
+            // ArtPack 选项框 has a left triangular arrow notch — keep text in the body only.
+            if (wide)
+                Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
+                    new Vector2(118f, 18f), new Vector2(-56f, -18f));
+            else
+                Stretch(tgo.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
+                    new Vector2(18, 0), new Vector2(-16, 0));
             var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
-            tx.fontSize = wide ? 22 : 17;
+            tx.fontSize = wide ? 26 : 17;
+            if (wide)
+                tx.fontStyle = FontStyles.Bold;
             tx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             tx.color = wide
                 ? (artPackParchmentActive ? ArtPackInk : DialogueFontColors.Current.choice)
                 : VnTheme.TextPrimary;
             tx.text = label;
             tx.raycastTarget = false;
-            if (!wide)
+            if (wide)
+            {
+                tx.enableWordWrapping = true;
+                tx.overflowMode = TextOverflowModes.Overflow;
+                tx.margin = new Vector4(6f, 2f, 6f, 2f);
+                tx.lineSpacing = 4f;
+            }
+            else
             {
                 // Footer chips: size to label, never mid-word wrap into the notebook tab.
                 tx.enableWordWrapping = false;
@@ -2543,13 +2571,17 @@ namespace StreetCat.UI
 
         void ApplyAtmosphere()
         {
-            if (atmosphereWash == null) return;
-            string key = locationText != null ? locationText.text : "";
-            if (mode == Mode.Title) key = "杂志";
-            else if (mode == Mode.Interview) key = "采访";
-            else if (mode == Mode.Investigate) key = "社区";
-            else if (mode == Mode.Writing || mode == Mode.Notebook) key = "杂志";
-            atmosphereWash.color = VnTheme.AtmosphereForLocation(key);
+            // Keep wash/vignette off — a location tint was reading as a global black film.
+            if (atmosphereWash != null)
+            {
+                atmosphereWash.color = Color.clear;
+                atmosphereWash.enabled = false;
+            }
+            if (vignetteImage != null)
+            {
+                vignetteImage.color = Color.clear;
+                vignetteImage.enabled = false;
+            }
             ApplyStageArt();
             ApplyBgm();
         }
@@ -3447,6 +3479,9 @@ namespace StreetCat.UI
                     showCatcher = false;
 #endif
                 advanceCatcher.gameObject.SetActive(showCatcher);
+                // Guard against accidental tint from layout edit / Button transitions.
+                if (showCatcher)
+                    advanceCatcher.color = Color.clear;
                 var btn = advanceCatcher.GetComponent<Button>();
                 if (btn != null) btn.interactable = showCatcher;
                 if (showCatcher)

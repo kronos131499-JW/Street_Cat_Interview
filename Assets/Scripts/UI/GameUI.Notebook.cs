@@ -61,7 +61,8 @@ namespace StreetCat.UI
             // —— Left column ——
             var left = new GameObject("LeftColumn", typeof(RectTransform));
             left.transform.SetParent(desk.transform, false);
-            Stretch(left.GetComponent<RectTransform>(), new Vector2(0.02f, 0.04f), new Vector2(0.34f, 0.96f), Vector2.zero, Vector2.zero);
+            // Wider column so large topic stickies (210×232) read clearly.
+            Stretch(left.GetComponent<RectTransform>(), new Vector2(0.02f, 0.04f), new Vector2(0.40f, 0.96f), Vector2.zero, Vector2.zero);
 
             var header = new GameObject("Header", typeof(RectTransform));
             header.transform.SetParent(left.transform, false);
@@ -114,9 +115,9 @@ namespace StreetCat.UI
             gcrt.pivot = new Vector2(0.5f, 1);
             gcrt.sizeDelta = Vector2.zero;
             var grid = gridContent.GetComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(168f, 186f);
-            grid.spacing = new Vector2(16f, 18f);
-            grid.padding = new RectOffset(10, 10, 12, 12);
+            grid.cellSize = new Vector2(210f, 232f);
+            grid.spacing = new Vector2(12f, 14f);
+            grid.padding = new RectOffset(6, 6, 8, 8);
             grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
             grid.startAxis = GridLayoutGroup.Axis.Horizontal;
             grid.childAlignment = TextAnchor.UpperCenter;
@@ -140,10 +141,10 @@ namespace StreetCat.UI
 
             // —— Right notebook page ——
             var pageShadow = CreateImage(desk.transform, "PageShadow", new Color(0f, 0f, 0f, 0.35f));
-            Stretch(pageShadow.rectTransform, new Vector2(0.355f, 0.055f), new Vector2(0.955f, 0.945f), Vector2.zero, Vector2.zero);
+            Stretch(pageShadow.rectTransform, new Vector2(0.415f, 0.055f), new Vector2(0.965f, 0.945f), Vector2.zero, Vector2.zero);
 
             notebookPageImage = CreateImage(desk.transform, "NotebookPage", NbPaper);
-            Stretch(notebookPageImage.rectTransform, new Vector2(0.36f, 0.07f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
+            Stretch(notebookPageImage.rectTransform, new Vector2(0.42f, 0.07f), new Vector2(0.96f, 0.95f), Vector2.zero, Vector2.zero);
             EnsureLinedPaperSprite();
             if (notebookLinedPaperSprite != null)
             {
@@ -185,8 +186,8 @@ namespace StreetCat.UI
 
             var detailHost = new GameObject("DetailHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             detailHost.transform.SetParent(notebookPageImage.transform, false);
-            // Leave clear room at the bottom for Source + Inspiration card (no line-through overlap).
-            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.06f, 0.30f), new Vector2(0.94f, 0.86f),
+            // Bottom of page reserved for Source (left) + Inspiration card (right).
+            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.06f, 0.36f), new Vector2(0.94f, 0.86f),
                 new Vector2(36f, 0f), new Vector2(-12f, 0f));
             detailHost.GetComponent<Image>().color = new Color(1, 1, 1, 0.001f);
             notebookDetailScroll = detailHost.GetComponent<ScrollRect>();
@@ -221,19 +222,29 @@ namespace StreetCat.UI
 
             notebookSourceText = CreateUiText(notebookPageImage.transform, "Source", 16, TextAnchor.MiddleLeft,
                 NbInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(notebookSourceText.rectTransform, new Vector2(0.08f, 0.14f), new Vector2(0.72f, 0.20f),
+            // Left strip only — keep clear of the bottom-right inspiration card.
+            Stretch(notebookSourceText.rectTransform, new Vector2(0.08f, 0.28f), new Vector2(0.46f, 0.34f),
                 new Vector2(36f, 0f), new Vector2(0f, 0f));
+            notebookSourceText.enableWordWrapping = true;
+            notebookSourceText.overflowMode = TextOverflowModes.Ellipsis;
 
             // —— Inspiration sticky (bottom-right overlay) ——
+            // Sibling of lined page + opaque backplate so ruled lines never show through art alpha.
             var inspireHost = new GameObject("InspireHost", typeof(RectTransform));
-            inspireHost.transform.SetParent(notebookPageImage.transform, false);
-            Stretch(inspireHost.GetComponent<RectTransform>(), new Vector2(0.52f, 0.03f), new Vector2(0.97f, 0.22f),
+            inspireHost.transform.SetParent(desk.transform, false);
+            Stretch(inspireHost.GetComponent<RectTransform>(), new Vector2(0.68f, 0.06f), new Vector2(0.955f, 0.34f),
                 Vector2.zero, Vector2.zero);
+            inspireHost.transform.SetAsLastSibling();
 
-            var inspireShadow = CreateImage(inspireHost.transform, "Shadow", new Color(0, 0, 0, 0.28f));
+            var inspireShadow = CreateImage(inspireHost.transform, "Shadow", new Color(0, 0, 0, 0.32f));
             StretchFull(inspireShadow.rectTransform);
-            inspireShadow.rectTransform.anchoredPosition = new Vector2(5f, -6f);
+            inspireShadow.rectTransform.anchoredPosition = new Vector2(6f, -7f);
             inspireShadow.raycastTarget = false;
+
+            var inspireBack = CreateImage(inspireHost.transform, "OpaqueBack", new Color(0.86f, 0.58f, 0.28f, 1f));
+            StretchFull(inspireBack.rectTransform);
+            inspireBack.type = Image.Type.Simple;
+            inspireBack.raycastTarget = false;
 
             var inspireGo = new GameObject("InspireSticky", typeof(RectTransform), typeof(Image), typeof(Button));
             inspireGo.transform.SetParent(inspireHost.transform, false);
@@ -497,6 +508,9 @@ namespace StreetCat.UI
             {
                 notebookRoot.SetActive(true);
                 BringOverlayStackToFront();
+                // Keep inspiration card above lined paper every open (sibling order can drift).
+                if (notebookInspirePanel != null && notebookInspirePanel.transform.parent != null)
+                    notebookInspirePanel.transform.parent.SetAsLastSibling();
             }
             RefreshNotebookPanel();
         }
@@ -650,8 +664,8 @@ namespace StreetCat.UI
 
             var go = new GameObject(topic.id, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
             go.transform.SetParent(notebookStickyGrid, false);
-            go.GetComponent<LayoutElement>().preferredWidth = 118f;
-            go.GetComponent<LayoutElement>().preferredHeight = 128f;
+            go.GetComponent<LayoutElement>().preferredWidth = 210f;
+            go.GetComponent<LayoutElement>().preferredHeight = 232f;
 
             var face = go.GetComponent<Image>();
             face.color = Color.white;
@@ -661,8 +675,8 @@ namespace StreetCat.UI
             var trt = tape.rectTransform;
             trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 1f);
             trt.pivot = new Vector2(0.5f, 0.5f);
-            trt.anchoredPosition = new Vector2(0f, 6f);
-            trt.sizeDelta = selected ? new Vector2(70f, 22f) : new Vector2(56f, 18f);
+            trt.anchoredPosition = new Vector2(0f, 8f);
+            trt.sizeDelta = selected ? new Vector2(100f, 30f) : new Vector2(84f, 26f);
             var tapeKey = selected ? "btn_tape_primary_idle" : "btn_tape_idle";
             var tapeSpr = VnArt.GetTitle(tapeKey);
             if (tapeSpr != null)
@@ -679,9 +693,9 @@ namespace StreetCat.UI
 
             var icon = CreateImage(go.transform, "Icon", new Color(0.12f, 0.10f, 0.08f, 0.82f));
             var irt = icon.rectTransform;
-            irt.anchorMin = irt.anchorMax = new Vector2(0.5f, 0.58f);
+            irt.anchorMin = irt.anchorMax = new Vector2(0.5f, 0.56f);
             irt.pivot = new Vector2(0.5f, 0.5f);
-            irt.sizeDelta = new Vector2(54f, 54f);
+            irt.sizeDelta = new Vector2(96f, 96f);
             var iconSpr = VnArt.GetPortrait(NbStickyIcons[colorIdx % NbStickyIcons.Length]);
             if (iconSpr != null)
             {
@@ -691,17 +705,17 @@ namespace StreetCat.UI
             }
             icon.raycastTarget = false;
 
-            var label = CreateUiText(go.transform, "Label", 12, TextAnchor.UpperCenter,
+            var label = CreateUiText(go.transform, "Label", 18, TextAnchor.UpperCenter,
                 new Color(0.10f, 0.08f, 0.06f, 1f), Vector2.zero, Vector2.zero);
             // Keep title inside the sticky face — art stickers have decorative margins.
-            Stretch(label.rectTransform, new Vector2(0.10f, 0.04f), new Vector2(0.90f, 0.30f), Vector2.zero, Vector2.zero);
+            Stretch(label.rectTransform, new Vector2(0.08f, 0.03f), new Vector2(0.92f, 0.34f), Vector2.zero, Vector2.zero);
             label.text = HardTextLoc.T(topic.title);
             label.fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
             label.enableWordWrapping = true;
             label.overflowMode = TextOverflowModes.Ellipsis;
             label.enableAutoSizing = true;
-            label.fontSizeMin = 9f;
-            label.fontSizeMax = 12f;
+            label.fontSizeMin = 13f;
+            label.fontSizeMax = 19f;
             label.raycastTarget = false;
 
             string id = topic.id;

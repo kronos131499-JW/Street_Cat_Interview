@@ -40,8 +40,9 @@ namespace StreetCat.UI
         // Layout fractions (screen space, bottom=0 top=1)
         public const float LetterboxH = 0.045f;
         public const float DialogueTop = 0.28f;
-        public const float ChoiceBottom = 0.295f;
-        public const float ChoiceTop = 0.64f;
+        // Tall English choice strips need a taller band than the ZH-era defaults.
+        public const float ChoiceBottom = 0.255f;
+        public const float ChoiceTop = 0.72f;
         public const float StageCenterY = 0.68f;
         public const float TopHudBottom = 0.935f;
 

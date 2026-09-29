@@ -26,12 +26,12 @@ namespace StreetCat.UI
 
         const float SocialFadeDuration = 0.32f;
         /// <summary>Fallback when SocialLayout.asset is missing.</summary>
-        const float SocialDefaultWidth = 480f;
-        const float SocialDefaultHeight = 700f;
+        const float SocialDefaultWidth = 540f;
+        const float SocialDefaultHeight = 790f;
         const float SocialDefaultDetailScale = 1.06f;
         /// <summary>Normalized gap above the dialogue parchment / below top HUD.</summary>
-        const float SocialDialogueClearance = 0.022f;
-        const float SocialTopClearance = 0.012f;
+        const float SocialDialogueClearance = 0.018f;
+        const float SocialTopClearance = 0.008f;
         bool socialShowingDetail;
 
         static bool IsSocialHideCue(string cue)
@@ -48,18 +48,22 @@ namespace StreetCat.UI
             float w = d != null && d.width > 40f ? d.width : SocialDefaultWidth;
             float h = d != null && d.height > 40f ? d.height : SocialDefaultHeight;
             float ax = d != null ? d.anchorX : 0.5f;
-            float ay = d != null ? d.anchorY : 0.62f;
+            float ay = d != null ? d.anchorY : 0.58f;
             float detailScale = d != null && d.detailScale > 0.1f ? d.detailScale : SocialDefaultDetailScale;
             float scale = detail ? detailScale : 1f;
 
-            // Keep the whole phone between the dialogue box and the top HUD.
+            // Fit between dialogue top and HUD using the live canvas height (not a hardcoded 1080).
+            float canvasH = 1080f;
+            if (canvasRt != null && canvasRt.rect.height > 1f)
+                canvasH = canvasRt.rect.height;
+
             float dialogueTop = VnTheme.DialogueTop;
             if (dialoguePanel != null)
                 dialogueTop = Mathf.Max(dialogueTop, dialoguePanel.rectTransform.anchorMax.y);
             float botLimit = dialogueTop + SocialDialogueClearance;
             float topLimit = VnTheme.TopHudBottom - SocialTopClearance;
             float availNorm = Mathf.Max(0.28f, topLimit - botLimit);
-            float maxPhonePx = availNorm * 1080f;
+            float maxPhonePx = availNorm * canvasH;
             float phonePx = h * scale;
             if (phonePx > maxPhonePx && h > 1f)
             {
@@ -67,13 +71,22 @@ namespace StreetCat.UI
                 phonePx = h * scale;
             }
 
-            float halfHNorm = phonePx / 1080f * 0.5f;
+            // Soft clamp: only nudge when the saved anchor would clip past dialogue/HUD.
+            // Skip in social edit mode so Game-view drags match what you save.
+            float halfHNorm = phonePx / canvasH * 0.5f;
             float minAy = botLimit + halfHNorm;
             float maxAy = topLimit - halfHNorm;
-            if (minAy > maxAy)
-                ay = (botLimit + topLimit) * 0.5f;
-            else
-                ay = Mathf.Clamp(ay, minAy, maxAy);
+            bool editingSocial = false;
+#if UNITY_EDITOR
+            editingSocial = SocialEditMode.Enabled;
+#endif
+            if (!editingSocial)
+            {
+                if (minAy <= maxAy)
+                    ay = Mathf.Clamp(ay, minAy, maxAy);
+                else
+                    ay = (botLimit + topLimit) * 0.5f;
+            }
 
             socialPhoneRt.anchorMin = socialPhoneRt.anchorMax = new Vector2(ax, ay);
             socialPhoneRt.pivot = new Vector2(0.5f, 0.5f);
@@ -81,6 +94,23 @@ namespace StreetCat.UI
             socialPhoneRt.sizeDelta = new Vector2(w, h);
             socialPhoneRt.localScale = Vector3.one * scale;
             socialShowingDetail = detail;
+            EnsureSocialLayersFitPhone();
+        }
+
+        void EnsureSocialLayersFitPhone()
+        {
+            if (socialLayerA != null)
+            {
+                StretchFull(socialLayerA.rectTransform);
+                socialLayerA.rectTransform.anchoredPosition = Vector2.zero;
+                socialLayerA.rectTransform.sizeDelta = Vector2.zero;
+            }
+            if (socialLayerB != null)
+            {
+                StretchFull(socialLayerB.rectTransform);
+                socialLayerB.rectTransform.anchoredPosition = Vector2.zero;
+                socialLayerB.rectTransform.sizeDelta = Vector2.zero;
+            }
         }
 
         public void RefreshSocialLayoutFromAsset()
@@ -289,13 +319,11 @@ namespace StreetCat.UI
             backImg.gameObject.SetActive(true);
             backImg.transform.SetAsLastSibling();
 
-            float targetScale = detail
-                ? (SocialLayout.Current != null ? SocialLayout.Current.detailScale : SocialDefaultDetailScale)
-                : 1f;
-            ApplySocialPhoneLayout(detail: false);
-            Vector3 startScale = socialPhoneRt.localScale;
-            Vector3 endScale = Vector3.one * targetScale;
-            socialShowingDetail = detail;
+            // Capture start from current layout, then target from the destination detail mode.
+            // Never use raw detailScale as absolute scale — ApplySocialPhoneLayout may shrink to fit.
+            Vector3 startScale = socialPhoneRt != null ? socialPhoneRt.localScale : Vector3.one;
+            ApplySocialPhoneLayout(detail);
+            Vector3 endScale = socialPhoneRt.localScale;
 
             if (instant || !hadSprite)
             {
@@ -305,6 +333,7 @@ namespace StreetCat.UI
             }
             else
             {
+                socialPhoneRt.localScale = startScale;
                 backFade.alpha = 0f;
                 float t = 0f;
                 while (t < SocialFadeDuration)
