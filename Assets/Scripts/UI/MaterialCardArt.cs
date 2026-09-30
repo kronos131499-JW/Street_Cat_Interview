@@ -83,10 +83,43 @@ namespace StreetCat.UI
             tex.name = file;
             tex.filterMode = FilterMode.Bilinear;
             tex.wrapMode = TextureWrapMode.Clamp;
-            var sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            var rect = OpaqueRect(tex);
+            var sprite = Sprite.Create(tex, rect, new Vector2(0.5f, 0.5f), 100f);
             sprite.name = file;
             sprite.hideFlags = HideFlags.DontSave;
             return sprite;
+        }
+
+        /// <summary>
+        /// Several plates are a thin stroke inside a tall transparent canvas.
+        /// Stretching the whole file turns the stroke into a hairline.
+        /// </summary>
+        static Rect OpaqueRect(Texture2D tex)
+        {
+            int w = tex.width;
+            int h = tex.height;
+            var pixels = tex.GetPixels32();
+            int minX = w, minY = h, maxX = -1, maxY = -1;
+            for (int y = 0; y < h; y++)
+            {
+                int row = y * w;
+                for (int x = 0; x < w; x++)
+                {
+                    if (pixels[row + x].a <= 16) continue;
+                    if (x < minX) minX = x;
+                    if (y < minY) minY = y;
+                    if (x > maxX) maxX = x;
+                    if (y > maxY) maxY = y;
+                }
+            }
+            if (maxX < minX || maxY < minY)
+                return new Rect(0, 0, w, h);
+            const int pad = 2;
+            minX = Mathf.Max(0, minX - pad);
+            minY = Mathf.Max(0, minY - pad);
+            maxX = Mathf.Min(w - 1, maxX + pad);
+            maxY = Mathf.Min(h - 1, maxY + pad);
+            return new Rect(minX, minY, maxX - minX + 1, maxY - minY + 1);
         }
     }
 }

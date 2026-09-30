@@ -115,21 +115,21 @@ namespace StreetCat.UI
 
             var topRight = new GameObject("SelectedHeader", typeof(RectTransform));
             topRight.transform.SetParent(writingMatsRoot.transform, false);
-            PlaceScreen(topRight.GetComponent<RectTransform>(), 760f, 118f, 1040f, 52f);
+            PlaceScreen(topRight.GetComponent<RectTransform>(), 980f, 148f, 820f, 46f);
 
-            writingSelectedCountText = CreateUiText(topRight.transform, "Count", 20, TextAnchor.MiddleLeft,
+            writingSelectedCountText = CreateUiText(topRight.transform, "Count", 22, TextAnchor.MiddleRight,
                 MaterialCardArt.Cream, Vector2.zero, Vector2.zero);
-            Stretch(writingSelectedCountText.rectTransform, new Vector2(0f, 0f), new Vector2(0.62f, 1f),
+            Stretch(writingSelectedCountText.rectTransform, new Vector2(0f, 0f), new Vector2(0.48f, 1f),
                 Vector2.zero, Vector2.zero);
             writingSelectedCountText.fontStyle = FontStyles.Bold;
             writingSelectedCountText.enableWordWrapping = false;
 
             writingProgressDots = new GameObject("Dots", typeof(RectTransform), typeof(HorizontalLayoutGroup)).transform;
             writingProgressDots.SetParent(topRight.transform, false);
-            Stretch(writingProgressDots.GetComponent<RectTransform>(), new Vector2(0.58f, 0f), new Vector2(1f, 1f),
+            Stretch(writingProgressDots.GetComponent<RectTransform>(), new Vector2(0.50f, 0f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
             var dh = writingProgressDots.GetComponent<HorizontalLayoutGroup>();
-            dh.spacing = 6f;
+            dh.spacing = 8f;
             dh.childAlignment = TextAnchor.MiddleRight;
             dh.childForceExpandWidth = false;
             dh.childForceExpandHeight = false;
@@ -139,7 +139,7 @@ namespace StreetCat.UI
             for (int i = 0; i < WritingMaxSelect; i++)
             {
                 var dot = CreateImage(writingProgressDots, "Dot" + i, Color.white);
-                dot.rectTransform.sizeDelta = new Vector2(18f, 18f);
+                dot.rectTransform.sizeDelta = new Vector2(26f, 26f);
                 var hole = CreateImage(dot.transform, "Hole", new Color(0.45f, 0.30f, 0.20f, 1f));
                 Stretch(hole.rectTransform, new Vector2(0.22f, 0.22f), new Vector2(0.78f, 0.78f),
                     Vector2.zero, Vector2.zero);
@@ -177,12 +177,12 @@ namespace StreetCat.UI
                 SpawnWritingParagraphRow(i);
 
             var cardsBacking = CreateImage(writingMatsRoot.transform, "CardsBacking", new Color(1f, 1f, 1f, 0f));
-            PlaceScreen(cardsBacking.rectTransform, 500f, 196f, 880f, 650f);
+            cardsBacking.gameObject.SetActive(false);
             cardsBacking.raycastTarget = false;
 
             var gridHost = new GameObject("CardGridHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             gridHost.transform.SetParent(writingMatsRoot.transform, false);
-            PlaceScreen(gridHost.GetComponent<RectTransform>(), 516f, 210f, 848f, 620f);
+            PlaceScreen(gridHost.GetComponent<RectTransform>(), 520f, 210f, 860f, 620f);
             gridHost.GetComponent<Image>().color = new Color(0, 0, 0, 0.001f);
             writingCardScroll = gridHost.GetComponent<ScrollRect>();
             writingCardScroll.horizontal = false;
@@ -203,8 +203,8 @@ namespace StreetCat.UI
             gcrt.pivot = new Vector2(0.5f, 1);
             gcrt.sizeDelta = Vector2.zero;
             var grid = gridContent.GetComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(248f, 250f);
-            grid.spacing = new Vector2(16f, 14f);
+            grid.cellSize = new Vector2(268f, 280f);
+            grid.spacing = new Vector2(18f, 16f);
             grid.padding = new RectOffset(8, 8, 6, 8);
             grid.startCorner = GridLayoutGroup.Corner.UpperLeft;
             grid.startAxis = GridLayoutGroup.Axis.Horizontal;
@@ -220,10 +220,13 @@ namespace StreetCat.UI
             detail.raycastTarget = false;
 
             var idBg = CreateImage(detail.transform, "IdTag", Color.white);
-            Stretch(idBg.rectTransform, new Vector2(0.08f, 0.86f), new Vector2(0.42f, 0.96f),
-                Vector2.zero, Vector2.zero);
+            var idRt = idBg.rectTransform;
+            idRt.anchorMin = idRt.anchorMax = new Vector2(0.08f, 0.90f);
+            idRt.pivot = new Vector2(0f, 0.5f);
+            idRt.sizeDelta = new Vector2(148f, 52f);
+            idBg.preserveAspect = true;
             idBg.raycastTarget = false;
-            writingDetailId = CreateUiText(idBg.transform, "Id", 18, TextAnchor.MiddleCenter,
+            writingDetailId = CreateUiText(idBg.transform, "Id", 20, TextAnchor.MiddleCenter,
                 MaterialCardArt.Ink, Vector2.zero, Vector2.zero);
             StretchFull(writingDetailId.rectTransform);
             writingDetailId.fontStyle = FontStyles.Bold;
@@ -231,41 +234,46 @@ namespace StreetCat.UI
 
             writingDetailTitle = CreateUiText(detail.transform, "Title", 26, TextAnchor.UpperLeft,
                 MaterialCardArt.Ink, Vector2.zero, Vector2.zero);
-            Stretch(writingDetailTitle.rectTransform, new Vector2(0.08f, 0.70f), new Vector2(0.92f, 0.86f),
+            Stretch(writingDetailTitle.rectTransform, new Vector2(0.08f, 0.74f), new Vector2(0.90f, 0.86f),
                 Vector2.zero, Vector2.zero);
             writingDetailTitle.fontStyle = FontStyles.Bold;
             writingDetailTitle.overflowMode = TextOverflowModes.Overflow;
             writingDetailTitle.enableAutoSizing = false;
 
             var underline = CreateImage(detail.transform, "Underline", new Color(0.42f, 0.55f, 0.32f, 1f));
-            Stretch(underline.rectTransform, new Vector2(0.08f, 0.66f), new Vector2(0.62f, 0.70f),
-                Vector2.zero, Vector2.zero);
+            var ulRt = underline.rectTransform;
+            ulRt.anchorMin = ulRt.anchorMax = new Vector2(0.08f, 0.72f);
+            ulRt.pivot = new Vector2(0f, 0.5f);
+            ulRt.sizeDelta = new Vector2(220f, 10f);
             underline.raycastTarget = false;
 
             writingDetailTagBg = CreateImage(detail.transform, "Tag", WmOrange);
-            Stretch(writingDetailTagBg.rectTransform, new Vector2(0.08f, 0.55f), new Vector2(0.46f, 0.65f),
-                Vector2.zero, Vector2.zero);
+            var tagRt = writingDetailTagBg.rectTransform;
+            tagRt.anchorMin = tagRt.anchorMax = new Vector2(0.08f, 0.64f);
+            tagRt.pivot = new Vector2(0f, 0.5f);
+            tagRt.sizeDelta = new Vector2(132f, 40f);
+            writingDetailTagBg.preserveAspect = true;
             writingDetailTag = CreateUiText(writingDetailTagBg.transform, "TagLabel", 16, TextAnchor.MiddleCenter,
-                MaterialCardArt.Cream, Vector2.zero, Vector2.zero);
+                MaterialCardArt.Ink, Vector2.zero, Vector2.zero);
             StretchFull(writingDetailTag.rectTransform);
             writingDetailTag.fontStyle = FontStyles.Bold;
             writingDetailTag.enableWordWrapping = false;
             writingDetailTag.enableAutoSizing = false;
 
             var separator = CreateImage(detail.transform, "Separator", new Color(0.55f, 0.42f, 0.32f, 0.7f));
-            Stretch(separator.rectTransform, new Vector2(0.08f, 0.51f), new Vector2(0.92f, 0.545f),
+            Stretch(separator.rectTransform, new Vector2(0.08f, 0.56f), new Vector2(0.92f, 0.575f),
                 Vector2.zero, Vector2.zero);
             separator.raycastTarget = false;
 
             writingDetailSource = CreateUiText(detail.transform, "Source", 15, TextAnchor.MiddleLeft,
                 WmInkMuted, Vector2.zero, Vector2.zero);
-            Stretch(writingDetailSource.rectTransform, new Vector2(0.08f, 0.42f), new Vector2(0.92f, 0.51f),
+            Stretch(writingDetailSource.rectTransform, new Vector2(0.08f, 0.48f), new Vector2(0.92f, 0.56f),
                 Vector2.zero, Vector2.zero);
             writingDetailSource.enableAutoSizing = false;
 
             var detailHost = new GameObject("DetailBodyHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             detailHost.transform.SetParent(detail.transform, false);
-            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.42f),
+            Stretch(detailHost.GetComponent<RectTransform>(), new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.48f),
                 Vector2.zero, Vector2.zero);
             detailHost.GetComponent<Image>().color = new Color(1, 1, 1, 0.001f);
             var detailScroll = detailHost.GetComponent<ScrollRect>();
@@ -378,7 +386,7 @@ namespace StreetCat.UI
             Chrome(writingTapeTitle, 28, true, wrap: true);
             if (writingTapeTitle != null)
                 writingTapeTitle.color = MaterialCardArt.Ink;
-            Chrome(writingSelectedCountText, 20, true);
+            Chrome(writingSelectedCountText, 22, true);
             if (writingSelectedCountText != null)
                 writingSelectedCountText.color = MaterialCardArt.Cream;
             Chrome(writingDetailId, 18, true);
@@ -389,7 +397,7 @@ namespace StreetCat.UI
                 writingDetailTitle.color = MaterialCardArt.Ink;
             Chrome(writingDetailTag, 15, true);
             if (writingDetailTag != null)
-                writingDetailTag.color = MaterialCardArt.Cream;
+                writingDetailTag.color = MaterialCardArt.Ink;
             Chrome(writingDetailSource, 15);
             Chrome(writingStatusHint, 16, wrap: true);
             if (writingStatusHint != null)
@@ -1106,7 +1114,7 @@ namespace StreetCat.UI
             if (writingDetailTag != null)
             {
                 writingDetailTag.text = MaterialTypeLabel(m.type);
-                writingDetailTag.color = MaterialCardArt.Cream;
+                writingDetailTag.color = MaterialCardArt.Ink;
             }
             if (writingDetailSource != null)
             {

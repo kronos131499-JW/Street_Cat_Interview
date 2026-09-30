@@ -2313,3 +2313,22 @@ MonoBehaviour:
     textColor: {r: 1, g: 1, b: 1, a: 1}
     textMarginTop: 0
     textOnly: 0
+  - path: VnCanvas/WritingMaterialsOverlay#0/TitlePlate#0/TapeFallback#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.1, y: 0.16}
+    anchorMax: {x: 0.78, y: 0.84}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: -15.2, y: -30.4}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0

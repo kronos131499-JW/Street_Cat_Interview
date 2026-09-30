@@ -741,19 +741,22 @@ namespace StreetCat.UI
                 writingTapeTitle.gameObject.SetActive(true);
 
             StampMaterialPlate(FindImage(writingMatsRoot, "Structure"), MaterialCardArt.Structure, false);
-            StampMaterialPlate(FindImage(writingMatsRoot, "CardsBacking"), MaterialCardArt.CardsBacking, false);
+            var cardsBacking = FindImage(writingMatsRoot, "CardsBacking");
+            if (cardsBacking != null) cardsBacking.gameObject.SetActive(false);
             StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper"), MaterialCardArt.Detail, false);
             StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/Underline"), MaterialCardArt.Underline, false);
             StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/Separator"), MaterialCardArt.Separator, false);
-            StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/IdTag"), MaterialCardArt.IdTag, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/IdTag"), MaterialCardArt.IdTag, true);
             var typeChip = FindImage(writingMatsRoot, "DetailPaper/Tag");
             if (typeChip != null && MaterialCardArt.DetailButton != null)
             {
                 typeChip.sprite = MaterialCardArt.DetailButton;
                 typeChip.color = Color.white;
                 typeChip.type = Image.Type.Simple;
-                typeChip.preserveAspect = false;
+                typeChip.preserveAspect = true;
             }
+            var idTag = FindImage(writingMatsRoot, "DetailPaper/IdTag");
+            if (idTag != null) idTag.preserveAspect = true;
 
             SkinMaterialButton(writingPreviewBtn, MaterialCardArt.PreviewButton, MaterialCardArt.Cream);
             SkinMaterialButton(writingGoBtn, MaterialCardArt.WriteButton, MaterialCardArt.Cream);
@@ -1170,11 +1173,11 @@ namespace StreetCat.UI
                 box.ignoreLayout = true;
             var rt = button.GetComponent<RectTransform>();
             if (ContainsAny(label, "回看", "回放", "Backlog", "Review"))
-                PlaceInterviewTool(rt, 0.18f, 0.32f, 0.74f, 0.16f);
+                PlaceInterviewTool(rt, 0.05f, 0.26f, 0.90f, 0.20f);
             else if (ContainsAny(label, "笔记", "Notebook", "Notes"))
-                PlaceInterviewTool(rt, 0.18f, 0.52f, 0.74f, 0.18f);
+                PlaceInterviewTool(rt, 0.05f, 0.48f, 0.90f, 0.20f);
             else
-                PlaceInterviewTool(rt, 0.18f, 0.73f, 0.74f, 0.18f);
+                PlaceInterviewTool(rt, 0.05f, 0.70f, 0.90f, 0.20f);
             button.transition = Selectable.Transition.SpriteSwap;
             button.spriteState = new SpriteState
             {
