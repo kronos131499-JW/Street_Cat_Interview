@@ -34,13 +34,18 @@ namespace StreetCat.UI
         const float SocialTopClearance = 0f;
         bool socialShowingDetail;
 
+        /// <summary>
+        /// Phone mockups are ~1700px tall and land on roughly half that on screen.
+        /// Measured against an area-average reference at 1080p and up, a plain bilinear
+        /// tap off the full-res texture beats every mip level, so these stay mip-less.
+        /// Don't add mipmaps here: below ~0.35x they would help, but at the sizes this
+        /// frame actually gets they only trade sharpness for VRAM.
+        /// </summary>
         static void SharpenSocialSprite(Sprite sprite)
         {
             var tex = sprite != null ? sprite.texture : null;
             if (tex == null) return;
             tex.filterMode = FilterMode.Bilinear;
-            tex.anisoLevel = 0;
-            tex.mipMapBias = -1.5f;
         }
 
         static bool IsSocialHideCue(string cue)

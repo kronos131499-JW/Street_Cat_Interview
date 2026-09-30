@@ -18,8 +18,8 @@ namespace StreetCat.Investigation
         public static readonly Dictionary<string, Vector4> DefaultHuaianMap = new Dictionary<string, Vector4>
         {
             { "cat_house", new Vector4(0.10f, 0.58f, 0.26f, 0.78f) },
-            { "food_bowl", new Vector4(0.22f, 0.52f, 0.32f, 0.64f) },
-            { "water_bowl", new Vector4(0.28f, 0.50f, 0.38f, 0.62f) },
+            { "food_bowl", new Vector4(0.18f, 0.58f, 0.30f, 0.72f) },
+            { "water_bowl", new Vector4(0.33f, 0.46f, 0.43f, 0.56f) },
             { "sign", new Vector4(0.14f, 0.48f, 0.24f, 0.58f) },
             { "tabby", new Vector4(0.40f, 0.56f, 0.56f, 0.74f) },
             { "vending", new Vector4(0.70f, 0.56f, 0.90f, 0.78f) },

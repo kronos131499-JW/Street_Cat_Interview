@@ -64,7 +64,10 @@ namespace StreetCat.UI
             if (target != null && IsProtectedSystemOverlay(target.name))
                 return false;
             var path = GetPath(canvas, target);
-            if (IsSocialOwnedPath(path) || IsInvestigateHotspotPath(path))
+            if (IsSocialOwnedPath(path) || IsInvestigateHotspotPath(path) || IsEphemeralControlPath(path)
+                || IsInterviewMeterPath(path) || IsInterviewChatBubblePath(path)
+                || IsFreeInterviewPath(path)
+                || IsStagePortraitPath(path))
                 return false;
             var data = Asset;
             if (data == null) return false;
@@ -86,6 +89,16 @@ namespace StreetCat.UI
                    || objectName == "SocialOverlay";
         }
 
+        /// <summary>
+        /// Free interview chrome is laid out in code against the FreeInterview plates.
+        /// Saved scrapbook drags would pull those plates back to the old rectangles.
+        /// </summary>
+        public static bool IsFreeInterviewPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            return path.IndexOf("InterviewOverlay", System.StringComparison.Ordinal) >= 0;
+        }
+
         /// <summary>Phone overlay is owned by SocialLayout.asset — never generic UI overrides.</summary>
         public static bool IsSocialOwnedPath(string path)
         {
@@ -95,13 +108,59 @@ namespace StreetCat.UI
 
         /// <summary>
         /// Map hotspots are owned by InvestigateHotspotLayout.asset.
-        /// A generic override here wins on the next visit and looks like the hotspot editor failed to save.
+        /// A generic override on the layer or a spot wins on the next visit and shifts clicks off the art.
         /// </summary>
         public static bool IsInvestigateHotspotPath(string path)
         {
             if (string.IsNullOrEmpty(path)) return false;
-            return path.IndexOf("HotspotLayer", System.StringComparison.Ordinal) >= 0
-                   && path.IndexOf("/Spot_", System.StringComparison.Ordinal) >= 0;
+            return path.IndexOf("HotspotLayer", System.StringComparison.Ordinal) >= 0;
+        }
+
+        /// <summary>
+        /// Dialogue and map action buttons are spawned per screen. Saved deletes and
+        /// absolute positions hide or park the live controls, including Confirm Publish.
+        /// </summary>
+        /// <summary>
+        /// Chat bubbles are rebuilt every line. A saved drag pulls the row, and the avatar, out of the mask.
+        /// </summary>
+        public static bool IsInterviewChatBubblePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            return path.IndexOf("/ChatLog", System.StringComparison.Ordinal) >= 0
+                   && path.IndexOf("/Bubble#", System.StringComparison.Ordinal) >= 0;
+        }
+
+        public static bool IsEphemeralControlPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            if (path.IndexOf("/Actions#", System.StringComparison.Ordinal) < 0)
+                return false;
+            return path.IndexOf("/Btn#", System.StringComparison.Ordinal) >= 0
+                   || path.IndexOf("/Act#", System.StringComparison.Ordinal) >= 0
+                   || path.IndexOf("/ActEnd#", System.StringComparison.Ordinal) >= 0
+                   || path.IndexOf("/EndConfirm#", System.StringComparison.Ordinal) >= 0;
+        }
+
+        /// <summary>
+        /// Stage portraits are owned by PortraitLayout.asset. A generic override
+        /// captured the old dialogue-pinned rect and pulled every figure back down.
+        /// </summary>
+        public static bool IsStagePortraitPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            if (path.IndexOf("InterviewOverlay", System.StringComparison.Ordinal) >= 0) return false;
+            if (path.IndexOf("PortraitPad", System.StringComparison.Ordinal) >= 0) return false;
+            return path.EndsWith("/Portrait#0", System.StringComparison.Ordinal);
+        }
+
+        /// <summary>Trust / stress / focus meters are laid out in code. Old drags overlap the numbers.</summary>
+        public static bool IsInterviewMeterPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            if (path.IndexOf("StatusPad", System.StringComparison.Ordinal) < 0) return false;
+            return path.IndexOf("/Trust#", System.StringComparison.Ordinal) >= 0
+                   || path.IndexOf("/Stress#", System.StringComparison.Ordinal) >= 0
+                   || path.IndexOf("/Focus#", System.StringComparison.Ordinal) >= 0;
         }
 
         public static bool IsInvestigateHotspotSpot(RectTransform target)
@@ -126,14 +185,28 @@ namespace StreetCat.UI
                 target.gameObject.SetActive(false);
                 return;
             }
-            target.anchorMin = entry.anchorMin;
-            target.anchorMax = entry.anchorMax;
-            target.pivot = entry.pivot;
-            target.sizeDelta = entry.sizeDelta;
-            target.anchoredPosition = entry.anchoredPosition;
-            var fitter = target.GetComponent<UnityEngine.UI.ContentSizeFitter>();
-            if (fitter != null) fitter.enabled = false;
+            if (!entry.textOnly)
+            {
+                target.anchorMin = entry.anchorMin;
+                target.anchorMax = entry.anchorMax;
+                target.pivot = entry.pivot;
+                target.sizeDelta = entry.sizeDelta;
+                target.anchoredPosition = entry.anchoredPosition;
+                var fitter = target.GetComponent<UnityEngine.UI.ContentSizeFitter>();
+                if (fitter != null) fitter.enabled = false;
+            }
             ApplyTextStyle(target.GetComponent<TextMeshProUGUI>(), entry);
+            ApplyTextMarginTop(target, entry);
+        }
+
+        static void ApplyTextMarginTop(RectTransform target, UILayoutOverrideEntry entry)
+        {
+            if (target == null || entry == null || entry.textMarginTop <= 0.01f) return;
+            var text = target.GetComponent<TextMeshProUGUI>();
+            if (text == null) return;
+            var margin = text.margin;
+            margin.y = entry.textMarginTop;
+            text.margin = margin;
         }
 
         public static bool HasTextStyle(UILayoutOverrideEntry entry)
@@ -142,6 +215,7 @@ namespace StreetCat.UI
             return !string.IsNullOrEmpty(entry.fontId)
                    || entry.fontSize > 1f
                    || entry.overrideLetterSpacing
+                   || entry.fontWeight >= 100
                    || entry.overrideFontStyle
                    || entry.overrideColor;
         }
@@ -161,7 +235,9 @@ namespace StreetCat.UI
             }
             if (entry.overrideLetterSpacing)
                 VnText.ApplyLetterSpacing(text, entry.letterSpacing);
-            if (entry.overrideFontStyle)
+            if (entry.fontWeight >= 100)
+                VnText.ApplyFontWeight(text, entry.fontWeight);
+            else if (entry.overrideFontStyle)
             {
                 var style = text.fontStyle;
                 style = entry.bold ? (style | FontStyles.Bold) : (style & ~FontStyles.Bold);
@@ -247,7 +323,11 @@ namespace StreetCat.UI
             return asset;
         }
 
-        public static bool Save(Canvas canvas, RectTransform target)
+        /// <param name="captureFontSize">
+        /// Only the notebook resize handle sets this. Everything else keeps whatever the text
+        /// style panel stored, so moving a label never pins its size away from the settings slider.
+        /// </param>
+        public static bool Save(Canvas canvas, RectTransform target, bool captureFontSize = false)
         {
             if (target != null && IsProtectedSystemOverlay(target.name))
             {
@@ -288,7 +368,7 @@ namespace StreetCat.UI
                 return false;
             }
             UnityEditor.Undo.RecordObject(asset, "Save UI Layout");
-            asset.Set(path, target);
+            asset.Set(path, target, captureFontSize);
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _cached = asset;
@@ -307,6 +387,7 @@ namespace StreetCat.UI
             float spacing,
             bool customStyle,
             bool bold,
+            int weight,
             bool customColor,
             Color color)
         {
@@ -328,28 +409,63 @@ namespace StreetCat.UI
                 return false;
             }
             UnityEditor.Undo.RecordObject(asset, "Save Text Style");
-            if (asset.Find(path) == null)
-                asset.Set(path, target);
             var entry = asset.Find(path);
-            if (entry == null)
+            var created = entry == null;
+            if (created)
             {
-                RecordOperation(false, "text style failed — no entry @ " + Timestamp());
-                return false;
+                entry = new UILayoutOverrideEntry { path = path, textOnly = true };
+                asset.entries.Add(entry);
             }
             entry.fontId = fontId ?? "";
             entry.fontSize = customSize ? Mathf.Clamp(fontSize, 8f, 96f) : 0f;
             entry.overrideLetterSpacing = customSpacing;
             entry.letterSpacing = Mathf.Clamp(spacing, 0f, 20f);
-            entry.overrideFontStyle = customStyle;
-            entry.bold = bold;
+            entry.fontWeight = weight;
+            entry.overrideFontStyle = weight >= 100;
+            entry.bold = weight >= 700;
             entry.overrideColor = customColor;
             entry.textColor = color;
+            if (created)
+                entry.textOnly = true;
             UnityEditor.EditorUtility.SetDirty(asset);
             UnityEditor.AssetDatabase.SaveAssets();
             _cached = asset;
-            _revision++;
+            ApplyTextStyleLive(path, entry);
             RecordOperation(true, "text style → " + path + " @ " + Timestamp());
             return true;
+        }
+
+        static void ApplyTextStyleLive(string path, UILayoutOverrideEntry entry)
+        {
+            if (string.IsNullOrEmpty(path) || entry == null) return;
+            var restoreFont = !HasTextStyle(entry);
+            var canvases = Object.FindObjectsOfType<Canvas>(true);
+            var rects = new List<RectTransform>(256);
+            for (var c = 0; c < canvases.Length; c++)
+            {
+                var canvas = canvases[c];
+                if (canvas == null || !canvas.isRootCanvas) continue;
+                rects.Clear();
+                canvas.GetComponentsInChildren(true, rects);
+                for (var i = 0; i < rects.Count; i++)
+                {
+                    var target = rects[i];
+                    if (target == null || GetPath(canvas, target) != path) continue;
+                    var text = target.GetComponent<TextMeshProUGUI>();
+                    if (text == null) continue;
+                    if (restoreFont)
+                    {
+                        var face = StreetCat.Loc.TmpFontCatalog.ResolveActive();
+                        if (face != null) text.font = face;
+                    }
+                    else
+                    {
+                        ApplyTextStyle(text, entry);
+                    }
+                    if (entry.fontWeight < 100)
+                        VnText.ApplyFontWeight(text, StreetCat.Loc.GameSettings.FontWeight);
+                }
+            }
         }
 
         public static bool Remove(Canvas canvas, RectTransform target)

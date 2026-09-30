@@ -193,6 +193,10 @@
       "value": "Letter Spacing"
     },
     {
+      "key": "ui.settings.font_weight",
+      "value": "Weight"
+    },
+    {
       "key": "ui.settings.font_latin_hint",
       "value": "(Latin — Chinese glyphs may be missing)"
     },
@@ -243,6 +247,10 @@
     {
       "key": "ui.settings.auto_delay",
       "value": "Auto Delay"
+    },
+    {
+      "key": "ui.settings.picture_hold",
+      "value": "Investigate Hold"
     },
     {
       "key": "ui.settings.fullscreen",
@@ -1197,6 +1205,54 @@
       "value": "Huai'an Community feature"
     },
     {
+      "key": "ui.writing.desk.kicker_banner",
+      "value": "HUAI'AN COMMUNITY FEATURE STORY"
+    },
+    {
+      "key": "ui.writing.desk.source_label",
+      "value": "SOURCE:"
+    },
+    {
+      "key": "ui.writing.desk.source_obs",
+      "value": "ON-SITE OBSERVATION"
+    },
+    {
+      "key": "ui.writing.desk.source_cat",
+      "value": "CAT MEMORIES"
+    },
+    {
+      "key": "ui.writing.desk.source_human",
+      "value": "HUMAN INTERVIEWS"
+    },
+    {
+      "key": "ui.writing.desk.dir_heading",
+      "value": "WRITING DIRECTION"
+    },
+    {
+      "key": "ui.writing.desk.mats_heading",
+      "value": "SELECTED MATERIALS"
+    },
+    {
+      "key": "ui.writing.desk.status_heading",
+      "value": "GENERATION STATUS"
+    },
+    {
+      "key": "ui.writing.desk.back_mats_art",
+      "value": "RETURN TO RESELECT MATERIALS"
+    },
+    {
+      "key": "ui.writing.desk.preview_art",
+      "value": "PREVIEW ARTICLE"
+    },
+    {
+      "key": "ui.writing.desk.edit_art",
+      "value": "EDIT KEY STATEMENTS"
+    },
+    {
+      "key": "ui.writing.desk.submit_art",
+      "value": "SUBMIT TO EDITOR-IN-CHIEF FOR REVIEW"
+    },
+    {
       "key": "ui.writing.desk.draft_label",
       "value": "Draft body (editable)"
     },
@@ -1297,6 +1353,18 @@
       "value": "Cannot preview a full draft yet."
     },
     {
+      "key": "ui.writing.desk.err_empty",
+      "value": "Pick at least one card for each of the four paragraphs."
+    },
+    {
+      "key": "ui.writing.desk.err_max",
+      "value": "You can select at most 10 cards."
+    },
+    {
+      "key": "ui.writing.desk.err_para",
+      "value": "{0} still has no card."
+    },
+    {
       "key": "ui.writing.desk.back_mats",
       "value": "Back to materials"
     },
@@ -1327,6 +1395,82 @@
     {
       "key": "ui.writing.desk.submit_polishing",
       "value": "Polishing…"
+    },
+    {
+      "key": "ui.writing.review.pass",
+      "value": "Review — approved"
+    },
+    {
+      "key": "ui.writing.review.fail",
+      "value": "Review — returned"
+    },
+    {
+      "key": "ui.writing.review.fail_short",
+      "value": "Shen He: This draft still needs work."
+    },
+    {
+      "key": "ui.writing.review.fail_problem",
+      "value": "Issue | {0}"
+    },
+    {
+      "key": "ui.writing.review.fail_advice",
+      "value": "Editor's note — {0}"
+    },
+    {
+      "key": "ui.writing.review.pass_1",
+      "value": "Shen He: I've read it. You can publish."
+    },
+    {
+      "key": "ui.writing.review.pass_2",
+      "value": "The structure holds, and the facts are not overstated. Uncertain points are not written as conclusions."
+    },
+    {
+      "key": "ui.writing.review.pass_3",
+      "value": "A reporter's job is not to make the story more legendary. It is to keep from getting the story wrong."
+    },
+    {
+      "key": "ui.writing.review.pass_4",
+      "value": "That's it. Send it."
+    },
+    {
+      "key": "ui.writing.review.mismatch_title",
+      "value": "Materials do not match the angle"
+    },
+    {
+      "key": "ui.writing.review.mismatch_rescue",
+      "value": "You chose the rescue angle, but barely wrote why he was not adopted or how he was released."
+    },
+    {
+      "key": "ui.writing.review.mismatch_rescue_advice",
+      "value": "Add release and constraint cards, or switch the angle to Dafu on duty."
+    },
+    {
+      "key": "ui.writing.review.mismatch_present",
+      "value": "Most of the piece is about how he works and suns himself now. The rescue line got crowded out."
+    },
+    {
+      "key": "ui.writing.review.mismatch_present_advice",
+      "value": "Change the angle, or pick cards that match it."
+    },
+    {
+      "key": "ui.writing.review.mismatch_guard",
+      "value": "The headline is about daily life, but the body is almost only a rescue ledger. The reader never sees Dafu today."
+    },
+    {
+      "key": "ui.writing.review.mismatch_guard_advice",
+      "value": "Add present-life and community-care cards, or switch to the rescue angle."
+    },
+    {
+      "key": "ui.writing.review.gap_title",
+      "value": "A key fact is missing"
+    },
+    {
+      "key": "ui.writing.review.gap_detail",
+      "value": "The injury and the rescue each need to stand. Leave one out and the logic skips."
+    },
+    {
+      "key": "ui.writing.review.gap_advice",
+      "value": "Go back for that material, or pick a different card for the paragraph."
     }
   ]
 }

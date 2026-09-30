@@ -1,0 +1,9 @@
+Noto Sans SC and Noto Serif SC
+Copyright 2014-2024 Adobe, with Reserved Font Name Source.
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+https://openfontlicense.org/open-font-license-official-text
+
+The Simplified Chinese subset files in this folder were packaged by Fontsource
+from the Noto CJK project (https://github.com/notofonts/noto-cjk).
+Same design as Source Han Sans / Source Han Serif.

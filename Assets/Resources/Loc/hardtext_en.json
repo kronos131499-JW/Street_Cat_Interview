@@ -1491,6 +1491,46 @@
     {
       "zh": "前往咖啡馆",
       "en": "Go to the café"
+    },
+    {
+      "zh": "林敏，这儿有个记者，在打听大福以前的事。你看到了回我一条。",
+      "en": "Lin, there's a reporter here asking about Dafu's past. Text me back when you see this."
+    },
+    {
+      "zh": "行，没问题。",
+      "en": "Sure, no problem."
+    },
+    {
+      "zh": "你好，我是林敏。保安跟我说，你想问问大福的事。",
+      "en": "Hi, I'm Lin Min. The guard told me you wanted to ask about Dafu."
+    },
+    {
+      "zh": "你好，我是小凌，《此时》的记者。我今天在社区见到了大福，也跟保安聊了一会儿。想跟你确认一下它受伤、治疗，还有后来被接回来的一些细节。明天下午方便做个简短采访吗？",
+      "en": "Hi, I'm Ling, a reporter with Here & Now. I met Dafu in the neighborhood today and talked to the guard for a bit. I'd like to confirm a few details about his injury, treatment, and how he was brought back afterward.\n\nWould you have time for a short interview tomorrow afternoon?"
+    },
+    {
+      "zh": "可以。我明天下午三点左右有空。南门外有家咖啡馆，我们在那儿见吧，平时挺安静的。",
+      "en": "Sure.\nI'm free around three tomorrow afternoon. There's a café just outside the south gate. Let's meet there. It's usually pretty quiet."
+    },
+    {
+      "zh": "好啊。方便把位置发我吗？",
+      "en": "Sounds good. Could you send me the location?"
+    },
+    {
+      "zh": "槐安社区南门外的咖啡馆",
+      "en": "Café outside Huai'an Community South Gate"
+    },
+    {
+      "zh": "就是这家。",
+      "en": "This is the one."
+    },
+    {
+      "zh": "收到。那明天下午三点见。谢谢！",
+      "en": "Got it. See you there at three tomorrow. Thanks!"
+    },
+    {
+      "zh": "好，明天见。",
+      "en": "Okay, see you tomorrow."
     }
   ]
 }

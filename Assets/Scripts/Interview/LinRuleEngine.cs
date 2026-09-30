@@ -26,22 +26,27 @@ namespace StreetCat.Interview
                 return "oob";
             if (ContainsAny(input, "扔", "遗弃", "不负责任", "骗子"))
                 return "release_accuse";
+            // Aftercare questions also say 「放归」; that word must not steal them.
+            if (ContainsAny(input, "照看", "换水", "添粮", "猫屋", "继续照顾"))
+                return "community";
             if (ContainsAny(input, "为什么不养", "不收养", "带回家", "放归", "送回",
                     "家里几只", "几只猫", "家里有猫", "四只", "第五只", "养猫", "家里猫", "为什么放"))
                 return "release";
-            if (ContainsAny(input, "多少钱", "费用", "一万", "花了", "花销", "贵不贵", "五千", "花多少"))
-                return "cost";
             if (ContainsAny(input, "犹豫", "放弃", "救不活"))
                 return "hesitate";
+            if (ContainsAny(input, "多少钱", "费用", "一万", "花了", "花销", "贵不贵", "五千", "花多少"))
+                return "cost";
+            // Wound questions mention 医院, but they are about the rope, not the stay.
+            if (ContainsAny(input, "脖子", "麻绳", "绳子", "坏死"))
+                return "injury";
+            // 「送去医院」 is how she got him there, not the inpatient story.
+            if (ContainsAny(input, "抓", "送医", "送去医院", "航空箱", "笼子", "怎么抓", "抓住"))
+                return "capture";
             if (ContainsAny(input, "猫瘟", "住院", "手术", "治疗", "医院", "救治"))
                 return "hospital";
-            if (ContainsAny(input, "抓", "送医", "航空箱", "笼子", "怎么抓", "抓住"))
-                return "capture";
             if (ContainsAny(input, "四天", "四个晚", "投喂", "罐头", "喂", "送吃的", "连续几天",
                     "喂养", "为什么喂", "喂了几天", "怎么喂", "连续喂"))
                 return "feeding";
-            if (ContainsAny(input, "麻绳", "绳子", "伤", "脖子", "坏死"))
-                return "injury";
             if (ContainsAny(input, "发现", "第一次", "怎么遇到", "垃圾桶", "开始", "怎么认识"))
                 return "discovery";
             // 「然后/后来/接着」 alone count as follow-up (not only 「然后呢」).
@@ -71,18 +76,18 @@ namespace StreetCat.Interview
             if (ContainsAny(input, "not adopt", "wasn't adopted", "why wasn't", "send him back", "send back",
                     "other cats", "cats at home", "fifth cat", "bring him home"))
                 return "release";
-            if (ContainsAny(input, "how much", "cost", "money", "five thousand", "ten thousand"))
-                return "cost";
             if (ContainsAny(input, "hesitat", "give up", "couldn't save"))
                 return "hesitate";
-            if (ContainsAny(input, "hospital", "surgery", "clinic", "panleuk", "treatment", "vet say", "doctors"))
-                return "hospital";
-            if (ContainsAny(input, "carrier", "cage", "catch him", "how did you get him"))
-                return "capture";
-            if (ContainsAny(input, "several days", "bring food", "feeding", "fed him", "why feed", "cans"))
-                return "feeding";
+            if (ContainsAny(input, "how much", "cost", "money", "five thousand", "ten thousand"))
+                return "cost";
             if (ContainsAny(input, "rope", "neck", "wound", "necro"))
                 return "injury";
+            if (ContainsAny(input, "carrier", "cage", "catch him", "how did you get him", "get him to"))
+                return "capture";
+            if (ContainsAny(input, "hospital", "surgery", "clinic", "panleuk", "treatment", "vet say", "doctors"))
+                return "hospital";
+            if (ContainsAny(input, "several days", "bring food", "feeding", "fed him", "why feed", "cans"))
+                return "feeding";
             if (ContainsAny(input, "first notice", "first time", "how did you first", "dumpster"))
                 return "discovery";
             if (ContainsAny(input, "and then", "what next", "what happened next", "go on"))
@@ -115,7 +120,7 @@ namespace StreetCat.Interview
                             "真正让我停下来的，是那只橘猫——大福——脖子上粗麻绳勒得很紧，下面一团黑乎乎的，还有血迹。"
                         },
                         "林女士停顿了一下，像是在回忆。",
-                        new[] { IntelIds.PastAfraid },
+                        null,
                         "DIRECT");
 
                 case "injury":
@@ -140,7 +145,7 @@ namespace StreetCat.Interview
                             "几天里脖子那边明显更糟，我没法再等它完全信任我。"
                         },
                         "林女士用手比划了一下退开的距离。",
-                        new[] { IntelIds.FeedFourDays, IntelIds.RepeatedFeeding });
+                        new[] { IntelIds.FeedFourDays, IntelIds.RepeatedFeeding, IntelIds.PastAfraid });
 
                 case "capture":
                     lastTopic = "capture";
@@ -162,7 +167,7 @@ namespace StreetCat.Interview
                             "住院第三天，医院说它确诊猫瘟了，后面每天至少五六百，也不能保证一定能救活。"
                         },
                         "林女士叹了口气。",
-                        new[] { IntelIds.PanleukopeniaDay3, IntelIds.ObjectGone },
+                        new[] { IntelIds.PanleukopeniaDay3 },
                         toneStress: 5);
 
                 case "cost":
@@ -250,8 +255,7 @@ namespace StreetCat.Interview
                     };
 
                 case "too_broad":
-                    lastTopic = "discovery";
-                    return R("discovery",
+                    return R("too_broad",
                         new[]
                         {
                             "我第一次注意到它，是2024年1月的一个晚上。",

@@ -8,7 +8,6 @@ namespace StreetCat.UI
     {
         readonly List<RectTransform> _rects = new List<RectTransform>(256);
         readonly HashSet<int> _applied = new HashSet<int>();
-        float _nextScan;
         int _seenRevision = -1;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -21,15 +20,25 @@ namespace StreetCat.UI
             host.AddComponent<UILayoutOverrideRuntime>();
         }
 
+        static bool _scanRequested = true;
+
+        /// <summary>Scan on the next LateUpdate. Call after building a screen.</summary>
+        public static void RequestScan() => _scanRequested = true;
+
         void LateUpdate()
         {
-            if (Time.unscaledTime < _nextScan) return;
-            _nextScan = Time.unscaledTime + 0.12f;
-            if (_seenRevision != UILayoutOverrides.Revision)
+            bool revisionChanged = _seenRevision != UILayoutOverrides.Revision;
+            if (revisionChanged)
             {
                 _seenRevision = UILayoutOverrides.Revision;
                 _applied.Clear();
+                _scanRequested = true;
             }
+
+            // New widgets used to sit at the code size for up to 1.5s, then snap
+            // to the saved layout. Apply them the frame they appear. Already-settled
+            // objects stay in _applied so this does not restamp them every frame.
+            _scanRequested = false;
             var data = UILayoutOverrides.Asset;
             if (data == null || data.entries == null || data.entries.Count == 0) return;
             var canvases = FindObjectsOfType<Canvas>();

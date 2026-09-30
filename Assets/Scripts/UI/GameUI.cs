@@ -74,16 +74,20 @@ namespace StreetCat.UI
         TextMeshProUGUI settingsBgmValue;
         TextMeshProUGUI settingsSfxValue;
         TextMeshProUGUI settingsAutoDelayValue;
+        TextMeshProUGUI settingsPictureHoldValue;
         Slider settingsBgmSlider;
         Slider settingsSfxSlider;
         Slider settingsAutoDelaySlider;
+        Slider settingsPictureHoldSlider;
         TextMeshProUGUI settingsLangZhBtn;
         TextMeshProUGUI settingsLangEnBtn;
         TextMeshProUGUI settingsFontNameLabel;
         TextMeshProUGUI settingsFontSizeValue;
         TextMeshProUGUI settingsLetterSpacingValue;
+        TextMeshProUGUI settingsFontWeightValue;
         Slider settingsFontSizeSlider;
         Slider settingsLetterSpacingSlider;
+        Slider settingsFontWeightSlider;
         TextMeshProUGUI settingsSpeedSlowBtn;
         TextMeshProUGUI settingsSpeedNormalBtn;
         TextMeshProUGUI settingsSpeedFastBtn;
@@ -342,15 +346,20 @@ namespace StreetCat.UI
 
             var corners = new Vector3[4];
             rt.GetWorldCorners(corners);
-            var bottom = (corners[0] + corners[3]) * 0.5f;
+            var bottomEdge = (corners[0] + corners[3]) * 0.5f;
             var cam = rt.GetComponentInParent<Canvas>()?.rootCanvas?.worldCamera;
-            var screen = RectTransformUtility.WorldToScreenPoint(cam, bottom);
+            var screen = RectTransformUtility.WorldToScreenPoint(cam, bottomEdge);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, cam, out var local);
 
+            var w = Mathf.Max(480f, width);
+            var h = Mathf.Max(100f, height);
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
             rt.pivot = new Vector2(0.5f, 0f);
-            rt.sizeDelta = new Vector2(Mathf.Max(480f, width), Mathf.Max(100f, height));
-            rt.anchoredPosition = new Vector2(0f, local.y);
+            rt.sizeDelta = new Vector2(w, h);
+            var parentH = parent.rect.height;
+            var minY = -parentH * parent.pivot.y;
+            var maxY = minY + Mathf.Max(0f, parentH - h);
+            rt.anchoredPosition = new Vector2(0f, Mathf.Clamp(local.y, minY, maxY));
         }
 
         /// <summary>Re-show the current line after a dialogue-text edit.</summary>
@@ -496,17 +505,15 @@ namespace StreetCat.UI
             if (bodyText != null)
             {
                 bodyText.font = font;
-                bodyText.fontSize = Mathf.RoundToInt((artPackParchmentActive ? 26f : 24f) * scale);
+                // VN body copy: large enough to read across the room. Weight comes from settings.
+                bodyText.fontSize = Mathf.RoundToInt((artPackParchmentActive ? 38f : 34f) * scale);
                 bodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
                 bodyText.enableWordWrapping = true;
-                // Scroll/mask clips extra lines. Truncate was wrapping only the last word.
                 bodyText.overflowMode = TextOverflowModes.Overflow;
-                bodyText.lineSpacing = artPackParchmentActive ? 10f : 20f;
+                bodyText.lineSpacing = artPackParchmentActive ? 16f : 18f;
                 bodyText.extraPadding = true;
-                // TMP characterSpacing does not break wrapping (the old vertex hack did).
-                ApplyLetterSpacing(bodyText, spacing);
-                if (artPackParchmentActive)
-                    SharpenDialogueTmp(bodyText);
+                ApplyLetterSpacing(bodyText, Mathf.Min(spacing, 1.2f) * 0.25f);
+                SharpenDialogueTmp(bodyText);
                 var contentRt = bodyText.rectTransform;
                 if (dialogueScroll != null && dialogueScroll.viewport != null)
                 {
@@ -523,12 +530,11 @@ namespace StreetCat.UI
             if (nameText != null)
             {
                 nameText.font = font;
-                nameText.fontSize = Mathf.RoundToInt(20f * scale);
+                nameText.fontSize = Mathf.RoundToInt(28f * scale);
                 nameText.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 nameText.enableWordWrapping = false;
-                ApplyLetterSpacing(nameText, spacing * 0.35f);
-                if (artPackParchmentActive)
-                    SharpenDialogueTmp(nameText);
+                ApplyLetterSpacing(nameText, Mathf.Min(spacing, 1.5f) * 0.35f);
+                SharpenDialogueTmp(nameText);
             }
             if (statusText != null)
             {
@@ -537,6 +543,7 @@ namespace StreetCat.UI
                 statusText.alignment = VnText.ToAlignment(TextAnchor.LowerLeft);
                 statusText.enableWordWrapping = false;
                 ApplyLetterSpacing(statusText, spacing * 0.35f);
+                SharpenDialogueTmp(statusText);
             }
             if (clickHintText != null)
             {
@@ -544,6 +551,7 @@ namespace StreetCat.UI
                 clickHintText.fontSize = Mathf.RoundToInt(16f * Mathf.Max(1f, scale));
                 clickHintText.enableWordWrapping = false;
                 ApplyLetterSpacing(clickHintText, spacing * 0.35f);
+                SharpenDialogueTmp(clickHintText);
             }
             if (objectiveText != null)
             {
@@ -585,6 +593,13 @@ namespace StreetCat.UI
                     inputField.textComponent.font = font;
                 if (inputField.placeholder is TMP_Text ph)
                     ph.font = font;
+            }
+            var styled = canvasRt.GetComponentsInChildren<TextMeshProUGUI>(true);
+            int weight = GameSettings.FontWeight;
+            for (int i = 0; i < styled.Length; i++)
+            {
+                if (styled[i] != null)
+                    VnText.ApplyFontWeight(styled[i], weight);
             }
             UILayoutOverrides.ReapplyTextStyles();
         }
@@ -718,7 +733,7 @@ namespace StreetCat.UI
             // SC-03 phone / social feed (above prop, under portrait + dialogue).
             BuildSocialOverlay(canvasGo.transform);
 
-            // Character portrait — upper-right of dialogue box (rests on dialogue top edge).
+            // Character portrait — upper-right. Vertical position comes from PortraitLayout.
             // preserveAspect + fixed slot: sprites must share similar canvas aspect
             // (1024x1536). LayoutPortrait keeps on-screen height stable across swaps.
             portraitImage = CreateImage(canvasGo.transform, "Portrait", Color.white);
@@ -813,6 +828,42 @@ namespace StreetCat.UI
 
             dialogueScroll.viewport = bodyViewport.rectTransform;
             dialogueScroll.content = bcrt;
+            dialogueScroll.inertia = true;
+            dialogueScroll.scrollSensitivity = 40f;
+
+            // Leave a track on the right. The bar only shows when the line is taller than the box.
+            const float dialogueScrollbarW = 12f;
+            bodyViewport.rectTransform.offsetMax = new Vector2(-dialogueScrollbarW - 4f, 0f);
+            var sbGo = new GameObject("DialogueScrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            sbGo.transform.SetParent(bodyHost.transform, false);
+            var sbrt = sbGo.GetComponent<RectTransform>();
+            sbrt.anchorMin = new Vector2(1f, 0f);
+            sbrt.anchorMax = new Vector2(1f, 1f);
+            sbrt.pivot = new Vector2(1f, 0.5f);
+            sbrt.sizeDelta = new Vector2(dialogueScrollbarW, 0f);
+            sbrt.anchoredPosition = Vector2.zero;
+            var trackImg = sbGo.GetComponent<Image>();
+            trackImg.color = new Color(0.35f, 0.24f, 0.16f, 0.28f);
+            trackImg.raycastTarget = true;
+
+            var sliding = new GameObject("Sliding Area", typeof(RectTransform));
+            sliding.transform.SetParent(sbGo.transform, false);
+            Stretch(sliding.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
+                new Vector2(1f, 3f), new Vector2(-1f, -3f));
+
+            var handleGo = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+            handleGo.transform.SetParent(sliding.transform, false);
+            StretchFull(handleGo.GetComponent<RectTransform>());
+            var handleImg = handleGo.GetComponent<Image>();
+            handleImg.color = new Color(0.28f, 0.18f, 0.12f, 0.85f);
+            handleImg.raycastTarget = true;
+
+            var scrollbar = sbGo.GetComponent<Scrollbar>();
+            scrollbar.handleRect = handleGo.GetComponent<RectTransform>();
+            scrollbar.targetGraphic = handleImg;
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            dialogueScroll.verticalScrollbar = scrollbar;
+            dialogueScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
 
             statusText = CreateUiText(dialoguePanel.transform, "Status", 15, TextAnchor.LowerLeft,
                 VnTheme.TextMuted, new Vector2(28, 12), new Vector2(480, 24));
@@ -1065,6 +1116,7 @@ namespace StreetCat.UI
 
         void ToggleDialogueHidden()
         {
+            if (investigatePictureHold) return;
             if (!CanHideDialogue() && !dialogueHidden) return;
             SetDialogueHidden(!dialogueHidden);
         }
@@ -1090,7 +1142,7 @@ namespace StreetCat.UI
         {
             if (hideDialogueBtn != null)
             {
-                bool showBtn = CanHideDialogue() || dialogueHidden;
+                bool showBtn = !investigatePictureHold && (CanHideDialogue() || dialogueHidden);
                 hideDialogueBtn.gameObject.SetActive(showBtn);
             }
 
@@ -2504,26 +2556,19 @@ namespace StreetCat.UI
 
             if (inspected)
             {
-                var badge = CreateImage(go.transform, "DoneBadge",
-                    new Color(0.22f, 0.34f, 0.26f, 0.92f));
-                badge.raycastTarget = false;
-                var brt = badge.rectTransform;
-                brt.anchorMin = brt.anchorMax = new Vector2(1f, 1f);
-                brt.pivot = new Vector2(1f, 1f);
-                brt.anchoredPosition = new Vector2(-3f, -3f);
-                brt.sizeDelta = new Vector2(22f, 22f);
-
-                var checkGo = new GameObject("Check", typeof(RectTransform));
-                checkGo.transform.SetParent(badge.transform, false);
-                StretchFull(checkGo.GetComponent<RectTransform>());
-                var check = checkGo.AddComponent<TextMeshProUGUI>();
-                check.font = font;
-                check.fontSize = 15;
-                check.fontStyle = FontStyles.Bold;
-                check.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
-                check.color = new Color(0.78f, 0.92f, 0.80f, 1f);
-                check.text = HardTextLoc.T("已");
-                check.raycastTarget = false;
+                var doneSpr = VnArt.GetUi("Investigation/Invest_Complete");
+                if (doneSpr != null)
+                {
+                    var badge = CreateImage(go.transform, "DoneBadge", Color.white);
+                    badge.sprite = doneSpr;
+                    badge.preserveAspect = true;
+                    badge.raycastTarget = false;
+                    var brt = badge.rectTransform;
+                    brt.anchorMin = brt.anchorMax = new Vector2(1f, 1f);
+                    brt.pivot = new Vector2(1f, 1f);
+                    brt.anchoredPosition = new Vector2(-2f, -2f);
+                    brt.sizeDelta = new Vector2(32f, 32f);
+                }
             }
 
             var btn = go.GetComponent<Button>();
@@ -2681,6 +2726,7 @@ namespace StreetCat.UI
         {
             var go = new GameObject("Btn", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement), typeof(CanvasGroup));
             go.transform.SetParent(parent, false);
+            UILayoutOverrideRuntime.RequestScan();
             var img = go.GetComponent<Image>();
             img.color = wide ? new Color(0.11f, 0.11f, 0.13f, 0.96f)
                 : (primary ? new Color(0.18f, 0.15f, 0.12f, 0.95f) : VnTheme.Button);
@@ -3203,7 +3249,7 @@ namespace StreetCat.UI
             float cx = slotLeft + slotW * PortraitLayout.CenterBias;
             float left = cx - widthNorm * 0.5f;
             float right = cx + widthNorm * 0.5f;
-            float bottom = slotBottom + offsetY;
+            float bottom = slotBottom;
             float top = bottom + heightNorm;
             if (top > slotTop)
             {
@@ -3214,6 +3260,22 @@ namespace StreetCat.UI
             {
                 bottom = slotBottom;
                 top = bottom + heightNorm;
+            }
+            // offsetY is a real nudge (+ up). Do not fold it back into the slot,
+            // or the editor slider cannot lift a figure that already fills the slot.
+            bottom += offsetY;
+            top += offsetY;
+            if (offsetY > 0f && top > 1f)
+            {
+                float drop = top - 1f;
+                top = 1f;
+                bottom -= drop;
+            }
+            else if (offsetY < 0f && bottom < 0f)
+            {
+                float lift = -bottom;
+                bottom = 0f;
+                top += lift;
             }
             Stretch(portraitImage.rectTransform,
                 new Vector2(left, bottom), new Vector2(right, top),
@@ -3515,13 +3577,31 @@ namespace StreetCat.UI
                 bodyText.text = typewriterFull;
             }
 
-            Canvas.ForceUpdateCanvases();
+            FitDialogueContent();
             if (dialogueScroll != null)
                 dialogueScroll.verticalNormalizedPosition = 1f;
             PlayDialogueFade();
             if (recordHistory && DialogueHistory.Instance != null)
                 DialogueHistory.Instance.Add(lastHistorySpeaker, typewriterFull, historyKind);
             RefreshAdvanceHint();
+        }
+
+        /// <summary>
+        /// Grow the dialogue content to the full text height so the scrollbar can reach the hidden lines.
+        /// </summary>
+        void FitDialogueContent()
+        {
+            if (bodyText == null || dialogueScroll == null || dialogueScroll.viewport == null) return;
+            var content = bodyText.rectTransform;
+            var fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null) fitter.enabled = false;
+            float w = dialogueScroll.viewport.rect.width;
+            if (w > 1f)
+                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
+            bodyText.ForceMeshUpdate();
+            float h = Mathf.Max(8f, bodyText.preferredHeight + 12f);
+            content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
+            Canvas.ForceUpdateCanvases();
         }
 
         IEnumerator TypewriterRoutine(string full)
@@ -3539,6 +3619,7 @@ namespace StreetCat.UI
                     acc -= next - shown;
                     shown = next;
                     bodyText.text = full.Substring(0, shown);
+                    FitDialogueContent();
                     typeTick++;
                     if (typeTick % 3 == 0)
                         SfxController.Instance?.PlayType();
@@ -3549,6 +3630,7 @@ namespace StreetCat.UI
                 yield return null;
             }
             bodyText.text = full;
+            FitDialogueContent();
             typewriterRunning = false;
             typewriterCo = null;
             RefreshAdvanceHint();
@@ -3564,8 +3646,8 @@ namespace StreetCat.UI
                 typewriterCo = null;
             }
             bodyText.text = typewriterFull;
+            FitDialogueContent();
             typewriterRunning = false;
-            Canvas.ForceUpdateCanvases();
             if (dialogueScroll != null)
                 dialogueScroll.verticalNormalizedPosition = 0f;
             RefreshAdvanceHint();
@@ -3603,6 +3685,7 @@ namespace StreetCat.UI
                 }
                 if (dialogueHidden)
                 {
+                    if (investigatePictureHold) return;
                     SetDialogueHidden(false);
                     return;
                 }
@@ -3676,6 +3759,8 @@ namespace StreetCat.UI
 
         void TryAdvanceByClick()
         {
+            if (investigatePictureHold)
+                return;
             if (sceneTransitioning)
                 return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -3753,6 +3838,7 @@ namespace StreetCat.UI
         /// </summary>
         bool IsSkippableDialogueContext()
         {
+            if (investigatePictureHold) return false;
             if (waitingForChoice) return false;
             if (mode == Mode.Dialogue) return true;
             if (mode == Mode.Investigate && !investigateHotspotsVisible && inspectQueue.Count > 0)
@@ -4277,6 +4363,7 @@ namespace StreetCat.UI
 
         public void ShowInvestigationMode()
         {
+            CancelInvestigatePictureHold();
             mode = Mode.Investigate;
             if (GameState.Instance != null)
                 GameState.Instance.Data.uiMode = "investigate";
@@ -4373,6 +4460,10 @@ namespace StreetCat.UI
 
         readonly List<InspectBeat> inspectQueue = new List<InspectBeat>();
         int inspectIndex;
+        Coroutine investigatePictureHoldCo;
+        int investigatePictureHoldGen;
+        bool investigatePictureHold;
+        bool investigatePictureHoldQueued;
         readonly List<InspectBeat> epilogueQueue = new List<InspectBeat>();
         GameObject toBeContinuedRoot;
         Coroutine toBeContinuedCo;
@@ -4413,7 +4504,69 @@ namespace StreetCat.UI
                 locationText.text = HardTextLoc.T("槐安社区");
             RefreshHeader();
             ApplyAtmosphere();
+            investigatePictureHoldQueued = true;
             ShowInspectBeat();
+        }
+
+        void CancelInvestigatePictureHold()
+        {
+            investigatePictureHoldGen++;
+            bool wasHolding = investigatePictureHold;
+            investigatePictureHold = false;
+            investigatePictureHoldQueued = false;
+            if (investigatePictureHoldCo != null)
+            {
+                StopCoroutine(investigatePictureHoldCo);
+                investigatePictureHoldCo = null;
+            }
+            if (wasHolding)
+                dialogueHidden = false;
+        }
+
+        void BeginInvestigatePictureHold(Action then)
+        {
+            if (investigatePictureHoldCo != null)
+            {
+                StopCoroutine(investigatePictureHoldCo);
+                investigatePictureHoldCo = null;
+            }
+            investigatePictureHoldGen++;
+            int gen = investigatePictureHoldGen;
+            investigatePictureHold = true;
+            investigatePictureHoldQueued = false;
+            SetAdvanceEnabled(false);
+            if (bodyText != null) bodyText.text = "";
+            if (nameText != null) nameText.text = "";
+            if (statusText != null) statusText.text = "";
+            ClearButtons();
+            if (hudSkipChip != null) hudSkipChip.SetActive(false);
+            SetPortrait(null);
+            SetDialogueHidden(true);
+            investigatePictureHoldCo = StartCoroutine(HoldInvestigatePictureCo(gen, then));
+        }
+
+        IEnumerator HoldInvestigatePictureCo(int gen, Action then)
+        {
+            float t = 0f;
+            float hold = GameSettings.PictureHold;
+            while (t < hold)
+            {
+                if (gen != investigatePictureHoldGen)
+                    yield break;
+                t += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            if (gen != investigatePictureHoldGen)
+                yield break;
+            investigatePictureHold = false;
+            investigatePictureHoldCo = null;
+            if (mode != Mode.Investigate || investigateHotspotsVisible)
+            {
+                dialogueHidden = false;
+                yield break;
+            }
+            SetDialogueHidden(false);
+            then?.Invoke();
         }
 
         void StartGuardAppearCutscene()
@@ -4432,6 +4585,7 @@ namespace StreetCat.UI
             SetChrome(true, false, true);
             RefreshHeader();
             ApplyAtmosphere();
+            investigatePictureHoldQueued = true;
             ShowInspectBeat();
         }
 
@@ -4460,7 +4614,7 @@ namespace StreetCat.UI
             ChapterFlowController.Instance.GoToScene(SceneIds.SC05);
         }
 
-        void ShowInspectBeat(bool recordHistory = true, bool playCues = true)
+        void ShowInspectBeat(bool recordHistory = true, bool playCues = true, bool pictureHeld = false)
         {
             if (inspectIndex < 0 || inspectIndex >= inspectQueue.Count)
             {
@@ -4472,14 +4626,27 @@ namespace StreetCat.UI
             }
 
             var beat = inspectQueue[inspectIndex];
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (playCues)
-                PortraitDebugOverrides.OnLineChanged(GetPortraitDebugLineKey());
-#endif
+            bool newPicture = false;
             if (playCues && !string.IsNullOrEmpty(beat.background))
+            {
+                newPicture = beat.background != stageBackgroundOverride;
                 SetStageBackground(beat.background);
+            }
             if (playCues && !string.IsNullOrEmpty(beat.sfx))
                 SfxController.Instance?.PlayScriptLabel(beat.sfx);
+
+            // New investigation picture: full art first, dialogue after the hold.
+            if (!pictureHeld && GameSettings.PictureHold > 0.01f
+                && (investigatePictureHoldQueued || newPicture))
+            {
+                BeginInvestigatePictureHold(() => ShowInspectBeat(recordHistory, false, true));
+                return;
+            }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (playCues || pictureHeld)
+                PortraitDebugOverrides.OnLineChanged(GetPortraitDebugLineKey());
+#endif
 
             var source = string.IsNullOrEmpty(portraitDebugBeatSourceId) ? "spot" : portraitDebugBeatSourceId;
             var locKey = "inv:" + source + ":" + inspectIndex;
@@ -4719,6 +4886,7 @@ namespace StreetCat.UI
             if (GameState.Instance == null) return;
             GameState.Instance.Data.phoneChatId = "";
             GameState.Instance.Data.phoneChatIndex = 0;
+            SaveSystem.Autosave();
         }
 
         void RememberPhoneProgress()
@@ -4731,6 +4899,7 @@ namespace StreetCat.UI
             }
             GameState.Instance.Data.phoneChatId = phoneSequence;
             GameState.Instance.Data.phoneChatIndex = talkIndex;
+            SaveSystem.Autosave();
         }
 
         /// <summary>Reopen the phone on the screenshot from the last save.</summary>

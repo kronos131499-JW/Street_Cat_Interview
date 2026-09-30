@@ -339,11 +339,45 @@ namespace StreetCat.UI
                     break;
             }
 
+            if (_slotDragMode == SlotDragMove)
+                KeepSlotOnScreen(ref l, ref r, ref b, ref t);
+
             d.slotLeft = l;
             d.slotRight = r;
             d.slotBottom = b;
             d.slotTop = t;
             d.Clamp();
+        }
+
+        /// <summary>
+        /// Moving the whole slot into the screen edge used to clamp only the top,
+        /// which shrank the slot and left the figure where it was.
+        /// </summary>
+        static void KeepSlotOnScreen(ref float l, ref float r, ref float b, ref float t)
+        {
+            float w = r - l;
+            float h = t - b;
+            if (t > 1f)
+            {
+                t = 1f;
+                b = t - h;
+            }
+            float minBottom = VnTheme.PortraitSlotBottomMin;
+            if (b < minBottom)
+            {
+                b = minBottom;
+                t = Mathf.Min(1f, b + h);
+            }
+            if (r > 1f)
+            {
+                r = 1f;
+                l = r - w;
+            }
+            if (l < 0f)
+            {
+                l = 0f;
+                r = Mathf.Min(1f, l + w);
+            }
         }
 
         bool EditorGUILayoutSliders(PortraitLayoutData d)

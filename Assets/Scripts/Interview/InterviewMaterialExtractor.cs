@@ -13,7 +13,8 @@ namespace StreetCat.Interview
     public static class InterviewMaterialExtractor
     {
         /// <summary>
-        /// After intel grants + material unlocks: write confirmed notes and a transcript line.
+        /// After intel grants + material unlocks: write confirmed notes.
+        /// Does not add a chat line. The "filed into cards" strip was a toast on the interview paper.
         /// </summary>
         public static void ApplyExtraction(
             InterviewSubject subject,
@@ -25,26 +26,17 @@ namespace StreetCat.Interview
                 return;
 
             var gs = GameState.Instance;
-            var titles = new List<string>();
             foreach (var id in newMaterialIds)
             {
                 var card = MaterialCatalog.Get(id);
                 var title = card != null ? card.title : id;
-                titles.Add(title);
-
                 var note = BuildNote(subject, reply, id, title);
                 if (gs != null && !string.IsNullOrEmpty(note) && !gs.Data.confirmedNotes.Contains(note))
                     gs.Data.confirmedNotes.Add(note);
             }
 
-            if (interviewLog == null || titles.Count == 0)
-                return;
-
-            var joined = string.Join("、", titles);
-            var line = string.Format(
-                UiLoc.T("ui.interview.extract_materials", "【素材】已整理进素材卡：{0}"),
-                joined);
-            interviewLog.Add(line);
+            // interviewLog stays in the signature so callers don't change. Nothing is appended.
+            _ = interviewLog;
             gs?.Notify();
         }
 

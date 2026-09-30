@@ -20,6 +20,7 @@ namespace StreetCat.Loc
         const string PrefTextSpeed = "sci.textSpeed";
         const string PrefAutoPlay = "sci.autoPlay";
         const string PrefAutoDelay = "sci.autoDelay";
+        const string PrefPictureHold = "sci.pictureHold";
         const string PrefFullscreen = "sci.fullscreen";
         const string PrefRememberLast = "sci.rememberLast";
         const string PrefHasCustomDefaults = "sci.default.has";
@@ -31,6 +32,7 @@ namespace StreetCat.Loc
         const string PrefDefTextSpeed = "sci.default.textSpeed";
         const string PrefDefAutoPlay = "sci.default.autoPlay";
         const string PrefDefAutoDelay = "sci.default.autoDelay";
+        const string PrefDefPictureHold = "sci.default.pictureHold";
         const string PrefDefFullscreen = "sci.default.fullscreen";
         const string PrefDefFontZh = "sci.default.font.zh";
         const string PrefDefFontEn = "sci.default.font.en";
@@ -38,14 +40,20 @@ namespace StreetCat.Loc
         const string PrefDefFontSizeEn = "sci.default.fontSize.en";
         const string PrefDefLetterSpZh = "sci.default.letterSpacing.zh";
         const string PrefDefLetterSpEn = "sci.default.letterSpacing.en";
+        const string PrefDefFontWeightZh = "sci.default.fontWeight.zh";
+        const string PrefDefFontWeightEn = "sci.default.fontWeight.en";
 
-        const string DefaultFontZh = "simhei";
-        const string DefaultFontEn = "barlow";
+        const string DefaultFontZh = "vn_gothic";
+        const string DefaultFontEn = "vn_gothic";
 
         public const float FontSizeMin = 0.75f;
         public const float FontSizeMax = 1.6f;
         public const float LetterSpacingMin = 0f;
         public const float LetterSpacingMax = 10f;
+        public const float PictureHoldMin = 0f;
+        public const float PictureHoldMax = 5f;
+        public const int FontWeightDefault = 500;
+        public static readonly int[] FontWeightSteps = { 300, 400, 500, 600, 700, 800 };
 
         public static event Action OnChanged;
 
@@ -54,11 +62,13 @@ namespace StreetCat.Loc
         static string uiFontId = DefaultFontZh;
         static float fontSizeScale = 1.15f;
         static float letterSpacing = 2.5f;
+        static int fontWeight = FontWeightDefault;
         static float bgmVolume = 0.7f;
         static float sfxVolume = 0.8f;
         static int textSpeed = 1; // 0 slow, 1 normal, 2 fast
         static bool autoPlay;
         static float autoDelay = 1.2f;
+        static float pictureHold = 1f;
         static bool fullscreen = true;
         static bool rememberLast = true;
 
@@ -128,6 +138,63 @@ namespace StreetCat.Loc
                 FlushPersist();
                 Notify();
             }
+        }
+
+        /// <summary>SDF weight step for the active language: 300 thin through 800 heavy.</summary>
+        public static int FontWeight
+        {
+            get { EnsureLoaded(); return fontWeight; }
+            set
+            {
+                EnsureLoaded();
+                int v = SnapFontWeight(value);
+                if (fontWeight == v) return;
+                fontWeight = v;
+                PersistInt(PrefFontWeight(language), fontWeight);
+                FlushPersist();
+                Notify();
+            }
+        }
+
+        public static int SnapFontWeight(int weight)
+        {
+            int best = FontWeightSteps[0];
+            int bestDist = int.MaxValue;
+            for (int i = 0; i < FontWeightSteps.Length; i++)
+            {
+                int dist = Mathf.Abs(FontWeightSteps[i] - weight);
+                if (dist < bestDist)
+                {
+                    best = FontWeightSteps[i];
+                    bestDist = dist;
+                }
+            }
+            return best;
+        }
+
+        public static string FontWeightName(int weight)
+        {
+            bool en = IsEnglish;
+            switch (SnapFontWeight(weight))
+            {
+                case 300: return en ? "Light" : "细";
+                case 400: return en ? "Regular" : "常规";
+                case 600: return en ? "Semibold" : "半粗";
+                case 700: return en ? "Bold" : "粗";
+                case 800: return en ? "Heavy" : "特粗";
+                default: return en ? "Medium" : "中等";
+            }
+        }
+
+        public static float FontWeightSlider01(int weight)
+        {
+            int step = SnapFontWeight(weight);
+            for (int i = 0; i < FontWeightSteps.Length; i++)
+            {
+                if (FontWeightSteps[i] == step)
+                    return FontWeightSteps.Length <= 1 ? 0f : i / (float)(FontWeightSteps.Length - 1);
+            }
+            return 0.4f;
         }
 
         public static void CycleUiFont(int delta)
@@ -229,6 +296,22 @@ namespace StreetCat.Loc
             }
         }
 
+        /// <summary>Seconds the full investigation picture stays up before dialogue (0–5). Default 1.</summary>
+        public static float PictureHold
+        {
+            get { EnsureLoaded(); return pictureHold; }
+            set
+            {
+                EnsureLoaded();
+                float v = Mathf.Clamp(value, PictureHoldMin, PictureHoldMax);
+                if (Mathf.Approximately(pictureHold, v)) return;
+                pictureHold = v;
+                PersistFloat(PrefPictureHold, pictureHold);
+                FlushPersist();
+                Notify();
+            }
+        }
+
         public static bool Fullscreen
         {
             get { EnsureLoaded(); return fullscreen; }
@@ -310,6 +393,7 @@ namespace StreetCat.Loc
             PlayerPrefs.SetInt(PrefDefTextSpeed, textSpeed);
             PlayerPrefs.SetInt(PrefDefAutoPlay, autoPlay ? 1 : 0);
             PlayerPrefs.SetFloat(PrefDefAutoDelay, autoDelay);
+            PlayerPrefs.SetFloat(PrefDefPictureHold, pictureHold);
             PlayerPrefs.SetInt(PrefDefFullscreen, fullscreen ? 1 : 0);
 
             // Store font profiles for both languages: active from memory, other from last prefs / catalog.
@@ -321,12 +405,14 @@ namespace StreetCat.Loc
                 PlayerPrefs.SetString(PrefDefFontZh, uiFontId);
                 PlayerPrefs.SetFloat(PrefDefFontSizeZh, fontSizeScale);
                 PlayerPrefs.SetFloat(PrefDefLetterSpZh, letterSpacing);
+                PlayerPrefs.SetInt(PrefDefFontWeightZh, fontWeight);
             }
             else
             {
                 PlayerPrefs.SetString(PrefDefFontEn, uiFontId);
                 PlayerPrefs.SetFloat(PrefDefFontSizeEn, fontSizeScale);
                 PlayerPrefs.SetFloat(PrefDefLetterSpEn, letterSpacing);
+                PlayerPrefs.SetInt(PrefDefFontWeightEn, fontWeight);
             }
 
             if (rememberLast)
@@ -364,6 +450,7 @@ namespace StreetCat.Loc
         static string PrefFont(GameLanguage lang) => "sci.font." + LangCode(lang);
         static string PrefFontSize(GameLanguage lang) => "sci.fontSize." + LangCode(lang);
         static string PrefLetterSpacing(GameLanguage lang) => "sci.letterSpacing." + LangCode(lang);
+        static string PrefFontWeight(GameLanguage lang) => "sci.fontWeight." + LangCode(lang);
 
         static string DefaultFontId(GameLanguage lang) =>
             lang == GameLanguage.En ? DefaultFontEn : DefaultFontZh;
@@ -409,10 +496,12 @@ namespace StreetCat.Loc
             PlayerPrefs.SetInt(PrefTextSpeed, textSpeed);
             PlayerPrefs.SetInt(PrefAutoPlay, autoPlay ? 1 : 0);
             PlayerPrefs.SetFloat(PrefAutoDelay, autoDelay);
+            PlayerPrefs.SetFloat(PrefPictureHold, pictureHold);
             PlayerPrefs.SetInt(PrefFullscreen, fullscreen ? 1 : 0);
             PlayerPrefs.SetString(PrefFont(language), uiFontId);
             PlayerPrefs.SetFloat(PrefFontSize(language), fontSizeScale);
             PlayerPrefs.SetFloat(PrefLetterSpacing(language), letterSpacing);
+            PlayerPrefs.SetInt(PrefFontWeight(language), fontWeight);
         }
 
         static void LoadLastProfile()
@@ -428,6 +517,9 @@ namespace StreetCat.Loc
             autoDelay = PlayerPrefs.HasKey(PrefAutoDelay)
                 ? Mathf.Clamp(PlayerPrefs.GetFloat(PrefAutoDelay), 0.3f, 5f)
                 : 1.2f;
+            pictureHold = PlayerPrefs.HasKey(PrefPictureHold)
+                ? Mathf.Clamp(PlayerPrefs.GetFloat(PrefPictureHold), PictureHoldMin, PictureHoldMax)
+                : 1f;
             fullscreen = PlayerPrefs.GetInt(PrefFullscreen, Screen.fullScreen ? 1 : 0) == 1;
         }
 
@@ -442,6 +534,7 @@ namespace StreetCat.Loc
                 textSpeed = Mathf.Clamp(PlayerPrefs.GetInt(PrefDefTextSpeed, 1), 0, 2);
                 autoPlay = PlayerPrefs.GetInt(PrefDefAutoPlay, 0) == 1;
                 autoDelay = Mathf.Clamp(PlayerPrefs.GetFloat(PrefDefAutoDelay, 1.2f), 0.3f, 5f);
+                pictureHold = Mathf.Clamp(PlayerPrefs.GetFloat(PrefDefPictureHold, 1f), PictureHoldMin, PictureHoldMax);
                 fullscreen = PlayerPrefs.GetInt(PrefDefFullscreen, Screen.fullScreen ? 1 : 0) == 1;
                 LoadFontFromDefaults(language);
             }
@@ -459,11 +552,13 @@ namespace StreetCat.Loc
             textSpeed = 1;
             autoPlay = false;
             autoDelay = 1.2f;
+            pictureHold = 1f;
             fullscreen = true;
             uiFontId = DefaultFontZh;
             var opt = FontCatalog.Get(uiFontId);
             fontSizeScale = Mathf.Clamp(opt.SizeScale > 0.01f ? opt.SizeScale : 1.15f, FontSizeMin, FontSizeMax);
             letterSpacing = Mathf.Clamp(opt.LetterSpacing, LetterSpacingMin, LetterSpacingMax);
+            fontWeight = FontWeightDefault;
         }
 
         static void SaveDefaultFontSlot(GameLanguage lang)
@@ -478,18 +573,23 @@ namespace StreetCat.Loc
             float spacing = PlayerPrefs.HasKey(PrefLetterSpacing(lang))
                 ? PlayerPrefs.GetFloat(PrefLetterSpacing(lang))
                 : opt.LetterSpacing;
+            int weight = PlayerPrefs.HasKey(PrefFontWeight(lang))
+                ? SnapFontWeight(PlayerPrefs.GetInt(PrefFontWeight(lang)))
+                : FontWeightDefault;
 
             if (lang == GameLanguage.Zh)
             {
                 PlayerPrefs.SetString(PrefDefFontZh, id);
                 PlayerPrefs.SetFloat(PrefDefFontSizeZh, Mathf.Clamp(size, FontSizeMin, FontSizeMax));
                 PlayerPrefs.SetFloat(PrefDefLetterSpZh, Mathf.Clamp(spacing, LetterSpacingMin, LetterSpacingMax));
+                PlayerPrefs.SetInt(PrefDefFontWeightZh, weight);
             }
             else
             {
                 PlayerPrefs.SetString(PrefDefFontEn, id);
                 PlayerPrefs.SetFloat(PrefDefFontSizeEn, Mathf.Clamp(size, FontSizeMin, FontSizeMax));
                 PlayerPrefs.SetFloat(PrefDefLetterSpEn, Mathf.Clamp(spacing, LetterSpacingMin, LetterSpacingMax));
+                PlayerPrefs.SetInt(PrefDefFontWeightEn, weight);
             }
         }
 
@@ -499,6 +599,7 @@ namespace StreetCat.Loc
             string idKey = lang == GameLanguage.En ? PrefDefFontEn : PrefDefFontZh;
             string sizeKey = lang == GameLanguage.En ? PrefDefFontSizeEn : PrefDefFontSizeZh;
             string spKey = lang == GameLanguage.En ? PrefDefLetterSpEn : PrefDefLetterSpZh;
+            string weightKey = lang == GameLanguage.En ? PrefDefFontWeightEn : PrefDefFontWeightZh;
 
             string id = PlayerPrefs.GetString(idKey, defId);
             if (!IsKnownFont(id)) id = defId;
@@ -510,6 +611,9 @@ namespace StreetCat.Loc
             letterSpacing = PlayerPrefs.HasKey(spKey)
                 ? Mathf.Clamp(PlayerPrefs.GetFloat(spKey), LetterSpacingMin, LetterSpacingMax)
                 : Mathf.Clamp(opt.LetterSpacing, LetterSpacingMin, LetterSpacingMax);
+            fontWeight = PlayerPrefs.HasKey(weightKey)
+                ? SnapFontWeight(PlayerPrefs.GetInt(weightKey))
+                : FontWeightDefault;
         }
 
         /// <summary>
@@ -562,6 +666,10 @@ namespace StreetCat.Loc
                 letterSpacing = Mathf.Clamp(PlayerPrefs.GetFloat(PrefLetterSpacing(lang)), LetterSpacingMin, LetterSpacingMax);
             else
                 letterSpacing = Mathf.Clamp(opt.LetterSpacing, LetterSpacingMin, LetterSpacingMax);
+
+            fontWeight = PlayerPrefs.HasKey(PrefFontWeight(lang))
+                ? SnapFontWeight(PlayerPrefs.GetInt(PrefFontWeight(lang)))
+                : FontWeightDefault;
         }
 
         static void Notify() => OnChanged?.Invoke();

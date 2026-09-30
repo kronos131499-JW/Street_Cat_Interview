@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using StreetCat.Data;
 using StreetCat.Interview;
+using StreetCat.Loc;
 using UnityEngine;
 
 namespace StreetCat.Writing
@@ -105,30 +106,24 @@ namespace StreetCat.Writing
                 if ("ABCD".IndexOf(branch, StringComparison.Ordinal) < 0)
                     branch = dto.pass ? "A" : "C";
 
-                // Enforce length floor even if model is soft.
-                if (chars < ArticleDraftAi.TargetMinChars * 0.85f && branch == "A")
-                {
-                    branch = "C";
-                    dto.pass = false;
-                    if (dto.score >= 70) dto.score = 58;
-                    if (string.IsNullOrWhiteSpace(dto.review))
-                        dto.review = "篇幅不够。特稿不能写成像备忘录，回去把过程写开。";
-                }
-
                 bool pass = branch == "A" && dto.score >= 70;
                 if (!pass && branch == "A")
                     branch = "C";
 
+                string passMark = UiLoc.T("ui.writing.review.pass", "审核结果——通过");
+                string failMark = UiLoc.T("ui.writing.review.fail", "审核结果——退回");
                 string review = string.IsNullOrWhiteSpace(dto.review)
                     ? (pass
-                        ? "审核结果——通过\n\n沈禾：看完了。可以发。"
-                        : "审核结果——退回\n\n沈禾：这稿还得改。")
+                        ? passMark + "\n\n" + UiLoc.T("ui.writing.review.pass_1", "沈禾：看完了。可以发。")
+                        : failMark + "\n\n" + UiLoc.T("ui.writing.review.fail_short", "沈禾：这稿还得改。"))
                     : dto.review.Trim().Replace("\\n", "\n");
 
-                if (pass && review.IndexOf("通过", StringComparison.Ordinal) < 0)
-                    review = "审核结果——通过\n\n" + review;
-                if (!pass && review.IndexOf("退回", StringComparison.Ordinal) < 0)
-                    review = "审核结果——退回\n\n" + review;
+                if (pass && review.IndexOf(passMark, StringComparison.Ordinal) < 0
+                    && review.IndexOf("通过", StringComparison.Ordinal) < 0)
+                    review = passMark + "\n\n" + review;
+                if (!pass && review.IndexOf(failMark, StringComparison.Ordinal) < 0
+                    && review.IndexOf("退回", StringComparison.Ordinal) < 0)
+                    review = failMark + "\n\n" + review;
 
                 assembler.ApplyReview(dto.score, branch, review);
             }

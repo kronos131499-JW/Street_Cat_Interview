@@ -1,5 +1,7 @@
 using System;
 using StreetCat.Interview;
+using StreetCat.Investigation;
+using StreetCat.UI;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,6 +10,87 @@ namespace StreetCat.Editor
     public static class StreetCatEditorMenus
     {
         const string LlmApiKeyPrefs = "STREETCAT_LLM_API_KEY";
+
+        [MenuItem("街角专访/关闭所有编辑器", priority = 1)]
+        [MenuItem("StreetCat/Turn Off All Editors", priority = 1)]
+        public static void DisableAllPlayEditors()
+        {
+            UILayoutEditMode.Enabled = false;
+            UILayoutEditMode.TextFocus = false;
+            UILayoutEditMode.LockSelection = false;
+            TitleMenuEditMode.Enabled = false;
+            PortraitEditMode.Enabled = false;
+            SocialEditMode.Enabled = false;
+            InvestigateHotspotEditMode.Enabled = false;
+            EditorApplication.delayCall += CloseEditorWindows;
+            Debug.Log("[StreetCat] 已关闭所有编辑器，Game 视图点击恢复为正常游玩。");
+        }
+
+        static void CloseEditorWindows()
+        {
+            CloseIfOpen<UILayoutEditorWindow>();
+            CloseIfOpen<TitleMenuEditorWindow>();
+            CloseIfOpen<PortraitLayoutEditorWindow>();
+            CloseIfOpen<SocialLayoutEditorWindow>();
+            CloseIfOpen<InvestigateHotspotEditorWindow>();
+            CloseIfOpen<DialogueFontColorEditorWindow>();
+            CloseIfOpen<DialogueTextEditorWindow>();
+        }
+
+        static void CloseIfOpen<T>() where T : EditorWindow
+        {
+            var windows = Resources.FindObjectsOfTypeAll<T>();
+            for (var i = 0; i < windows.Length; i++)
+            {
+                if (windows[i] != null)
+                    windows[i].Close();
+            }
+        }
+
+        /// <summary>
+        /// Older saves snapshotted the live font size on every pose save, so any element that was
+        /// ever nudged stopped following the settings size/weight/spacing sliders. Layout is kept.
+        /// </summary>
+        [MenuItem("街角专访/清除已锁死的文字尺寸覆盖", priority = 2)]
+        [MenuItem("StreetCat/Clear Pinned Text Size Overrides", priority = 2)]
+        static void ClearPinnedTextStyleOverrides()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<UILayoutOverrideData>(UILayoutOverrides.AssetDiskPath);
+            if (asset == null || asset.entries == null)
+            {
+                EditorUtility.DisplayDialog("UI Layout", "找不到 " + UILayoutOverrides.AssetDiskPath, "OK");
+                return;
+            }
+
+            var cleared = 0;
+            var report = new System.Text.StringBuilder();
+            foreach (var entry in asset.entries)
+            {
+                if (entry == null) continue;
+                if (entry.fontSize <= 1f && entry.fontWeight < 100 && !entry.overrideLetterSpacing && !entry.overrideFontStyle)
+                    continue;
+                report.AppendLine("  " + entry.path + "  (size " + entry.fontSize + ", weight " + entry.fontWeight + ")");
+                entry.fontSize = 0f;
+                entry.fontWeight = 0;
+                entry.overrideLetterSpacing = false;
+                entry.overrideFontStyle = false;
+                cleared++;
+            }
+
+            if (cleared == 0)
+            {
+                EditorUtility.DisplayDialog("UI Layout", "没有被锁死的文字尺寸覆盖。", "OK");
+                return;
+            }
+
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[UI Layout] 已清除 " + cleared + " 条文字样式锁定：\n" + report);
+            EditorUtility.DisplayDialog(
+                "UI Layout",
+                "已清除 " + cleared + " 条锁死的文字尺寸/字重/字间距覆盖。\n位置与大小保持不变。\n明细见 Console。",
+                "OK");
+        }
 
         [MenuItem("StreetCat/Play Chapter1 From SampleScene")]
         static void Play()

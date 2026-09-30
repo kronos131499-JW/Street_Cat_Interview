@@ -25,8 +25,14 @@ namespace StreetCat.UI
         public float letterSpacing;
         public bool overrideFontStyle;
         public bool bold;
+        [Tooltip("0 follows the settings weight. Otherwise 300–800.")]
+        public int fontWeight;
         public bool overrideColor;
         public Color textColor = Color.white;
+        [Tooltip("Pushes glyphs down inside a scroll body. Scroll views clamp a negative position, so this is what a downward drag stores.")]
+        public float textMarginTop;
+        [Tooltip("Font/size only. Do not move or resize this object.")]
+        public bool textOnly;
 
         public UILayoutOverrideEntry Clone()
         {
@@ -52,8 +58,11 @@ namespace StreetCat.UI
             letterSpacing = other.letterSpacing;
             overrideFontStyle = other.overrideFontStyle;
             bold = other.bold;
+            fontWeight = other.fontWeight;
             overrideColor = other.overrideColor;
             textColor = other.textColor;
+            textMarginTop = other.textMarginTop;
+            textOnly = other.textOnly;
         }
 
         public void Capture(string entryPath, RectTransform target)
@@ -67,7 +76,9 @@ namespace StreetCat.UI
             anchoredPosition = target.anchoredPosition;
             sizeDelta = target.sizeDelta;
             var text = target.GetComponent<TMPro.TextMeshProUGUI>();
-            fontSize = text != null ? text.fontSize : 0f;
+            // 0 means "follow the settings size". Only a saved entry can pin an absolute size.
+            fontSize = 0f;
+            textMarginTop = text != null ? text.margin.y : 0f;
             var layoutElement = target.GetComponent<UnityEngine.UI.LayoutElement>();
             ignoreParentLayout = layoutElement != null && layoutElement.ignoreLayout;
             var saved = UILayoutOverrides.Asset != null ? UILayoutOverrides.Asset.Find(entryPath) : null;
@@ -79,8 +90,10 @@ namespace StreetCat.UI
                 letterSpacing = saved.letterSpacing;
                 overrideFontStyle = saved.overrideFontStyle;
                 bold = saved.bold;
+                fontWeight = saved.fontWeight;
                 overrideColor = saved.overrideColor;
                 textColor = saved.textColor;
+                textOnly = saved.textOnly;
             }
         }
     }
@@ -101,26 +114,39 @@ namespace StreetCat.UI
             return null;
         }
 
-        public void Set(string path, RectTransform target)
+        /// <summary>
+        /// Save the pose. Text style is carried over untouched, including <see cref="UILayoutOverrideEntry.fontSize"/>:
+        /// snapshotting the live size here pinned every text element the moment it was nudged, which
+        /// silently killed the player's font-size setting for that element.
+        /// Only the notebook resize handle, which drives font size from the drag, passes
+        /// <paramref name="captureFontSize"/>.
+        /// </summary>
+        public void Set(string path, RectTransform target, bool captureFontSize = false)
         {
             if (string.IsNullOrEmpty(path) || target == null) return;
             var entry = Find(path);
+            var keepFontSize = 0f;
             string keepFontId = null;
             var keepSpacing = false;
             var keepSpacingValue = 0f;
             var keepStyle = false;
             var keepBold = false;
+            var keepWeight = 0;
             var keepColor = false;
             var keepColorValue = Color.white;
+            var keepMarginTop = 0f;
             if (entry != null)
             {
+                keepFontSize = entry.fontSize;
                 keepFontId = entry.fontId;
                 keepSpacing = entry.overrideLetterSpacing;
                 keepSpacingValue = entry.letterSpacing;
                 keepStyle = entry.overrideFontStyle;
                 keepBold = entry.bold;
+                keepWeight = entry.fontWeight;
                 keepColor = entry.overrideColor;
                 keepColorValue = entry.textColor;
+                keepMarginTop = entry.textMarginTop;
             }
             if (entry == null)
             {
@@ -134,14 +160,17 @@ namespace StreetCat.UI
             entry.sizeDelta = target.sizeDelta;
             entry.deleted = false;
             var text = target.GetComponent<TMPro.TextMeshProUGUI>();
-            entry.fontSize = text != null ? text.fontSize : 0f;
+            entry.fontSize = captureFontSize && text != null ? text.fontSize : keepFontSize;
+            entry.textMarginTop = text != null ? text.margin.y : keepMarginTop;
             entry.fontId = keepFontId;
             entry.overrideLetterSpacing = keepSpacing;
             entry.letterSpacing = keepSpacingValue;
             entry.overrideFontStyle = keepStyle;
             entry.bold = keepBold;
+            entry.fontWeight = keepWeight;
             entry.overrideColor = keepColor;
             entry.textColor = keepColorValue;
+            entry.textOnly = false;
             var layoutElement = target.GetComponent<UnityEngine.UI.LayoutElement>();
             entry.ignoreParentLayout = layoutElement != null && layoutElement.ignoreLayout;
         }

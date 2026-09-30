@@ -862,6 +862,10 @@ namespace StreetCat.Notebook
 
         static bool FitsInterviewSubject(InterviewSubject subject, string q)
         {
+            if (string.IsNullOrEmpty(q)) return false;
+            // Chips are localized before this filter. Match the Chinese canon so
+            // English lines are not dropped for lacking 您 / 你.
+            q = StreetCat.Interview.InterviewLoc.CanonicalQuestion(q);
             bool linTone = q.IndexOf('您') >= 0
                            || q.Contains("医生")
                            || q.Contains("手术")

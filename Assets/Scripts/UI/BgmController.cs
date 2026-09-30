@@ -79,6 +79,8 @@ namespace StreetCat.UI
             if (Instance == this) Instance = null;
         }
 
+        string resumeKey;
+
         void OnSettingsChanged()
         {
             MusicEnabled = GameSettings.BgmVolume > 0.001f;
@@ -88,8 +90,14 @@ namespace StreetCat.UI
                 return;
             }
             float vol = EffectiveVolume;
-            if (a != null && a.isPlaying) a.volume = vol;
-            if (b != null && b.isPlaying) b.volume = vol;
+            if ((a != null && a.isPlaying) || (b != null && b.isPlaying))
+            {
+                if (a != null && a.isPlaying) a.volume = vol;
+                if (b != null && b.isPlaying) b.volume = vol;
+                return;
+            }
+            if (!string.IsNullOrEmpty(resumeKey))
+                Play(resumeKey);
         }
 
         static void Configure(AudioSource src)
@@ -104,11 +112,6 @@ namespace StreetCat.UI
 
         public void PlayForContext(string modeHint, string backgroundLabel)
         {
-            if (!MusicEnabled)
-            {
-                StopAll();
-                return;
-            }
             if (!string.IsNullOrEmpty(stickyScriptKey))
             {
                 Play(stickyScriptKey);
@@ -120,17 +123,13 @@ namespace StreetCat.UI
         /// <summary>Script cue e.g. 编辑部日常_01（循环） / 淡出.</summary>
         public void PlayScriptLabel(string label)
         {
-            if (!MusicEnabled)
-            {
-                StopAll();
-                return;
-            }
             if (string.IsNullOrEmpty(label)) return;
 
             var raw = label.Replace("　", "").Replace(" ", "").Trim();
             if (raw.Contains("淡出") || raw.Contains("停止") || raw.Contains("fade"))
             {
                 stickyScriptKey = null;
+                resumeKey = null;
                 FadeOut();
                 return;
             }
@@ -214,6 +213,8 @@ namespace StreetCat.UI
 
         public void Play(string key)
         {
+            if (!string.IsNullOrEmpty(key))
+                resumeKey = key;
             if (!MusicEnabled)
             {
                 StopAll();

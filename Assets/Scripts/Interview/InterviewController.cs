@@ -59,6 +59,8 @@ namespace StreetCat.Interview
         {
             subject = who;
             returnToWritingAfterEnd = returnToWritingAfter;
+            if (GameState.Instance != null)
+                GameState.Instance.Data.reinterviewReturnToWriting = returnToWritingAfter;
             log.Clear();
             gainedThisInterview.Clear();
             LastExtractedMaterials = Array.Empty<string>();
@@ -772,7 +774,6 @@ namespace StreetCat.Interview
 
             if (who == InterviewSubject.Dafu)
             {
-                GameState.Instance.GrantIntel(IntelIds.WomanClue, "大福记得一名多次投喂并参与带走的女性。");
                 ReporterNotebook.Instance?.AddGap("勒住大福脖子的东西究竟是什么？");
                 ReporterNotebook.Instance?.AddGap("当时参与救助的女性是谁？");
                 ReporterNotebook.Instance?.AddGap("为什么康复后没有被收养？");

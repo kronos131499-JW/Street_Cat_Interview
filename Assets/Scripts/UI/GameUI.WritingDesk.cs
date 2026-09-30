@@ -48,6 +48,21 @@ namespace StreetCat.UI
         ScrollRect wdDraftScroll;
         bool writingDeskActive;
         bool writingDeskArtOn;
+        RectTransform writingDeskBoard;
+        Image wdMatsEmptyCover;
+        TextMeshProUGUI wdDirHeading;
+        TextMeshProUGUI wdMatsHeading;
+        TextMeshProUGUI wdStatusHeading;
+        TextMeshProUGUI wdStep1;
+        TextMeshProUGUI wdStep2;
+        TextMeshProUGUI wdStep3;
+        TextMeshProUGUI wdSrcObs;
+        TextMeshProUGUI wdSrcCat;
+        TextMeshProUGUI wdSrcHuman;
+        TextMeshProUGUI wdStatusDirTx;
+        TextMeshProUGUI wdStatusParaTx;
+        Sprite wdDirOnSprite;
+        Sprite wdDirOffSprite;
 
         void BuildWritingDeskOverlay(Transform parent)
         {
@@ -64,7 +79,7 @@ namespace StreetCat.UI
             paper.raycastTarget = true;
             DrawManuscriptLines(paper.transform);
 
-            var headlineCover = CreateImage(paper.transform, "HeadlineCover", new Color(0.882f, 0.816f, 0.741f, 1f));
+            var headlineCover = CreateImage(paper.transform, "HeadlineCover", new Color(0.835f, 0.757f, 0.655f, 1f));
             Stretch(headlineCover.rectTransform, new Vector2(0.05f, 0.798f), new Vector2(0.64f, 0.848f),
                 Vector2.zero, Vector2.zero);
             headlineCover.raycastTarget = false;
@@ -392,6 +407,186 @@ namespace StreetCat.UI
             writingDeskRoot.SetActive(false);
         }
 
+        /// <summary>
+        /// English art is a finished sheet: kicker, rules, source line, and the three cards are painted.
+        /// Dynamic text has to sit inside those regions. The procedural Chinese layout uses the other branch.
+        /// Anchors are fractions of the 1920×1080 sheet (y from the bottom).
+        /// </summary>
+        void LayoutWritingDeskChrome(bool art)
+        {
+            if (art && writingDeskBoard != null)
+            {
+                LayoutWritingSectionChrome();
+                return;
+            }
+            var artInk = new Color(0.33f, 0.22f, 0.12f, 1f);
+            var artMuted = new Color(0.42f, 0.30f, 0.18f, 0.88f);
+
+            var cover = writingDeskRoot != null
+                ? writingDeskRoot.transform.Find("Paper/HeadlineCover") as RectTransform
+                : null;
+            if (cover != null)
+            {
+                // Cover only the baked headline glyphs. Leave the rule underneath.
+                Stretch(cover, new Vector2(0.07f, 0.800f), new Vector2(0.63f, 0.848f),
+                    Vector2.zero, Vector2.zero);
+                var coverImg = cover.GetComponent<Image>();
+                if (coverImg != null)
+                    coverImg.color = new Color(0.835f, 0.757f, 0.655f, 1f);
+            }
+
+            if (wdHeadline != null)
+            {
+                if (art)
+                {
+                    Stretch(wdHeadline.rectTransform, new Vector2(0.078f, 0.804f), new Vector2(0.60f, 0.844f),
+                        Vector2.zero, Vector2.zero);
+                    wdHeadline.color = artInk;
+                    wdHeadline.fontSize = 30;
+                }
+                else
+                {
+                    Stretch(wdHeadline.rectTransform, new Vector2(0.055f, 0.802f), new Vector2(0.63f, 0.845f),
+                        Vector2.zero, Vector2.zero);
+                    wdHeadline.color = WdInk;
+                    wdHeadline.fontSize = 32;
+                }
+            }
+
+            if (wdDraftCharCount != null)
+                wdDraftCharCount.gameObject.SetActive(!art);
+
+            var draftRow = wdDraftScroll != null ? wdDraftScroll.transform.parent as RectTransform : null;
+            if (draftRow != null)
+            {
+                if (art)
+                    Stretch(draftRow, new Vector2(0.078f, 0.255f), new Vector2(0.615f, 0.745f),
+                        Vector2.zero, Vector2.zero);
+                else
+                    Stretch(draftRow, new Vector2(0.05f, 0.20f), new Vector2(0.63f, 0.75f),
+                        Vector2.zero, Vector2.zero);
+            }
+
+            if (wdDraftScroll != null)
+            {
+                var hostImg = wdDraftScroll.GetComponent<Image>();
+                if (hostImg != null)
+                    hostImg.color = art ? new Color(1f, 1f, 1f, 0f) : new Color(1f, 1f, 1f, 0.15f);
+                var sb = wdDraftScroll.verticalScrollbar;
+                if (sb != null)
+                {
+                    var track = sb.GetComponent<Image>();
+                    if (track != null)
+                        track.color = art
+                            ? new Color(artInk.r, artInk.g, artInk.b, 0.18f)
+                            : new Color(WdMuted.r, WdMuted.g, WdMuted.b, 0.35f);
+                    if (sb.targetGraphic is Image handle)
+                        handle.color = art
+                            ? new Color(artInk.r, artInk.g, artInk.b, 0.55f)
+                            : new Color(WdInk.r, WdInk.g, WdInk.b, 0.70f);
+                }
+            }
+
+            if (wdDraftBody != null && art)
+                wdDraftBody.color = artInk;
+            else if (wdDraftBody != null)
+                wdDraftBody.color = WdInk;
+
+            if (wdDraftInput != null && wdDraftInput.placeholder is TextMeshProUGUI ph)
+                ph.color = art ? artMuted : new Color(WdMuted.r, WdMuted.g, WdMuted.b, 0.55f);
+
+            PlaceDirChoice(wdDirGuardBg, wdDirGuardTx, art,
+                art ? new Vector2(0.662f, 0.812f) : new Vector2(0.67f, 0.805f),
+                art ? new Vector2(0.928f, 0.848f) : new Vector2(0.92f, 0.85f));
+            PlaceDirChoice(wdDirRescueBg, wdDirRescueTx, art,
+                art ? new Vector2(0.662f, 0.768f) : new Vector2(0.67f, 0.752f),
+                art ? new Vector2(0.928f, 0.804f) : new Vector2(0.92f, 0.798f));
+
+            if (wdMatsCount != null)
+            {
+                if (art)
+                    Stretch(wdMatsCount.rectTransform, new Vector2(0.78f, 0.676f), new Vector2(0.925f, 0.708f),
+                        Vector2.zero, Vector2.zero);
+                else
+                    Stretch(wdMatsCount.rectTransform, new Vector2(0.67f, 0.675f), new Vector2(0.92f, 0.73f),
+                        Vector2.zero, Vector2.zero);
+                wdMatsCount.color = art ? artInk : WdInk;
+            }
+
+            if (wdMatsList != null)
+            {
+                if (art)
+                    Stretch(wdMatsList.rectTransform, new Vector2(0.672f, 0.485f), new Vector2(0.925f, 0.655f),
+                        Vector2.zero, Vector2.zero);
+                else
+                    Stretch(wdMatsList.rectTransform, new Vector2(0.67f, 0.45f), new Vector2(0.92f, 0.675f),
+                        Vector2.zero, Vector2.zero);
+                wdMatsList.color = art ? artInk : WdInk;
+            }
+
+            if (wdMatsHint != null && !art)
+            {
+                Stretch(wdMatsHint.rectTransform, new Vector2(0.67f, 0.415f), new Vector2(0.92f, 0.45f),
+                    Vector2.zero, Vector2.zero);
+                wdMatsHint.color = WdOrange;
+            }
+
+            if (wdStatusLines != null)
+            {
+                if (art)
+                {
+                    Stretch(wdStatusLines.rectTransform, new Vector2(0.672f, 0.185f), new Vector2(0.925f, 0.325f),
+                        Vector2.zero, Vector2.zero);
+                    wdStatusLines.fontSize = 15;
+                    wdStatusLines.lineSpacing = 6f;
+                    wdStatusLines.color = artInk;
+                }
+                else
+                {
+                    Stretch(wdStatusLines.rectTransform, new Vector2(0.67f, 0.185f), new Vector2(0.92f, 0.35f),
+                        Vector2.zero, Vector2.zero);
+                    wdStatusLines.fontSize = 13;
+                    wdStatusLines.lineSpacing = 0f;
+                    wdStatusLines.color = WdInk;
+                }
+            }
+
+            var bar = writingDeskRoot != null
+                ? writingDeskRoot.transform.Find("ActionBar") as RectTransform
+                : null;
+            if (bar != null)
+            {
+                if (art)
+                    Stretch(bar, new Vector2(0.04f, 0.012f), new Vector2(0.96f, 0.082f),
+                        Vector2.zero, Vector2.zero);
+                else
+                    Stretch(bar, new Vector2(0.025f, 0.012f), new Vector2(0.975f, 0.098f),
+                        Vector2.zero, Vector2.zero);
+                PlaceBarSlot(bar, "BackMats", 0f, 0.242f);
+                PlaceBarSlot(bar, "PreviewDesk", 0.256f, 0.458f);
+                PlaceBarSlot(bar, "AiPolish", 0.472f, 0.674f);
+                PlaceBarSlot(bar, "Submit", 0.688f, 1f);
+            }
+        }
+
+        static void PlaceDirChoice(Image bg, TextMeshProUGUI label, bool art, Vector2 aMin, Vector2 aMax)
+        {
+            if (bg != null)
+                Stretch(bg.rectTransform, aMin, aMax, Vector2.zero, Vector2.zero);
+            if (label == null) return;
+            label.alignment = VnText.ToAlignment(art ? TextAnchor.MiddleLeft : TextAnchor.MiddleCenter);
+            label.fontSize = art ? 17 : 16;
+            Stretch(label.rectTransform, Vector2.zero, Vector2.one,
+                new Vector2(art ? 16f : 8f, 2f), new Vector2(-12f, -2f));
+        }
+
+        static void PlaceBarSlot(RectTransform bar, string name, float x0, float x1)
+        {
+            var t = bar.Find(name) as RectTransform;
+            if (t == null) return;
+            Stretch(t, new Vector2(x0, 0.04f), new Vector2(x1, 0.96f), Vector2.zero, Vector2.zero);
+        }
+
         void DrawManuscriptLines(Transform paper)
         {
             for (int i = 0; i < 18; i++)
@@ -477,7 +672,8 @@ namespace StreetCat.UI
             writingDeskRoot.SetActive(true);
             writingDeskRoot.transform.SetAsLastSibling();
             BringOverlayStackToFront();
-            writingDeskRoot.transform.SetAsLastSibling();
+            if (writingDeskRoot != null)
+                writingDeskRoot.transform.SetAsLastSibling();
             ApplyWritingDeskSkin();
             if (sceneFadeImage != null)
                 sceneFadeImage.transform.SetAsLastSibling();
@@ -536,7 +732,7 @@ namespace StreetCat.UI
 
             string title = ArticleAssembler.HeadlineFor(pendingDir);
             if (wdHeadline != null) wdHeadline.text = title;
-            if (wdKicker != null)
+            if (wdKicker != null && !writingDeskArtOn)
                 wdKicker.text = UiLoc.T("ui.writing.desk.kicker", "槐安社区特稿");
 
             int n = selectedMats != null ? selectedMats.Count : 0;
@@ -556,7 +752,9 @@ namespace StreetCat.UI
                 for (int i = 0; i < selectedMats.Count; i++)
                 {
                     var m = MaterialCatalog.All.Find(c => c != null && c.id == selectedMats[i]);
-                    string label = m != null ? m.id + "  " + m.title : selectedMats[i];
+                    string label = m != null
+                        ? m.id + "  " + HardTextLoc.T(m.title)
+                        : selectedMats[i];
                     if (i > 0 && i % 2 == 0) listSb.AppendLine();
                     else if (i > 0) listSb.Append("　　");
                     listSb.Append("· ").Append(label);
@@ -630,7 +828,11 @@ namespace StreetCat.UI
                 }
 
                 if (wdDraftInput != null)
+                {
                     wdDraftInput.interactable = !polishing;
+                    if (wdDraftInput.placeholder is TextMeshProUGUI readyPh)
+                        readyPh.text = UiLoc.T("ui.writing.desk.draft_placeholder", "成稿正文将显示在这里，可直接编辑…");
+                }
             }
             else
             {
@@ -641,11 +843,18 @@ namespace StreetCat.UI
                 }
                 writingAiPolishUsed = false;
                 writingPolishKey = null;
-                SetWritingDeskDraftText(
-                    UiLoc.T("ui.writing.desk.draft_blocked", "现在还不能生成成稿预览。")
-                    + "\n\n" + (err ?? ""));
+                // Keep the manuscript blank. The reason stays in the placeholder and the status card.
+                SetWritingDeskDraftText("");
                 if (wdDraftInput != null)
+                {
                     wdDraftInput.interactable = false;
+                    if (wdDraftInput.placeholder is TextMeshProUGUI blockedPh)
+                    {
+                        blockedPh.text = string.IsNullOrEmpty(err)
+                            ? UiLoc.T("ui.writing.desk.draft_blocked", "现在还不能生成成稿预览。")
+                            : err;
+                    }
+                }
             }
 
             UpdateWritingDeskCharCount();
@@ -681,10 +890,11 @@ namespace StreetCat.UI
                         ""));
                 }
             }
-            if (wdStatusLines != null) wdStatusLines.text = st.ToString().TrimEnd();
+            if (wdStatusLines != null && !writingDeskArtOn) wdStatusLines.text = st.ToString().TrimEnd();
+            RefreshWritingSectionDynamic(n, coveredParas, canAssemble, polishing);
 
             if (wdSubmitBtn != null) wdSubmitBtn.interactable = canAssemble && !polishing;
-            if (wdSubmitLabel != null)
+            if (!writingDeskArtOn && wdSubmitLabel != null)
             {
                 if (!canAssemble)
                     wdSubmitLabel.text = UiLoc.T("ui.writing.desk.submit_locked", "尚不能提交");
@@ -694,7 +904,10 @@ namespace StreetCat.UI
                     wdSubmitLabel.text = UiLoc.T("ui.writing.desk.submit", "提交主编审核");
             }
 
-            UpdateWritingDeskPolishButton(canAssemble, polishing);
+            if (!writingDeskArtOn)
+                UpdateWritingDeskPolishButton(canAssemble, polishing);
+            else if (wdPolishBtn != null)
+                wdPolishBtn.interactable = canAssemble && !polishing && !writingAiPolishUsed;
 
             foreach (var t in new[]
                      {
@@ -807,6 +1020,19 @@ namespace StreetCat.UI
             LayoutRebuilder.ForceRebuildLayoutImmediate(content);
             Canvas.ForceUpdateCanvases();
 
+            // A full-height handle reads as a box edge on the manuscript. Show it only when the draft scrolls.
+            var scrollbar = wdDraftScroll.verticalScrollbar;
+            bool scrollable = contentH > viewH + 8f;
+            if (scrollbar != null && scrollbar.gameObject.activeSelf != scrollable)
+                scrollbar.gameObject.SetActive(scrollable);
+            var host = wdDraftScroll.GetComponent<RectTransform>();
+            if (host != null)
+            {
+                var offMax = host.offsetMax;
+                offMax.x = scrollable ? -16f : 0f;
+                host.offsetMax = offMax;
+            }
+
             // Refresh scrollbar handle size after content bounds change.
             float n = wdDraftScroll.verticalNormalizedPosition;
             wdDraftScroll.verticalNormalizedPosition = Mathf.Clamp01(n);
@@ -907,12 +1133,36 @@ namespace StreetCat.UI
 
         static string StatusItem(bool ok, string okText, string badText)
         {
-            if (ok) return "●  " + okText;
-            return "○  " + (string.IsNullOrEmpty(badText) ? okText : badText);
+            string text = ok || string.IsNullOrEmpty(badText) ? okText : badText;
+            return (ok ? "●" : "○") + "    " + text;
         }
 
-        static void StyleToggle(Image bg, TextMeshProUGUI tx, bool on)
+        void StyleToggle(Image bg, TextMeshProUGUI tx, bool on)
         {
+            if (writingDeskArtOn)
+            {
+                if (bg != null)
+                {
+                    var spr = on ? wdDirOnSprite : wdDirOffSprite;
+                    if (spr != null)
+                    {
+                        bg.sprite = spr;
+                        bg.color = Color.white;
+                        bg.type = Image.Type.Simple;
+                        bg.preserveAspect = false;
+                    }
+                    else
+                    {
+                        bg.color = on
+                            ? new Color(0.85f, 0.62f, 0.48f, 1f)
+                            : new Color(1f, 1f, 1f, 0.01f);
+                    }
+                }
+                if (tx != null)
+                    tx.color = WsInk;
+                return;
+            }
+
             if (bg != null) bg.color = on ? WdOrange : WdPillOff;
             if (tx != null) tx.color = on ? Color.white : WdInk;
         }

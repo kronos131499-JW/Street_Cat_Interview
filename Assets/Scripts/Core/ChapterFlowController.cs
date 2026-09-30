@@ -34,7 +34,12 @@ namespace StreetCat.Core
                 if (StreetCat.Notebook.ReporterNotebook.Instance != null)
                     StreetCat.Notebook.ReporterNotebook.Instance.ResetNotebook();
                 GameState.Instance.SetScene(SceneIds.SC01);
+                GameState.Instance.Data.uiMode = "dialogue";
+                GameState.Instance.Data.reinterviewReturnToWriting = false;
                 GameState.Instance.SetObjective("完成周五的工作。");
+                // Replace the Continue slot immediately, so quitting during the opening
+                // does not resume the previous playthrough.
+                SaveSystem.Autosave();
                 sceneDirector.PlayScene(SceneIds.SC01);
                 gameUi.ShowDialogueMode();
             }
@@ -82,41 +87,16 @@ namespace StreetCat.Core
                 id = SceneIds.SC01;
 
             var mode = data.uiMode ?? "";
-            if (mode == "interview_dafu" || id == SceneIds.SC07)
-            {
-                gameUi.ShowInterview(InterviewSubject.Dafu);
-                return;
-            }
-            if (mode == "interview_lin" || (id == SceneIds.SC09 && GameState.Instance.HasFlag(FlagIds.LinCafeIntroDone)))
-            {
-                gameUi.ShowInterview(InterviewSubject.Lin);
-                return;
-            }
-            if (id == SceneIds.SC09)
-            {
-                sceneDirector.PlayScene(SceneIds.SC09);
-                gameUi.ShowDialogueMode();
-                return;
-            }
-            if (mode == "writing" || (id == SceneIds.SC10 && GameState.Instance.HasFlag(FlagIds.WritingDeskReady)))
-            {
-                gameUi.ShowWriting();
-                return;
-            }
-            if (mode == "epilogue" || id == SceneIds.SC11)
+            bool backToWriting = data.reinterviewReturnToWriting;
+
+            // Scene id wins over a uiMode left over from the previous beat.
+            // Scene-entry saves used to be written before uiMode changed.
+            if (id == SceneIds.SC11)
             {
                 gameUi.ShowEpilogue();
                 return;
             }
-            // Community map only — do not force SC-05/SC-08 (booth dialogue/talk) into investigate UI.
-            // First arrival plays the SC-04 intro (tutorial + objective). Later visits open the map.
-            if (mode == "investigate" || id == SceneIds.SC04)
-            {
-                PresentCommunityScene();
-                return;
-            }
 
-            // Match EnterSceneImmediate / map re-entry for guard booth beats.
             if (id == SceneIds.SC05)
             {
                 if (GameState.Instance.HasFlag(FlagIds.GuardIntroDone))
@@ -132,12 +112,9 @@ namespace StreetCat.Core
 
             if (id == SceneIds.SC08)
             {
-                // Mid-chat save reopens the picture the player left on.
                 if (gameUi.TryResumePhoneChat())
                     return;
 
-                // After Dafu interview, SC-08 is booth verify/talk (ShowTalkMenu → post-interview).
-                // Do not dump the player onto the community investigate map.
                 if (GameState.Instance.HasFlag(FlagIds.DafuInterviewDone))
                 {
                     gameUi.ShowTalkMenu();
@@ -146,6 +123,40 @@ namespace StreetCat.Core
 
                 sceneDirector.PlayScene(id);
                 gameUi.ShowDialogueMode();
+                return;
+            }
+
+            if (mode == "interview_dafu" || id == SceneIds.SC07)
+            {
+                gameUi.ShowInterview(InterviewSubject.Dafu, backToWriting);
+                return;
+            }
+            if (mode == "interview_lin" || (id == SceneIds.SC09 && GameState.Instance.HasFlag(FlagIds.LinCafeIntroDone)))
+            {
+                gameUi.ShowInterview(InterviewSubject.Lin, backToWriting);
+                return;
+            }
+            if (id == SceneIds.SC09)
+            {
+                sceneDirector.PlayScene(SceneIds.SC09);
+                gameUi.ShowDialogueMode();
+                return;
+            }
+            if (mode == "writing" || (id == SceneIds.SC10 && GameState.Instance.HasFlag(FlagIds.WritingDeskReady)))
+            {
+                gameUi.ShowWriting();
+                return;
+            }
+            if (mode == "epilogue")
+            {
+                gameUi.ShowEpilogue();
+                return;
+            }
+            // Community map only — do not force SC-05/SC-08 (booth dialogue/talk) into investigate UI.
+            // First arrival plays the SC-04 intro (tutorial + objective). Later visits open the map.
+            if (mode == "investigate" || id == SceneIds.SC04)
+            {
+                PresentCommunityScene();
                 return;
             }
 
@@ -182,8 +193,8 @@ namespace StreetCat.Core
         void EnterSceneImmediate(string sceneId)
         {
             GameState.Instance.SetScene(sceneId);
-            // Autosave before entering major beats (incl. interviews)
-            SaveSystem.Autosave();
+            // A first-time scene entry is not a writing-desk re-interview.
+            GameState.Instance.Data.reinterviewReturnToWriting = false;
 
             switch (sceneId)
             {
@@ -238,6 +249,9 @@ namespace StreetCat.Core
                     gameUi.ShowDialogueMode();
                     break;
             }
+
+            // After uiMode (and entry flags) are written, so Continue opens this beat.
+            SaveSystem.Autosave();
         }
 
         public void OnDafuInterviewFinished()
@@ -262,6 +276,7 @@ namespace StreetCat.Core
             GameState.Instance.SetScene(sceneId);
             GameState.Instance.Data.uiMode =
                 subject == InterviewSubject.Lin ? "interview_lin" : "interview_dafu";
+            GameState.Instance.Data.reinterviewReturnToWriting = true;
             GameState.Instance.SetObjective(
                 subject == InterviewSubject.Lin
                     ? "补充采访林女士，补齐写稿所需素材。"
@@ -277,6 +292,7 @@ namespace StreetCat.Core
             GameState.Instance.SetFlag(FlagIds.WritingDeskReady);
             GameState.Instance.SetScene(SceneIds.SC10);
             GameState.Instance.Data.uiMode = "writing";
+            GameState.Instance.Data.reinterviewReturnToWriting = false;
             GameState.Instance.SetObjective("整理素材，完成报道。");
             SaveSystem.Autosave();
             gameUi.ShowWriting();

@@ -28,6 +28,7 @@ namespace StreetCat.Editor
         [MenuItem("StreetCat/Text Style Editor", priority = 7)]
         public static void OpenTextStyle()
         {
+            UILayoutEditMode.LockSelection = false;
             UILayoutEditMode.TextFocus = true;
             SetEditMode(true);
             Open();
@@ -47,12 +48,15 @@ namespace StreetCat.Editor
                 InvestigateHotspotEditMode.Enabled = false;
             }
             Debug.Log(enabled
-                ? "[UI Layout] 编辑模式 ON — Game 视图点击选择；拖中间移动，拖四角缩放；松手自动保存。L=锁定选中。"
+                ? "[UI Layout] 编辑模式 ON — 点选后默认锁定，按 L 解锁才能拖。"
                 : "[UI Layout] 编辑模式 OFF");
         }
 
+        Vector2 _scroll;
+
         void OnGUI()
         {
+            _scroll = EditorGUILayout.BeginScrollView(_scroll);
             EditorGUILayout.LabelField("通用 UI · Game 视图编辑", EditorStyles.boldLabel);
             EditorGUILayout.Space(5f);
             EditorGUILayout.HelpBox(
@@ -63,7 +67,7 @@ namespace StreetCat.Editor
                 "4. 拖框内移动；拖四角缩放；松手自动保存\n" +
                 "5. 写入 Assets/Resources/UILayoutOverrides.asset\n" +
                 "文本样式模式：点文字本身，单独改字体、字号、字距、粗体和颜色。\n\n" +
-                "L / 下方勾选 = 锁定选中（点击不再改选）\n" +
+                "选中组件默认锁定。按 L 解锁后才能拖动；再点别的会重新锁定。\n" +
                 "回退上一步 = 撤销最近一次移动、缩放、删除或去掉布局。\n" +
                 "Alt+点击选父级；方向键微调；Delete 删除；F7 隐藏面板。",
                 MessageType.Info);
@@ -73,6 +77,9 @@ namespace StreetCat.Editor
             var next = EditorGUILayout.ToggleLeft("启用 Game 视图编辑模式 / Enable edit mode", enabled);
             if (next != enabled)
                 SetEditMode(next);
+
+            if (GUILayout.Button("关闭所有编辑器 / Turn off every editor"))
+                StreetCatEditorMenus.DisableAllPlayEditors();
 
             var textFocus = UILayoutEditMode.TextFocus;
             var textNext = EditorGUILayout.ToggleLeft(
@@ -90,8 +97,8 @@ namespace StreetCat.Editor
             var lockSel = UILayoutEditMode.LockSelection;
             var lockNext = EditorGUILayout.ToggleLeft(
                 lockSel
-                    ? "锁定选中 / Lock selection  (ON — 点击不会改选，按 L 解锁)"
-                    : "锁定选中 / Lock selection  (OFF — 按 L 开关)",
+                    ? "已锁定 / Locked  (按 L 解锁后才能拖动)"
+                    : "已解锁 / Unlocked  (可以拖动)",
                 lockSel);
             if (lockNext != lockSel)
                 UILayoutEditMode.LockSelection = lockNext;
@@ -190,6 +197,7 @@ namespace StreetCat.Editor
                 for (var i = 0; i < data.entries.Count; i++)
                     if (data.entries[i] != null && data.entries[i].deleted) deletedCount++;
             EditorGUILayout.LabelField("已删除组件", deletedCount.ToString());
+            EditorGUILayout.EndScrollView();
         }
 
         static void DrawTextStyle(UILayoutEditController controller)
@@ -226,20 +234,48 @@ namespace StreetCat.Editor
 
             EditorGUI.BeginChangeCheck();
             fontIndex = EditorGUILayout.Popup("字体", fontIndex, names);
+            var fontChanged = EditorGUI.EndChangeCheck();
+
+            EditorGUI.BeginChangeCheck();
             var customSize = EditorGUILayout.Toggle("自定义字号", state.customSize);
+            var sizeToggleChanged = EditorGUI.EndChangeCheck();
+            EditorGUI.BeginChangeCheck();
             var shownSize = customSize ? state.fontSize : state.liveSize;
             var fontSize = EditorGUILayout.Slider("字号", Mathf.Clamp(shownSize, 10f, 72f), 10f, 72f);
-            if (!Mathf.Approximately(fontSize, shownSize)) customSize = true;
+            var sizeDragged = EditorGUI.EndChangeCheck();
+            if (sizeDragged) customSize = true;
 
+            EditorGUI.BeginChangeCheck();
             var customSpacing = EditorGUILayout.Toggle("自定义字距", state.customSpacing);
+            var spacingToggleChanged = EditorGUI.EndChangeCheck();
+            EditorGUI.BeginChangeCheck();
             var spacing = EditorGUILayout.Slider("字距", state.letterSpacing, 0f, 12f);
-            if (!Mathf.Approximately(spacing, state.letterSpacing)) customSpacing = true;
+            var spacingDragged = EditorGUI.EndChangeCheck();
+            if (spacingDragged) customSpacing = true;
 
-            var weight = EditorGUILayout.Popup("字重", state.weightMode, new[] { "跟随原来", "常规", "粗体" });
+            var weightNames = new[] { "跟随全局", "细", "常规", "中等", "半粗", "粗", "特粗" };
+            var weightValues = new[] { 0, 300, 400, 500, 600, 700, 800 };
+            var weightIndex = 0;
+            for (var i = 0; i < weightValues.Length; i++)
+            {
+                if (weightValues[i] == state.weightMode) weightIndex = i;
+            }
+            EditorGUI.BeginChangeCheck();
+            weightIndex = EditorGUILayout.Popup("字重", weightIndex, weightNames);
+            var weightChanged = EditorGUI.EndChangeCheck();
+            var weight = weightValues[Mathf.Clamp(weightIndex, 0, weightValues.Length - 1)];
+
+            EditorGUI.BeginChangeCheck();
             var customColor = EditorGUILayout.Toggle("自定义颜色", state.customColor);
+            var colorToggleChanged = EditorGUI.EndChangeCheck();
+            EditorGUI.BeginChangeCheck();
             var color = EditorGUILayout.ColorField("颜色", state.color);
-            if (color != state.color) customColor = true;
-            var changed = EditorGUI.EndChangeCheck();
+            var colorChanged = EditorGUI.EndChangeCheck();
+            if (colorChanged) customColor = true;
+
+            var changed = fontChanged || sizeToggleChanged || sizeDragged
+                || spacingToggleChanged || spacingDragged
+                || weightChanged || colorToggleChanged || colorChanged;
 
             if (GUILayout.Button("清除这个文字的单独样式"))
             {
@@ -279,6 +315,12 @@ namespace StreetCat.Editor
             GUI.color = prev;
         }
 
-        void OnInspectorUpdate() => Repaint();
+        void OnInspectorUpdate()
+        {
+            // Repainting while a slider or popup is hot throws away the click.
+            if (GUIUtility.hotControl != 0) return;
+            if (mouseOverWindow == this) return;
+            Repaint();
+        }
     }
 }

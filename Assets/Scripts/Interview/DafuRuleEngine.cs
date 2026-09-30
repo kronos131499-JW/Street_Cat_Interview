@@ -42,8 +42,8 @@ namespace StreetCat.Interview
             // Food offer / hunger before woman「喂」and before bare daily「吃」.
             if (ContainsAny(input, "给你吃", "猫粮", "猫条", "饿", "想吃", "好吃", "零食", "要不要吃", "吃的吗"))
                 return "hungry";
-            if (ContainsAny(input, "女人", "姐姐", "喂", "罐头", "食物", "投喂", "人给你", "谁喂",
-                    "送吃", "送你吃", "那个女", "谁给你吃"))
+            if (ContainsAny(input, "女人", "姐姐", "她", "喂", "罐头", "食物", "投喂", "人给你", "谁喂",
+                    "送吃", "送你吃", "那个女", "谁给你吃", "经常来找", "来找你"))
                 return "woman";
             if (ContainsAny(input, "抓", "笼子", "带走", "抓走", "箱子"))
                 return "capture";
@@ -52,15 +52,15 @@ namespace StreetCat.Interview
             // Return before vague past / daily: 带回 was previously missed.
             if (ContainsAny(input, "回来", "带回", "送回", "谁把你", "谁送你", "送你回", "社区", "放回来", "放回"))
                 return "return";
+            // Past-fear prompts mention the booth; do not let that become daily life.
+            if (ContainsAny(input, "怕人", "害怕", "以前怕", "从前怕", "以前也会", "以前会来"))
+                return "past_fear";
+            if (ContainsAny(input, "以前") && ContainsAny(input, "人", "怕", "跑", "躲", "靠近"))
+                return "past_fear";
             // Location + 以前/来 → daily life, not past_fear alone.
             if (ContainsAny(input, "保安亭", "快递柜", "门口", "保安", "快递")
                 && ContainsAny(input, "以前", "来", "待", "住", "睡", "在"))
                 return "daily";
-            if (ContainsAny(input, "怕人", "害怕", "躲", "以前怕", "从前怕"))
-                return "past_fear";
-            // Bare 「以前」 only when asking about fear / past temperament — not location chats.
-            if (ContainsAny(input, "以前") && ContainsAny(input, "人", "怕", "跑", "躲", "靠近"))
-                return "past_fear";
             if (ContainsAny(input, "名字", "叫什么", "你叫", "怎么称呼"))
                 return "name";
             if (ContainsAny(input, "开心", "喜欢", "高兴", "舒服", "讨厌", "害怕吗"))
@@ -69,7 +69,7 @@ namespace StreetCat.Interview
                 return "greeting";
             if (ContainsAny(input, "保安亭", "保安", "快递柜", "快递", "门口", "睡觉", "狸花", "伙伴",
                     "哪里", "生活", "上班", "几点", "下午", "白天", "晚上", "冷", "热", "雨",
-                    "以前", "常来", "待在", "住哪"))
+                    "以前", "常来", "待在", "住哪", "平时", "什么时候"))
                 return "daily";
             if (ContainsAny(input, "故事", "讲讲", "所有"))
                 return "too_broad";
@@ -103,7 +103,7 @@ namespace StreetCat.Interview
                 return "strange_place";
             if (ContainsAny(input, "brought you back", "bring you back", "sent you back", "who brought", "come back"))
                 return "return";
-            if (ContainsAny(input, "used to", "afraid", "scared of", "used to hide"))
+            if (ContainsAny(input, "used to come", "used to hide", "afraid", "scared of", "used to be scared"))
                 return "past_fear";
             if (ContainsAny(input, "your name", "what's your name", "what is your name"))
                 return "name";
@@ -111,7 +111,7 @@ namespace StreetCat.Interview
                 return "feeling";
             if (ContainsAny(input, "hello", "hi there", "good morning"))
                 return "greeting";
-            if (ContainsAny(input, "guard", "locker", "booth", "usually come", "usually show", "where do you", "when do you"))
+            if (ContainsAny(input, "guard", "locker", "booth", "usually come", "usually show", "where do you", "when do you", "what time"))
                 return "daily";
             if (ContainsAny(input, "whole story", "tell me everything", "everything that"))
                 return "too_broad";

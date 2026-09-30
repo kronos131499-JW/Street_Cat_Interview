@@ -113,6 +113,22 @@ namespace StreetCat.UI
                     settingsLetterSpacingValue.text = GameSettings.LetterSpacing.ToString("0.0");
             }, out settingsLetterSpacingValue);
 
+            AddSettingsLabel(list.transform, "FontWeightLabel", "ui.settings.font_weight");
+            settingsFontWeightSlider = AddSettingsSlider(list.transform, "FontWeight", v =>
+            {
+                int index = Mathf.Clamp(
+                    Mathf.RoundToInt(v * (GameSettings.FontWeightSteps.Length - 1)),
+                    0, GameSettings.FontWeightSteps.Length - 1);
+                GameSettings.FontWeight = GameSettings.FontWeightSteps[index];
+                if (settingsFontWeightValue != null)
+                    settingsFontWeightValue.text = GameSettings.FontWeightName(GameSettings.FontWeight);
+            }, out settingsFontWeightValue);
+            if (settingsFontWeightValue != null)
+            {
+                var weightLayout = settingsFontWeightValue.GetComponent<UnityEngine.UI.LayoutElement>();
+                if (weightLayout != null) weightLayout.preferredWidth = 72f;
+            }
+
             // BGM
             AddSettingsLabel(list.transform, "BgmLabel", "ui.settings.bgm");
             settingsBgmSlider = AddSettingsSlider(list.transform, "Bgm", v =>
@@ -160,6 +176,14 @@ namespace StreetCat.UI
                 if (settingsAutoDelayValue != null)
                     settingsAutoDelayValue.text = GameSettings.AutoDelay.ToString("0.0") + "s";
             }, out settingsAutoDelayValue);
+
+            AddSettingsLabel(list.transform, "PictureHoldLabel", "ui.settings.picture_hold");
+            settingsPictureHoldSlider = AddSettingsSlider(list.transform, "PictureHold", v =>
+            {
+                GameSettings.PictureHold = Mathf.Lerp(GameSettings.PictureHoldMin, GameSettings.PictureHoldMax, v);
+                if (settingsPictureHoldValue != null)
+                    settingsPictureHoldValue.text = GameSettings.PictureHold.ToString("0.0") + "s";
+            }, out settingsPictureHoldValue);
 
             // Display
             AddSettingsLabel(list.transform, "DisplayLabel", "ui.settings.display");
@@ -418,6 +442,12 @@ namespace StreetCat.UI
                 if (settingsLetterSpacingValue != null)
                     settingsLetterSpacingValue.text = GameSettings.LetterSpacing.ToString("0.0");
             }
+            if (settingsFontWeightSlider != null)
+            {
+                settingsFontWeightSlider.SetValueWithoutNotify(GameSettings.FontWeightSlider01(GameSettings.FontWeight));
+                if (settingsFontWeightValue != null)
+                    settingsFontWeightValue.text = GameSettings.FontWeightName(GameSettings.FontWeight);
+            }
             if (settingsBgmSlider != null)
             {
                 settingsBgmSlider.SetValueWithoutNotify(GameSettings.BgmVolume);
@@ -436,6 +466,13 @@ namespace StreetCat.UI
                 settingsAutoDelaySlider.SetValueWithoutNotify(t);
                 if (settingsAutoDelayValue != null)
                     settingsAutoDelayValue.text = GameSettings.AutoDelay.ToString("0.0") + "s";
+            }
+            if (settingsPictureHoldSlider != null)
+            {
+                float holdT = Mathf.InverseLerp(GameSettings.PictureHoldMin, GameSettings.PictureHoldMax, GameSettings.PictureHold);
+                settingsPictureHoldSlider.SetValueWithoutNotify(holdT);
+                if (settingsPictureHoldValue != null)
+                    settingsPictureHoldValue.text = GameSettings.PictureHold.ToString("0.0") + "s";
             }
 
             HighlightToggle(settingsLangZhBtn, GameSettings.Language == GameLanguage.Zh);

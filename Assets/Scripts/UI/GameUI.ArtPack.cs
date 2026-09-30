@@ -15,11 +15,18 @@ namespace StreetCat.UI
         const string ArtPackRoot = "VnArt/UI/ArtPack/";
         static readonly Dictionary<string, Sprite> ArtPackCache = new Dictionary<string, Sprite>();
 
-        // Near-black ink on cream parchment — muted browns wash out and look "light gray".
+        // Near-black ink. The parchment grain shows through gray edges, so narration
+        // must stay as dark as speech or the line looks washed out.
         static readonly Color ArtPackInk = new Color(0.02f, 0.02f, 0.02f, 1f);
-        static readonly Color ArtPackInkMuted = new Color(0.12f, 0.10f, 0.09f, 1f);
-        static readonly Color ArtPackInkInner = new Color(0.10f, 0.12f, 0.16f, 1f);
-        static readonly Color ArtPackInkSystem = new Color(0.35f, 0.16f, 0.05f, 1f);
+        static readonly Color ArtPackInkMuted = new Color(0.05f, 0.04f, 0.03f, 1f);
+        static readonly Color ArtPackInkInner = new Color(0.06f, 0.07f, 0.10f, 1f);
+        static readonly Color ArtPackInkSystem = new Color(0.28f, 0.12f, 0.04f, 1f);
+
+        // The paper window inside 自由采访/照片框, measured off the sprite (376x530):
+        // x 54..336, y 65..372 top-down. Anchors are relative to the frame's own rect,
+        // so they hold at any window aspect as long as the art itself doesn't change.
+        static readonly Vector2 InterviewPhotoWindowMin = new Vector2(0.1436f, 0.2962f);
+        static readonly Vector2 InterviewPhotoWindowMax = new Vector2(0.8963f, 0.8774f);
 
         bool artPackParchmentActive;
         bool artPackNotebookTabActive;
@@ -173,7 +180,7 @@ namespace StreetCat.UI
             // (the tab override sits ~50px inside the panel's right edge).
             var bodyHost = dialoguePanel.transform.Find("BodyHost") as RectTransform;
             if (bodyHost != null)
-                Stretch(bodyHost, Vector2.zero, Vector2.one, new Vector2(76f, 42f), new Vector2(-136f, -30f));
+                Stretch(bodyHost, Vector2.zero, Vector2.one, new Vector2(84f, 28f), new Vector2(-120f, -46f));
 
             if (buttonRoot != null)
             {
@@ -191,9 +198,9 @@ namespace StreetCat.UI
                 // Overflow (not Truncate): the viewport scrolls. Truncate was keeping
                 // one nearly full-width line and dropping only the leftover word.
                 bodyText.overflowMode = TextOverflowModes.Overflow;
-                bodyText.lineSpacing = 10f;
+                bodyText.lineSpacing = 16f;
                 bodyText.extraPadding = true;
-                bodyText.margin = new Vector4(6f, 4f, 8f, 4f);
+                bodyText.margin = new Vector4(4f, 2f, 8f, 2f);
                 bodyText.enableWordWrapping = true;
                 SharpenDialogueTmp(bodyText);
             }
@@ -208,32 +215,15 @@ namespace StreetCat.UI
             RefreshDialogueFontColors();
         }
 
-        static void SharpenDialogueTmp(TextMeshProUGUI t)
+        static void SharpenDialogueTmp(TextMeshProUGUI t, FontStyles style = FontStyles.Normal)
         {
             if (t == null) return;
             t.enableAutoSizing = false;
-            t.fontStyle = FontStyles.Normal;
-            // Instance the material so softness tweaks don't dirty the shared SDF asset.
-            var mat = t.fontMaterial;
-            if (mat == null) return;
-            // Face tint must stay white — gray face × dark vertex = washed mid-gray on parchment.
-            if (mat.HasProperty(ShaderUtilities.ID_FaceColor))
-                mat.SetColor(ShaderUtilities.ID_FaceColor, Color.white);
-            if (mat.HasProperty(ShaderUtilities.ID_OutlineWidth))
-                mat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
-            if (mat.HasProperty(ShaderUtilities.ID_OutlineSoftness))
-                mat.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);
-            // Dilate 0.1 fattens the SDF edge into a gray halo on the cream paper.
-            if (mat.HasProperty(ShaderUtilities.ID_FaceDilate))
-                mat.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
-            if (mat.HasProperty(ShaderUtilities.ID_Sharpness))
-                mat.SetFloat(ShaderUtilities.ID_Sharpness, 0.75f);
-            if (mat.HasProperty(ShaderUtilities.ID_UnderlaySoftness))
-                mat.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
-            if (mat.HasProperty(ShaderUtilities.ID_UnderlayOffsetX))
-                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
-            if (mat.HasProperty(ShaderUtilities.ID_UnderlayOffsetY))
-                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
+            // Goes through ApplyFontWeight rather than ApplyCrisp alone: this runs after
+            // ApplyActiveFonts has set weights, and clearing dilate here used to leave the
+            // dialogue as the only text on screen stuck at the thinnest cut.
+            VnText.ApplyFontWeight(t, GameSettings.FontWeight);
+            t.fontStyle |= style;
         }
 
         void ApplyDialogueNotebookTab()
@@ -312,26 +302,29 @@ namespace StreetCat.UI
             var left = interviewRoot.transform.Find("LeftColumn") as RectTransform;
             var center = interviewRoot.transform.Find("CenterColumn") as RectTransform;
             var right = interviewRoot.transform.Find("RightColumn") as RectTransform;
+            // Fractions of the 1675×939 reference, which the desk plate is stretched to.
             if (left != null)
-                Stretch(left, new Vector2(0.018f, 0.04f), new Vector2(0.225f, 0.96f), Vector2.zero, Vector2.zero);
+                Stretch(left, new Vector2(0.022f, 0.04f), new Vector2(0.198f, 0.97f), Vector2.zero, Vector2.zero);
             if (center != null)
-                Stretch(center, new Vector2(0.215f, 0.05f), new Vector2(0.785f, 0.955f), Vector2.zero, Vector2.zero);
+                Stretch(center, new Vector2(0.230f, 0.045f), new Vector2(0.815f, 0.96f), Vector2.zero, Vector2.zero);
             if (right != null)
-                Stretch(right, new Vector2(0.785f, 0.025f), new Vector2(0.985f, 0.97f), Vector2.zero, Vector2.zero);
+                Stretch(right, new Vector2(0.828f, 0.03f), new Vector2(0.988f, 0.97f), Vector2.zero, Vector2.zero);
 
             var status = interviewRoot.transform.Find("LeftColumn/StatusPad") as RectTransform;
             var portrait = interviewRoot.transform.Find("LeftColumn/PortraitPad") as RectTransform;
+            // Inset from the tape and the card's right edge. 0.98 put the numbers off the paper.
             if (status != null)
-                Stretch(status, new Vector2(0f, 0.50f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+                Stretch(status, new Vector2(0.06f, 0.56f), new Vector2(0.90f, 0.94f), Vector2.zero, Vector2.zero);
             if (portrait != null)
-                Stretch(portrait, new Vector2(0f, 0.02f), new Vector2(1f, 0.48f), Vector2.zero, Vector2.zero);
+                Stretch(portrait, new Vector2(0.02f, 0.04f), new Vector2(0.98f, 0.50f), Vector2.zero, Vector2.zero);
 
             var inspire = interviewRoot.transform.Find("RightColumn/InspirePad") as RectTransform;
             var tools = interviewRoot.transform.Find("RightColumn/ToolbarPad") as RectTransform;
+            // ASK ABOUT panel is the painted top of the right strip; chips sit under that title.
             if (inspire != null)
-                Stretch(inspire, new Vector2(0f, 0.36f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+                Stretch(inspire, new Vector2(0.04f, 0.42f), new Vector2(0.96f, 0.98f), Vector2.zero, Vector2.zero);
             if (tools != null)
-                Stretch(tools, new Vector2(0f, 0f), new Vector2(1f, 0.34f), Vector2.zero, Vector2.zero);
+                Stretch(tools, new Vector2(0f, 0f), new Vector2(1f, 0.38f), Vector2.zero, Vector2.zero);
 
             EnsureEndInterviewRibbonHit(right);
 
@@ -367,21 +360,38 @@ namespace StreetCat.UI
                     frame = CreateImage(frameHost, "ArtFrame", Color.white);
                     frame.raycastTarget = false;
                 }
-                if (ApplyArtPackImage(frame, "自由采访/照片框", true))
-                    StretchFull(frame.rectTransform);
-                frame.transform.SetSiblingIndex(0);
-                if (interviewPortraitImage != null)
+                if (ApplyArtPackImage(frame, "自由采访/照片框", false))
                 {
-                    Stretch(interviewPortraitImage.rectTransform,
-                        new Vector2(0.14f, 0.34f), new Vector2(0.86f, 0.78f),
-                        Vector2.zero, Vector2.zero);
-                    interviewPortraitImage.transform.SetAsLastSibling();
+                    StretchFull(frame.rectTransform);
+                    // A fitter (rather than preserveAspect) makes the rect match the drawn
+                    // polaroid, so the headshot can anchor to the paper window inside it.
+                    var card = frame.sprite.rect;
+                    var fitter = frame.GetComponent<AspectRatioFitter>();
+                    if (fitter == null)
+                        fitter = frame.gameObject.AddComponent<AspectRatioFitter>();
+                    fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                    fitter.aspectRatio = card.width / Mathf.Max(1f, card.height);
+
+                    if (interviewPortraitImage != null)
+                    {
+                        interviewPortraitImage.transform.SetParent(frame.transform, false);
+                        Stretch(interviewPortraitImage.rectTransform,
+                            InterviewPhotoWindowMin, InterviewPhotoWindowMax,
+                            Vector2.zero, Vector2.zero);
+                        interviewPortraitImage.transform.SetAsLastSibling();
+                    }
                 }
+                frame.transform.SetSiblingIndex(0);
                 HidePath(interviewRoot.transform, "LeftColumn/PortraitPad/Paper/NamePlate");
             }
 
             var inputBar = FindImage(interviewRoot, "CenterColumn/MainPaper/InputBar");
-            if (inputBar != null && ApplyArtPackImage(inputBar, "自由采访/打字框", false))
+            if (inputBar != null && FreeInterviewArt.Input != null)
+            {
+                StampFreePlate(inputBar, FreeInterviewArt.Input, preserveAspect: false);
+                inputBar.color = Color.white;
+            }
+            else if (inputBar != null && ApplyArtPackImage(inputBar, "自由采访/打字框", false))
             {
                 inputBar.color = Color.white;
                 inputBar.type = Image.Type.Simple;
@@ -415,7 +425,7 @@ namespace StreetCat.UI
             go.transform.SetAsLastSibling();
             // Baked into 自由采访/背景 — orange "END INTERVIEW" tape above the tool chips.
             Stretch(go.GetComponent<RectTransform>(),
-                new Vector2(-0.02f, 0.30f), new Vector2(1.06f, 0.48f),
+                new Vector2(-0.04f, 0.26f), new Vector2(0.98f, 0.37f),
                 Vector2.zero, Vector2.zero);
         }
 
@@ -449,37 +459,115 @@ namespace StreetCat.UI
         {
             var row = interviewRoot.transform.Find("LeftColumn/StatusPad/Paper/" + rowName);
             if (row == null) return;
+
             var label = row.Find("Label");
-            if (label != null) label.gameObject.SetActive(false);
+            if (label != null)
+            {
+                label.gameObject.SetActive(true);
+                Stretch(label as RectTransform, new Vector2(0.18f, 0.52f), new Vector2(0.62f, 1f),
+                    Vector2.zero, Vector2.zero);
+                var tx = label.GetComponent<TextMeshProUGUI>();
+                if (tx != null)
+                {
+                    tx.alignment = VnText.ToAlignment(TextAnchor.LowerLeft);
+                    tx.color = new Color(0.28f, 0.19f, 0.13f, 1f);
+                    tx.fontStyle = FontStyles.Normal;
+                    tx.extraPadding = true;
+                    VnText.ApplyFontWeight(tx, GameSettings.FontWeight);
+                    ApplyLetterSpacing(tx, 0f);
+                    tx.enableWordWrapping = false;
+                    tx.overflowMode = TextOverflowModes.Overflow;
+                }
+            }
+            var word = row.Find("ArtWord");
+            if (word != null) word.gameObject.SetActive(false);
+
+            var builtIcon = row.Find("Icon")?.GetComponent<Image>();
+            if (builtIcon != null)
+                builtIcon.gameObject.SetActive(false);
             var icon = FindOrCreateRowIcon(row, "ArtIcon");
-            var word = FindOrCreateRowIcon(row, "ArtWord");
             if (icon != null && ApplyArtPackImage(icon, iconPath, true))
             {
-                var rt = icon.rectTransform;
-                rt.anchorMin = new Vector2(0f, 0.35f);
-                rt.anchorMax = new Vector2(0.18f, 0.95f);
-                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                Stretch(icon.rectTransform, new Vector2(0.00f, 0.28f), new Vector2(0.16f, 0.92f),
+                    Vector2.zero, Vector2.zero);
+                icon.preserveAspect = true;
+                icon.color = Color.white;
             }
-            if (word != null && ApplyArtPackImage(word, wordPath, true))
+
+            var value = row.Find("Value") as RectTransform;
+            if (value != null)
             {
-                var rt = word.rectTransform;
-                rt.anchorMin = new Vector2(0.20f, 0.55f);
-                rt.anchorMax = new Vector2(0.72f, 0.95f);
-                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                Stretch(value, new Vector2(0.68f, 0.50f), new Vector2(0.98f, 0.98f), Vector2.zero, Vector2.zero);
+                value.SetAsLastSibling();
+                value.gameObject.SetActive(true);
+                var valueTx = value.GetComponent<TextMeshProUGUI>();
+                if (valueTx != null)
+                {
+                    valueTx.fontSize = 20f;
+                    valueTx.alignment = VnText.ToAlignment(TextAnchor.MiddleRight);
+                    valueTx.color = new Color(0.28f, 0.19f, 0.13f, 1f);
+                    valueTx.enableWordWrapping = false;
+                    valueTx.overflowMode = TextOverflowModes.Overflow;
+                    VnText.ApplyFontWeight(valueTx, GameSettings.FontWeight);
+                }
             }
+
             var track = row.Find("Track");
             if (track != null)
             {
                 var trackImg = track.GetComponent<Image>();
-                if (trackImg != null && ApplyArtPackImage(trackImg, framePath, false))
-                    trackImg.color = Color.white;
+                var empty = FreeInterviewArt.BarEmpty;
+                if (trackImg != null)
+                {
+                    if (empty != null)
+                    {
+                        trackImg.sprite = empty;
+                        trackImg.type = Image.Type.Simple;
+                        trackImg.color = Color.white;
+                    }
+                    else
+                    {
+                        trackImg.sprite = null;
+                        trackImg.type = Image.Type.Simple;
+                        trackImg.color = new Color(0.86f, 0.80f, 0.72f, 1f);
+                    }
+                }
                 var trt = track as RectTransform;
                 if (trt != null)
-                    Stretch(trt, new Vector2(0.20f, 0.08f), new Vector2(0.78f, 0.48f), Vector2.zero, Vector2.zero);
+                    Stretch(trt, new Vector2(0.18f, 0.06f), new Vector2(0.98f, 0.40f), Vector2.zero, Vector2.zero);
                 var fillImg = track.Find("Fill")?.GetComponent<Image>();
                 if (fillImg != null)
-                    fillImg.color = fill;
+                {
+                    var crayon = FillSpriteForRow(rowName);
+                    if (crayon != null)
+                    {
+                        fillImg.sprite = crayon;
+                        fillImg.color = Color.white;
+                        fillImg.type = Image.Type.Filled;
+                        fillImg.fillMethod = Image.FillMethod.Horizontal;
+                        fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
+                    }
+                    else
+                    {
+                        fillImg.sprite = null;
+                        fillImg.type = Image.Type.Simple;
+                        fillImg.color = fill;
+                    }
+                    var frt = fillImg.rectTransform;
+                    frt.anchorMin = Vector2.zero;
+                    frt.anchorMax = Vector2.one;
+                    frt.offsetMin = new Vector2(3f, 3f);
+                    frt.offsetMax = new Vector2(-3f, -3f);
+                }
             }
+        }
+
+        static Sprite FillSpriteForRow(string rowName)
+        {
+            if (rowName == "Trust") return FreeInterviewArt.TrustFill;
+            if (rowName == "Stress") return FreeInterviewArt.PressureFill;
+            if (rowName == "Focus") return FreeInterviewArt.FocusFill;
+            return null;
         }
 
         Image FindOrCreateRowIcon(Transform row, string name)
@@ -640,51 +728,86 @@ namespace StreetCat.UI
         {
             if (writingMatsRoot == null) return;
 
-            var frame = FindImage(writingMatsRoot, "Frame");
-            var cork = FindImage(writingMatsRoot, "Frame/Cork");
-            if (ApplyArtPackImage(frame, "写稿素材卡库/背景", false) && cork != null)
-            {
-                cork.sprite = null;
-                cork.color = Color.clear;
-                cork.enabled = true;
-                cork.raycastTarget = false;
-            }
-
-            bool en = GameSettings.IsEnglish;
+            StampMaterialPlate(FindImage(writingMatsRoot, "Wood"), MaterialCardArt.Wood, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "Board"), MaterialCardArt.Board, false);
             var titlePlate = FindImage(writingMatsRoot, "TitlePlate");
-            bool titleArt = en && ApplyArtPackImage(titlePlate, "写稿素材卡库/标题", false);
+            StampMaterialPlate(titlePlate, MaterialCardArt.ChapterTitle, false);
             if (titlePlate != null)
             {
-                titlePlate.enabled = titleArt;
+                titlePlate.enabled = true;
                 titlePlate.raycastTarget = false;
-                if (titleArt)
-                    titlePlate.transform.SetAsLastSibling();
             }
             if (writingTapeTitle != null)
-                writingTapeTitle.gameObject.SetActive(!titleArt);
+                writingTapeTitle.gameObject.SetActive(true);
 
-            var selectedArt = FindImage(writingMatsRoot, "Frame/Cork/SelectedHeader/LabelArt");
-            bool selectedLabel = en && ApplyArtPackImage(selectedArt, "写稿素材卡库/已选素材", true);
-            if (writingSelectedCountText != null)
-                writingSelectedCountText.gameObject.SetActive(!selectedLabel);
+            StampMaterialPlate(FindImage(writingMatsRoot, "Structure"), MaterialCardArt.Structure, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "CardsBacking"), MaterialCardArt.CardsBacking, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper"), MaterialCardArt.Detail, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/Underline"), MaterialCardArt.Underline, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/Separator"), MaterialCardArt.Separator, false);
+            StampMaterialPlate(FindImage(writingMatsRoot, "DetailPaper/IdTag"), MaterialCardArt.IdTag, false);
+            var typeChip = FindImage(writingMatsRoot, "DetailPaper/Tag");
+            if (typeChip != null && MaterialCardArt.DetailButton != null)
+            {
+                typeChip.sprite = MaterialCardArt.DetailButton;
+                typeChip.color = Color.white;
+                typeChip.type = Image.Type.Simple;
+                typeChip.preserveAspect = false;
+            }
 
-            var structure = FindImage(writingMatsRoot, "Frame/Cork/ParagraphStrip/StructureArt");
-            bool structureArt = en && ApplyArtPackImage(structure, "写稿素材卡库/文章结构", true);
-            var stripTitle = writingMatsRoot.transform.Find("Frame/Cork/ParagraphStrip/StripTitle");
-            if (stripTitle != null)
-                stripTitle.gameObject.SetActive(!structureArt);
+            SkinMaterialButton(writingPreviewBtn, MaterialCardArt.PreviewButton, MaterialCardArt.Cream);
+            SkinMaterialButton(writingGoBtn, MaterialCardArt.WriteButton, MaterialCardArt.Cream);
+            var back = writingMatsRoot.transform.Find("BackDirBtn");
+            var notebook = writingMatsRoot.transform.Find("NotebookBtn");
+            var reinterview = writingMatsRoot.transform.Find("ReInterviewBtn");
+            if (back != null) SkinMaterialButton(back.GetComponent<Button>(), MaterialCardArt.NavBack, MaterialCardArt.Ink);
+            if (notebook != null) SkinMaterialButton(notebook.GetComponent<Button>(), MaterialCardArt.NavNotebook, MaterialCardArt.Ink);
+            if (reinterview != null) SkinMaterialButton(reinterview.GetComponent<Button>(), MaterialCardArt.NavReturn, MaterialCardArt.Ink);
+        }
 
-            ApplyArtPackImage(FindImage(writingMatsRoot, "Frame/Cork/DetailPaper"),
-                "写稿素材卡库/右侧便签", false);
-            var clip = writingMatsRoot.transform.Find("Frame/Cork/DetailPaper/Paperclip");
-            if (clip != null) clip.gameObject.SetActive(false);
-            var doodle = writingMatsRoot.transform.Find("Frame/Cork/DetailPaper/CatDoodle");
-            if (doodle != null) doodle.gameObject.SetActive(false);
+        static void StampMaterialPlate(Image target, Sprite sprite, bool preserveAspect)
+        {
+            if (target == null || sprite == null) return;
+            target.sprite = sprite;
+            target.color = Color.white;
+            target.type = Image.Type.Simple;
+            target.preserveAspect = preserveAspect;
+            target.raycastTarget = false;
+        }
+
+        static void SkinMaterialButton(Button button, Sprite sprite, Color labelColor)
+        {
+            if (button == null || sprite == null) return;
+            var image = button.GetComponent<Image>();
+            if (image != null)
+            {
+                image.sprite = sprite;
+                image.color = Color.white;
+                image.type = Image.Type.Simple;
+                image.preserveAspect = false;
+            }
+            button.transition = Selectable.Transition.ColorTint;
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(0.96f, 0.96f, 0.96f, 1f);
+            colors.pressedColor = new Color(0.88f, 0.88f, 0.88f, 1f);
+            colors.selectedColor = Color.white;
+            button.colors = colors;
+            var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null)
+            {
+                label.gameObject.SetActive(true);
+                label.color = labelColor;
+            }
         }
 
         void ApplyWritingDeskSkin()
         {
             if (writingDeskRoot == null) return;
+            if (TryApplyWritingSectionSkin())
+                return;
+            if (writingDeskBoard != null)
+                writingDeskBoard.gameObject.SetActive(false);
             var desk = FindImage(writingDeskRoot, "Desk");
             writingDeskArtOn = GameSettings.IsEnglish && ApplyArtPackImage(desk, "成稿界面/背景", false);
             var paper = FindImage(writingDeskRoot, "Paper");
@@ -732,24 +855,14 @@ namespace StreetCat.UI
                 }
             }
 
-            var matsHeader = writingDeskRoot.transform.Find("Paper/RightColumn/MatsHeader") as RectTransform;
-            if (matsHeader != null)
-            {
-                if (writingDeskArtOn)
-                    Stretch(matsHeader, new Vector2(0.78f, 0.685f), new Vector2(0.92f, 0.725f),
-                        Vector2.zero, Vector2.zero);
-                else
-                    Stretch(matsHeader, new Vector2(0.67f, 0.675f), new Vector2(0.92f, 0.73f),
-                        Vector2.zero, Vector2.zero);
-            }
-
             var statusIcon = FindImage(writingDeskRoot, "Paper/RightColumn/StatusIcon");
             if (statusIcon != null)
             {
-                bool icon = writingDeskArtOn && ApplyArtPackImage(statusIcon, "成稿界面/生成状态小图标", true);
-                statusIcon.enabled = icon;
+                statusIcon.enabled = false;
                 statusIcon.raycastTarget = false;
             }
+
+            LayoutWritingDeskChrome(writingDeskArtOn);
 
             var bar = writingDeskRoot.transform.Find("ActionBar");
             if (bar != null)
@@ -922,47 +1035,56 @@ namespace StreetCat.UI
 
         void ApplyWritingCardArt(Image image, int visualIndex)
         {
-            int n = Mathf.Abs(visualIndex) % 6 + 1;
-            // Fill the cell — preserveAspect letterboxes dark cork into the card.
-            ApplyArtPackImage(image, $"写稿素材卡库/中间贴纸{n}", false);
+            var sprite = MaterialCardArt.Card(visualIndex);
+            if (image == null || sprite == null) return;
+            image.sprite = sprite;
+            image.type = Image.Type.Simple;
+            image.preserveAspect = true;
+            image.color = Color.white;
         }
 
         void ApplyWritingDotArt(Image image, bool selected)
         {
             if (image == null) return;
-            var path = selected
-                ? "写稿素材卡库/已选素材小点（选中）"
-                : "写稿素材卡库/已选素材小点（未选中）";
-            if (ApplyArtPackImage(image, path, true))
+            var sprite = MaterialCardArt.SelectionDot;
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.preserveAspect = true;
+                image.type = Image.Type.Simple;
                 image.color = Color.white;
+            }
+            else
+            {
+                image.sprite = null;
+                image.color = selected ? MaterialCardArt.Cream : new Color(0.55f, 0.52f, 0.48f, 1f);
+            }
+
+            var hole = image.transform.Find("Hole");
+            if (hole != null)
+            {
+                hole.gameObject.SetActive(!selected);
+                var holeImg = hole.GetComponent<Image>();
+                if (holeImg != null && sprite != null)
+                {
+                    holeImg.sprite = sprite;
+                    holeImg.color = new Color(0.45f, 0.30f, 0.20f, 1f);
+                    holeImg.preserveAspect = true;
+                }
+            }
         }
 
         void ApplyWritingActionArt(Button button, string name, TextMeshProUGUI label)
         {
             if (button == null) return;
-            if (name == "GoWriteBtn" || name == "PreviewBtn")
+            if (name == "GoWriteBtn" || name == "PreviewBtn"
+                || name == "BackDirBtn" || name == "NotebookBtn" || name == "ReInterviewBtn")
             {
-                string path = name == "PreviewBtn" ? "写稿素材卡库/预览按键" : "写稿素材卡库/写作按键";
-                string locKey = name == "PreviewBtn" ? "ui.writing.preview" : "ui.writing.go_write";
-                string fallback = name == "PreviewBtn" ? "预览文章" : "前往写稿";
-                var image = button.GetComponent<Image>();
-                if (GameSettings.IsEnglish && ApplyArtPackButton(button, path, path, false))
+                if (writingMatsRoot != null && button.transform.IsChildOf(writingMatsRoot.transform))
                 {
-                    if (label != null) label.gameObject.SetActive(false);
+                    ApplyWritingBoardSkin();
+                    return;
                 }
-                else if (label != null)
-                {
-                    label.gameObject.SetActive(true);
-                    label.text = UiLoc.T(locKey, fallback);
-                    if (image != null)
-                    {
-                        image.sprite = null;
-                        image.color = name == "PreviewBtn"
-                            ? new Color(0.16f, 0.28f, 0.48f, 1f)
-                            : new Color(0.83f, 0.36f, 0.18f, 1f);
-                    }
-                }
-                return;
             }
             if (name == "BackMats" || name == "PreviewDesk" || name == "AiPolish" || name == "Submit")
             {
@@ -1043,6 +1165,16 @@ namespace StreetCat.UI
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
             image.color = Color.white;
+            var box = button.GetComponent<LayoutElement>();
+            if (box != null)
+                box.ignoreLayout = true;
+            var rt = button.GetComponent<RectTransform>();
+            if (ContainsAny(label, "回看", "回放", "Backlog", "Review"))
+                PlaceInterviewTool(rt, 0.18f, 0.32f, 0.74f, 0.16f);
+            else if (ContainsAny(label, "笔记", "Notebook", "Notes"))
+                PlaceInterviewTool(rt, 0.18f, 0.52f, 0.74f, 0.18f);
+            else
+                PlaceInterviewTool(rt, 0.18f, 0.73f, 0.74f, 0.18f);
             button.transition = Selectable.Transition.SpriteSwap;
             button.spriteState = new SpriteState
             {

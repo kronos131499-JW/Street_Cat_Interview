@@ -1,5 +1,6 @@
 using StreetCat.Core;
 using StreetCat.Data;
+using StreetCat.UI;
 using UnityEditor;
 using UnityEngine;
 
@@ -55,6 +56,23 @@ namespace StreetCat.Editor
         [MenuItem(MenuRoot + "写稿桌 / 素材板", false, 141)]
         static void JumpWriting() => Jump("writing");
 
+        [MenuItem(MenuRoot + "解锁全部素材", false, 142)]
+        [MenuItem("StreetCat/Unlock All Materials", false, 142)]
+        static void UnlockAllMaterials()
+        {
+            if (!Application.isPlaying || GameUI.Instance == null || GameState.Instance == null)
+            {
+                EditorUtility.DisplayDialog(
+                    "解锁全部素材",
+                    "请先进入 Play Mode。",
+                    "OK");
+                return;
+            }
+
+            int total = GameUI.Instance.UnlockAllMaterials();
+            Debug.Log("[StreetCat] 已解锁全部素材，当前 " + total + " 张。");
+        }
+
         [MenuItem(MenuRoot + "记者笔记", false, 150)]
         static void JumpNotebook() => Jump("notebook");
 
@@ -76,6 +94,8 @@ namespace StreetCat.Editor
         [MenuItem(MenuRoot + "采访林女士", true)]
         [MenuItem(MenuRoot + "SC-10 写稿开场（剧本）", true)]
         [MenuItem(MenuRoot + "写稿桌 / 素材板", true)]
+        [MenuItem(MenuRoot + "解锁全部素材", true)]
+        [MenuItem("StreetCat/Unlock All Materials", true)]
         [MenuItem(MenuRoot + "记者笔记", true)]
         [MenuItem(MenuRoot + "后日谈（SC-11）", true)]
         static bool ValidateJump() => Application.isPlaying && ChapterFlowController.Instance != null;

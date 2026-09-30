@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d37fab2dbc6c1a149bc43a28f3df630b, type: 3}
   m_Name: PortraitLayout
   m_EditorClassIdentifier: 
-  slotLeft: 0.6300498
-  slotRight: 0.9621884
-  slotTop: 0.8745362
-  slotBottom: 0.253
+  slotLeft: 0.63648885
+  slotRight: 0.95804894
+  slotTop: 0.8917483
+  slotBottom: 0.2897483
   heightScale: 1.080317
   centerBias: 0.5775123
   offsetY: 0

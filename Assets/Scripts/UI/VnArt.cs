@@ -43,6 +43,37 @@ namespace StreetCat.UI
             return Load("VnArt/Props/" + key);
         }
 
+        public static Sprite GetProfilePhoto(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            return Load("VnArt/ProfilePhotos/" + key);
+        }
+
+        /// <summary>
+        /// Square headshots for the interview photo frame. Keyed by character, not by
+        /// expression — one photo covers every mood. Returns null for characters that
+        /// only have full busts, so callers can fall back to <see cref="GetPortrait"/>.
+        /// </summary>
+        public static string ResolveProfilePhoto(string speakerOrPortraitKey)
+        {
+            if (string.IsNullOrEmpty(speakerOrPortraitKey)) return null;
+            var s = speakerOrPortraitKey;
+
+            if (s.StartsWith("ch_dafu", System.StringComparison.Ordinal)
+                || s.Contains("大福") || s.Contains("Dafu"))
+                return "pf_dafu";
+
+            if (s.StartsWith("ch_lin_", System.StringComparison.Ordinal)
+                || s.Contains("林女士") || s.Contains("林敏") || s.Contains("Ms. Lin") || s.Contains("MsLin"))
+                return "pf_lin";
+
+            if (s.StartsWith("ch_xiaoling", System.StringComparison.Ordinal)
+                || s.Contains("小凌") || s.Contains("Ling"))
+                return "pf_ling";
+
+            return null;
+        }
+
         /// <summary>
         /// Exact script 【背景：…】 labels → Resources/VnArt/Backgrounds keys (正式背景图).
         /// </summary>

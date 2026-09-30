@@ -33,6 +33,9 @@ namespace StreetCat.UI
         Vector2 _dragStartPosition;
         Vector2 _dragStartSize;
         float _dragStartFont;
+        Vector4 _dragStartMargin;
+        bool _dragScrollContent;
+        bool _dragChangedFont;
         Camera _dragCamera;
         string _lastDeletedPath;
         RectTransform _lastDeletedTarget;
@@ -110,10 +113,8 @@ namespace StreetCat.UI
                 !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl) &&
                 !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
             {
-                UILayoutEditMode.LockSelection = !UILayoutEditMode.LockSelection;
-                SetStatus(true, UILayoutEditMode.LockSelection
-                    ? "锁定选中 ON / Lock ON — 点击不会改选"
-                    : "锁定选中 OFF / Lock OFF — 可重新点选");
+                UILayoutEditMode.LockSelection = false;
+                SetStatus(true, "已解锁 / Unlocked — 可以拖动，再选别的会重新锁定");
             }
 
             if (Time.unscaledTime >= _nextRefresh)
@@ -128,6 +129,7 @@ namespace StreetCat.UI
                 RequestDeleteSelection();
                 return;
             }
+            if (UILayoutEditMode.LockSelection) return;
             var step = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? 10f : 1f;
             var delta = Vector2.zero;
             if (Input.GetKeyDown(KeyCode.LeftArrow)) delta.x -= step;
@@ -208,54 +210,71 @@ namespace StreetCat.UI
         {
             var canvases = FindObjectsOfType<Canvas>();
             Canvas best = null;
+            Canvas fallback = null;
             var bestOrder = int.MinValue;
+            var fallbackOrder = int.MinValue;
             for (var i = 0; i < canvases.Length; i++)
             {
                 var canvas = canvases[i];
                 if (canvas == null || !canvas.isRootCanvas || canvas.gameObject == _captureRoot) continue;
-                if (!canvas.pixelRect.Contains(screenPoint)) continue;
+                if (!canvas.gameObject.activeInHierarchy) continue;
                 var order = canvas.sortingOrder;
+                if (fallback == null || order > fallbackOrder)
+                {
+                    fallback = canvas;
+                    fallbackOrder = order;
+                }
+                if (!CanvasContainsPointer(canvas, screenPoint)) continue;
                 if (best == null || order > bestOrder)
                 {
                     best = canvas;
                     bestOrder = order;
                 }
             }
-            return best;
+            return best != null ? best : fallback;
+        }
+
+        static bool CanvasContainsPointer(Canvas canvas, Vector2 screenPoint)
+        {
+            if (canvas == null) return false;
+            var pixel = canvas.pixelRect;
+            if (pixel.Contains(screenPoint)) return true;
+            // Game-view clicks are often 0..viewSize, while pixelRect is offset in the editor.
+            return new Rect(0f, 0f, pixel.width, pixel.height).Contains(screenPoint);
         }
 
         public void PointerDown(PointerEventData eventData)
         {
             if (!UILayoutEditMode.Enabled) return;
 
-            // Selection lock: keep current pick; only drag if click hits it (or a corner handle).
-            if (UILayoutEditMode.LockSelection && _selected != null)
+            // Selection lock keeps the current layout target. Text mode must still
+            // be able to pick a different label, or every click looks dead.
+            if (UILayoutEditMode.LockSelection && _selected != null && !UILayoutEditMode.TextFocus)
             {
-                var onSelected = ContainsScreenPoint(_selected, eventData.position);
-                var mode = PickDragMode(_selected, eventData.position);
-                // Outside body and not near a corner → ignore (do not re-select).
-                if (!onSelected && mode == Move)
+                if (ContainsScreenPoint(_selected, eventData.position))
                 {
                     _dragMode = 0;
                     return;
                 }
-                if (UILayoutEditMode.TextFocus)
-                {
-                    _dragMode = 0;
-                    return;
-                }
-                BeginDragOnSelected(eventData);
-                return;
             }
 
             var canvas = FindBestCanvas(eventData.position);
-            if (canvas != _targetCanvas)
+            if (canvas == null)
+                canvas = _targetCanvas;
+            if (canvas != _targetCanvas || _rects.Count == 0)
             {
                 _targetCanvas = canvas;
                 PopulateTargets(canvas);
             }
-            var picked = PickBest(eventData.position);
-            if (picked == null) return;
+            var picked = UILayoutEditMode.TextFocus
+                ? PickText(eventData.position)
+                : PickBest(eventData.position);
+            if (picked == null)
+            {
+                if (UILayoutEditMode.TextFocus)
+                    SetStatus(false, "这里没有可编辑的文字");
+                return;
+            }
             picked = ResolveEditableTarget(picked, !UILayoutEditMode.TextFocus);
             if (picked == null) return;
 
@@ -267,18 +286,24 @@ namespace StreetCat.UI
                     picked = ResolveEditableTarget(parent, false);
             }
 
-            if (_selected != picked)
+            var newlySelected = _selected != picked;
+            if (newlySelected)
                 _dirty = false;
             _selected = picked;
-            if (UILayoutEditMode.TextFocus)
+            UnityEditor.Selection.activeGameObject = picked.gameObject;
+            if (newlySelected)
+            {
+                UILayoutEditMode.LockSelection = true;
+                _dragMode = 0;
+                SetStatus(true, "已锁定 / Locked — 按 L 解锁后才能拖动");
+                return;
+            }
+            if (UILayoutEditMode.LockSelection)
             {
                 _dragMode = 0;
-                _pendingUndo = null;
-                UnityEditor.Selection.activeGameObject = picked.gameObject;
                 return;
             }
             BeginDragOnSelected(eventData);
-            UnityEditor.Selection.activeGameObject = picked.gameObject;
         }
 
         void BeginDragOnSelected(PointerEventData eventData)
@@ -298,6 +323,16 @@ namespace StreetCat.UI
             _dragStartSize = _selected.rect.size;
             var startText = _selected.GetComponent<TMPro.TextMeshProUGUI>();
             _dragStartFont = startText != null ? startText.fontSize : 0f;
+            _dragStartMargin = startText != null ? startText.margin : Vector4.zero;
+            _dragScrollContent = IsScrollContent(_selected);
+            _dragChangedFont = false;
+        }
+
+        static bool IsScrollContent(RectTransform target)
+        {
+            if (target == null) return false;
+            var scroll = target.GetComponentInParent<ScrollRect>();
+            return scroll != null && scroll.content == target;
         }
 
         static bool IsUnderNotebook(RectTransform picked)
@@ -389,9 +424,34 @@ namespace StreetCat.UI
 
             if (_dragMode == Move)
             {
-                var next = _dragStartPosition + delta;
-                if (UILayoutEditMode.SnapEnabled) next = Snap(next);
-                _selected.anchoredPosition = next;
+                if (_dragScrollContent)
+                {
+                    // Short dialogue is pinned to the top of a clamped ScrollRect,
+                    // so a negative anchoredPosition is thrown away. A top margin
+                    // moves the line down and stays.
+                    var marginText = _selected.GetComponent<TMPro.TextMeshProUGUI>();
+                    var extra = 0f;
+                    if (marginText != null)
+                    {
+                        var margin = _dragStartMargin;
+                        margin.y = Mathf.Clamp(_dragStartMargin.y - delta.y, 0f, 480f);
+                        marginText.margin = margin;
+                        extra = margin.y - _dragStartMargin.y;
+                    }
+                    var fitter = _selected.GetComponent<ContentSizeFitter>();
+                    if (fitter != null) fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+                    _selected.SetSizeWithCurrentAnchors(
+                        RectTransform.Axis.Vertical,
+                        Mathf.Max(8f, _dragStartSize.y + extra));
+                    var next = _dragStartPosition;
+                    next.x += delta.x;
+                    if (UILayoutEditMode.SnapEnabled) next.x = Snap(new Vector2(next.x, 0f)).x;
+                    _selected.anchoredPosition = new Vector2(next.x, _dragStartPosition.y);
+                    return;
+                }
+                var moved = _dragStartPosition + delta;
+                if (UILayoutEditMode.SnapEnabled) moved = Snap(moved);
+                _selected.anchoredPosition = moved;
                 return;
             }
 
@@ -430,13 +490,15 @@ namespace StreetCat.UI
             {
                 text.enableAutoSizing = false;
                 text.fontSize = Mathf.Clamp(_dragStartFont * (size.y / _dragStartSize.y), 12f, 72f);
+                _dragChangedFont = true;
             }
         }
 
         public void PointerUp(PointerEventData eventData)
         {
-            if (_selected != null && _dragMode != 0) SaveSelection();
+            if (_selected != null && _dragMode != 0) SaveSelection(_dragChangedFont);
             _dragMode = 0;
+            _dragChangedFont = false;
         }
 
         public TextMeshProUGUI SelectedText =>
@@ -475,7 +537,9 @@ namespace StreetCat.UI
             if (state.customSize) state.fontSize = entry.fontSize;
             state.customSpacing = entry.overrideLetterSpacing;
             if (state.customSpacing) state.letterSpacing = entry.letterSpacing;
-            state.weightMode = entry.overrideFontStyle ? (entry.bold ? 2 : 1) : 0;
+            state.weightMode = entry.fontWeight >= 100
+                ? entry.fontWeight
+                : (entry.overrideFontStyle ? (entry.bold ? 700 : 400) : 0);
             state.customColor = entry.overrideColor;
             if (state.customColor) state.color = entry.textColor;
             return true;
@@ -497,12 +561,11 @@ namespace StreetCat.UI
                 state.fontSize,
                 state.customSpacing,
                 state.letterSpacing,
-                state.weightMode != 0,
-                state.weightMode == 2,
+                state.weightMode >= 100,
+                state.weightMode >= 700,
+                state.weightMode,
                 state.customColor,
                 state.color);
-            if (ok && GameUI.Instance != null)
-                GameUI.Instance.RefreshTypography();
             _statusLine = UILayoutOverrides.LastOperationMessage;
             _statusOk = ok;
             if (ok) CommitUndoPoint();
@@ -510,14 +573,14 @@ namespace StreetCat.UI
             return ok;
         }
 
-        public bool SaveSelection()
+        public bool SaveSelection(bool captureFontSize = false)
         {
             if (_selected == null || _targetCanvas == null)
             {
                 SetStatus(false, "保存失败 — 无选中 / Save failed — nothing selected");
                 return false;
             }
-            var ok = UILayoutOverrides.Save(_targetCanvas, _selected);
+            var ok = UILayoutOverrides.Save(_targetCanvas, _selected, captureFontSize);
             _dirty = !ok;
             _statusLine = UILayoutOverrides.LastOperationMessage;
             _statusOk = ok;
@@ -627,8 +690,10 @@ namespace StreetCat.UI
                    && Mathf.Abs(a.letterSpacing - b.letterSpacing) < 0.05f
                    && a.overrideFontStyle == b.overrideFontStyle
                    && a.bold == b.bold
+                   && a.fontWeight == b.fontWeight
                    && a.overrideColor == b.overrideColor
-                   && a.textColor == b.textColor;
+                   && a.textColor == b.textColor
+                   && a.textOnly == b.textOnly;
         }
 
         sealed class LayoutUndoStep
@@ -796,6 +861,52 @@ namespace StreetCat.UI
                 }
             }
             RefreshTargets();
+        }
+
+        /// <summary>
+        /// Text mode: the glyph box is often smaller than the button, or the click lands
+        /// on the button image. Prefer a TMP under the cursor, then a label inside the control.
+        /// </summary>
+        RectTransform PickText(Vector2 screenPoint)
+        {
+            var direct = PickBest(screenPoint);
+            if (direct != null) return direct;
+
+            RectTransform host = null;
+            var hostArea = float.MaxValue;
+            for (var i = 0; i < _rects.Count; i++)
+            {
+                var target = _rects[i];
+                if (target == null || !ContainsScreenPoint(target, screenPoint)) continue;
+                if (IsIgnorablePick(target)) continue;
+                var screenRect = GetScreenRect(target);
+                var area = Mathf.Abs(screenRect.width * screenRect.height);
+                if (area < 4f || area >= hostArea) continue;
+                host = target;
+                hostArea = area;
+            }
+            if (host == null) return null;
+
+            TextMeshProUGUI best = null;
+            var bestArea = float.MaxValue;
+            var texts = host.GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (var i = 0; i < texts.Length; i++)
+            {
+                var text = texts[i];
+                if (text == null) continue;
+                var rect = text.rectTransform;
+                if (!ContainsScreenPoint(rect, screenPoint)) continue;
+                var area = Mathf.Abs(rect.rect.width * rect.rect.height);
+                if (area < 1f) area = 1f;
+                if (area < bestArea)
+                {
+                    best = text;
+                    bestArea = area;
+                }
+            }
+            if (best == null && texts.Length > 0)
+                best = texts[0];
+            return best != null ? best.rectTransform : null;
         }
 
         /// <summary>
@@ -988,11 +1099,11 @@ namespace StreetCat.UI
                     : "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
                 GUI.Label(new Rect(22f, 54f, 360f, 20f), textMode
                     ? "改完立刻保存 · 未单独设置的文字仍跟随全局字体"
-                    : "松手自动保存 · 方向键微调 · Delete 删除 · L 锁定选中");
+                    : "选中即锁定 · 按 L 解锁后拖动 · Delete 删除");
 
                 var y = 76f;
                 var lockNext = GUI.Toggle(new Rect(22f, y, 360f, 20f), locked,
-                    locked ? "锁定选中 / Lock selection  (ON · 按 L 解锁)" : "锁定选中 / Lock selection  (按 L)");
+                    locked ? "已锁定 (按 L 解锁后才能拖动)" : "已解锁 (可以拖动)");
                 if (lockNext != locked)
                     UILayoutEditMode.LockSelection = lockNext;
                 y += 22f;

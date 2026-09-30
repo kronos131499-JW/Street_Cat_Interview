@@ -1,0 +1,7 @@
+﻿优先级,资源key,运行时文件(必须替换),美术原图(同步替换),当前尺寸,目标尺寸,当前宽高比,放大倍数,是否变形,使用场景,构图约束
+P0,bg_huaian_map,Assets/Resources/VnArt/Backgrounds/bg_huaian_map.png,Assets/Art/Backgrounds/正式背景图/槐安社区_社区平面图.png,1672x941,1920x1080,1.777,1.15,否,SC-04 调查场景社区平面图底图(9个可点击热点),热点为0-1归一化坐标;保持原构图则无需重调热点
+P0,kv_title_street_interview,Assets/Resources/VnArt/KeyArt/kv_title_street_interview.png,Assets/Art/KeyArt/kv_title_street_interview.png,1536x1024,1920x1080,1.500,1.25,是(竖向挤扁约18%),标题主视觉(剧本标签含"标题/Title/街角专访"时),需按16:9重新构图;不要简单上下补白
+P0,Title/Menu/background,Assets/Resources/VnArt/Title/Menu/background.png,Assets/Art/UI/Title/Menu_Components/background.png,1672x941,1920x1080,1.777,1.15,否,主菜单全屏桌面底板(常驻画面),中间杂志区域为透明挖空;位置需与现版一致;保留Alpha通道
+P1,bg_feeding_spot,Assets/Resources/VnArt/Backgrounds/bg_feeding_spot.png,Assets/Art/Backgrounds/正式背景图/流浪猫投喂点.png,1672x941,1920x1080,1.777,1.15,否,SC-04 调查点 猫屋/猫粮碗/水碗,保持原构图
+P1,bg_feeding_sign,Assets/Resources/VnArt/Backgrounds/bg_feeding_sign.png,Assets/Art/Backgrounds/正式背景图/流浪猫投喂点_告示牌png.png,1698x926,1920x1080,1.834,1.13,是(竖向略挤),SC-04 调查点 投喂点小挂牌,直接按1920x1080构图
+P1,bg_cat_alert,Assets/Resources/VnArt/Backgrounds/bg_cat_alert.png,Assets/Art/Backgrounds/正式背景图/晒太阳的猫_警惕.png,1672x941,1920x1080,1.777,1.15,否,SC-04 灌木旁的狸花猫 第3个beat,同组放松/躲藏已是1920x1080;需保持三张画质一致

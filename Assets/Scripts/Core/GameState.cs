@@ -38,6 +38,8 @@ namespace StreetCat.Core
         public string phoneChatId = "";
         /// <summary>Beat index inside that chat, so a mid-chat save reopens the same picture.</summary>
         public int phoneChatIndex;
+        /// <summary>Supplemental interview opened from the writing desk; ending returns there.</summary>
+        public bool reinterviewReturnToWriting;
     }
 
     [Serializable]
@@ -83,11 +85,13 @@ namespace StreetCat.Core
                 {
                     Data.flags.Add(id);
                     Notify();
+                    SaveSystem.Autosave();
                 }
             }
             else if (Data.flags.Remove(id))
             {
                 Notify();
+                SaveSystem.Autosave();
             }
         }
 
@@ -105,6 +109,7 @@ namespace StreetCat.Core
             MaterialUnlockTable.TryUnlockFromIntel(id);
             OnIntelGained?.Invoke(id);
             Notify();
+            SaveSystem.Autosave();
             return true;
         }
 

@@ -1,0 +1,11 @@
+﻿资源key,文件,尺寸,状态,说明
+bg_epilogue_morning,Assets/Resources/VnArt/Backgrounds/bg_epilogue_morning.png,1536x1024,无引用,ResolveBackground 精确表与模糊匹配均不返回该 key
+bg_interview_corner,Assets/Resources/VnArt/Backgrounds/bg_interview_corner.png,1536x1024,无引用,同上
+bg_magazine_office,Assets/Resources/VnArt/Backgrounds/bg_magazine_office.png,1536x1024,无引用,同上
+bg_workstation,Assets/Resources/VnArt/Backgrounds/bg_workstation.png,1536x1024,无引用,同上
+bg_writing_desk,Assets/Resources/VnArt/Backgrounds/bg_writing_desk.png,1536x1024,无引用,同上
+bg_huaian_community,Assets/Resources/VnArt/Backgrounds/bg_huaian_community.png,1920x1080,无引用,Art 原图仅 1536x1024;Resources 版疑似放大导出
+bg_guard_booth_afternoon,Assets/Resources/VnArt/Backgrounds/bg_guard_booth_afternoon.png,1920x1080,无引用,同上;已被 bg_guard_afternoon 取代
+bg_guard_booth_dusk,Assets/Resources/VnArt/Backgrounds/bg_guard_booth_dusk.png,1920x1080,无引用,同上;已被 bg_guard_dusk 取代
+bg_shenhe_office,Assets/Resources/VnArt/Backgrounds/bg_shenhe_office.png,1920x1080,无引用,同上;已被 bg_shenhe_office_dusk / _morning 取代
+Title/Menu/background_new,Assets/Resources/VnArt/Title/Menu/background_new.png,1672x941,无引用,代码只读 Menu/background

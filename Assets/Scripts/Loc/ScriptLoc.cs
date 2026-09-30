@@ -57,6 +57,7 @@ namespace StreetCat.Loc
             { "保安叔叔", "Security Guard" },
             { "大福", "Dafu" },
             { "林女士", "Ms. Lin" },
+            { "林敏", "Lin Min" },
             { "系统", "System" },
             { "选项", "Choice" },
             { "旁白", "" },

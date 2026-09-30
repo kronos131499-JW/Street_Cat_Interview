@@ -18,12 +18,31 @@ namespace StreetCat.Loc
         const string ProbeCjk = "街角";
 
         /// <summary>
-        /// SDF sampling point size — keep ≥ typical UI font sizes (40–48) or glyphs look soft/糊.
+        /// SDF sampling point size. Glyph corners and serifs soften once the on-screen pixel size
+        /// approaches this, so it has to clear the largest text the game can actually draw:
+        /// a 1920x1080 reference canvas on a 3440x1440 display scales by ~1.55, and the dialogue
+        /// body at the maximum size setting reaches ~108 device pixels.
+        ///
+        /// Padding must stay near 10% of the sampling size. TMP derives _GradientScale from it, and
+        /// the stroke growth a unit of _FaceDilate buys is exactly AtlasPadding/SamplingPointSize em
+        /// per side — 13/128 holds that at 0.10, so the weight table needs no recalibration.
+        ///
+        /// TmpFontAssetBaker bakes with the same numbers so a prebaked face and a runtime-built one
+        /// render identically. Changing these means re-running the baker.
         /// </summary>
-        const int SamplingPointSize = 90;
-        const int AtlasPadding = 9;
-        const int AtlasWidth = 2048;
-        const int AtlasHeight = 2048;
+        public const int SamplingPointSize = 128;
+        public const int AtlasPadding = 13;
+        public const int AtlasWidth = 2048;
+        public const int AtlasHeight = 2048;
+
+        /// <summary>
+        /// The SDF alpha ramp is 1.5/(Sharpness+1) screen pixels wide regardless of font size,
+        /// so this lands the edge just under one pixel — anti-aliased but not soft.
+        /// </summary>
+        public const float Sharpness = 0.55f;
+
+        /// <summary>Stroke growth per side, in em, bought by one unit of _FaceDilate.</summary>
+        public const float FaceDilateEmPerUnit = AtlasPadding / (float)SamplingPointSize;
 
         static readonly Dictionary<string, TMP_FontAsset> Cache = new Dictionary<string, TMP_FontAsset>();
         /// <summary>Keep source <see cref="Font"/>s alive so FontEngine can re-load faces for dynamic glyphs.</summary>
@@ -106,8 +125,13 @@ namespace StreetCat.Loc
             if (baked == null) return null;
 
             baked.isMultiAtlasTexturesEnabled = true;
-            // If an older bake used a low sampling size, leave it — rebuilding requires the baker.
-            // Still ensure SDF material + multi-atlas for runtime CJK adds.
+            // A stale bake still renders, just with less headroom before large text softens.
+            // Rebuilding needs the Editor baker, so say so rather than cap quality in silence.
+            if (baked.faceInfo.pointSize < SamplingPointSize)
+                LogOnce("stale_bake_" + key, LogType.Warning,
+                    "[TmpFontCatalog] '" + key + "' was baked at " + baked.faceInfo.pointSize +
+                    "pt but the catalog now samples at " + SamplingPointSize +
+                    "pt. Re-run StreetCat → Fonts → Bake TMP Font Assets.");
             EnsureMaterial(baked);
             return baked;
         }
@@ -195,7 +219,6 @@ namespace StreetCat.Loc
             try
             {
                 // Explicit multi-atlas: CJK exhausts a single atlas quickly.
-                // Higher sampling + padding keeps UI sizes (40–48) sharp.
                 var asset = TMP_FontAsset.CreateFontAsset(
                     source,
                     SamplingPointSize,
@@ -218,6 +241,11 @@ namespace StreetCat.Loc
                 asset.name = name;
                 asset.hideFlags = HideFlags.DontSave;
                 asset.isMultiAtlasTexturesEnabled = true;
+                if (asset.atlasTexture != null)
+                {
+                    asset.atlasTexture.filterMode = FilterMode.Bilinear;
+                    asset.atlasTexture.anisoLevel = 0;
+                }
                 EnsureMaterial(asset);
                 TuneSdfMaterial(asset);
 
@@ -334,25 +362,76 @@ namespace StreetCat.Loc
                 if (asset.atlasTexture != null)
                     mat.SetTexture(ShaderUtilities.ID_MainTex, asset.atlasTexture);
                 asset.material = mat;
+                // The shader defaults to a 512px atlas with gradient scale 5. Left alone against a
+                // 2048px atlas the edge-AA term comes out 4x too steep and glyphs render aliased.
+                ApplyAtlasMetrics(asset);
             }
             else if (asset.material.shader == null || asset.material.shader.name.Contains("InternalError"))
             {
                 asset.material.shader = shader;
+                ApplyAtlasMetrics(asset);
             }
 
             TuneSdfMaterial(asset);
         }
 
-        /// <summary>Slightly crisper SDF edges for UI sizes near sampling point size.</summary>
-        static void TuneSdfMaterial(TMP_FontAsset asset)
+        /// <summary>
+        /// Mirror the font asset's real atlas dimensions onto a hand-built material.
+        /// <c>TMP_FontAsset.CreateFontAsset</c> does this itself; materials we allocate do not.
+        /// </summary>
+        static void ApplyAtlasMetrics(TMP_FontAsset asset)
+        {
+            var mat = asset != null ? asset.material : null;
+            if (mat == null) return;
+            if (mat.HasProperty(ShaderUtilities.ID_GradientScale))
+                mat.SetFloat(ShaderUtilities.ID_GradientScale, asset.atlasPadding + 1);
+            if (mat.HasProperty(ShaderUtilities.ID_TextureWidth))
+                mat.SetFloat(ShaderUtilities.ID_TextureWidth, asset.atlasWidth);
+            if (mat.HasProperty(ShaderUtilities.ID_TextureHeight))
+                mat.SetFloat(ShaderUtilities.ID_TextureHeight, asset.atlasHeight);
+            if (mat.HasProperty(ShaderUtilities.ID_WeightNormal))
+                mat.SetFloat(ShaderUtilities.ID_WeightNormal, asset.normalStyle);
+            if (mat.HasProperty(ShaderUtilities.ID_WeightBold))
+                mat.SetFloat(ShaderUtilities.ID_WeightBold, asset.boldStyle);
+        }
+
+        /// <summary>
+        /// Crisp SDF edges on the font asset's own material. Required: CreateFontAsset leaves
+        /// _Sharpness at the shader default of 0, which spreads the edge over 1.5 screen pixels
+        /// and reads as blur at dialogue sizes.
+        /// The asset material is the base every per-text instance is cloned from, so weight-driven
+        /// dilate is cleared here and re-applied per text.
+        /// </summary>
+        public static void TuneSdfMaterial(TMP_FontAsset asset)
         {
             if (asset == null || asset.material == null) return;
-            var mat = asset.material;
-            // Soften face dilate a touch so thin strokes stay readable at large UI sizes.
-            if (mat.HasProperty(ShaderUtilities.ID_FaceDilate))
-                mat.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
+            ApplyCrisp(asset.material);
+            if (asset.material.HasProperty(ShaderUtilities.ID_FaceDilate))
+                asset.material.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
+        }
+
+        /// <summary>
+        /// Zero out every softening term and pin the edge ramp. Face dilate is deliberately
+        /// untouched: it carries the player's font-weight choice and is owned by
+        /// <c>VnText.ApplyFontWeight</c>.
+        /// </summary>
+        public static void ApplyCrisp(Material mat)
+        {
+            if (mat == null) return;
+            if (mat.HasProperty(ShaderUtilities.ID_FaceColor))
+                mat.SetColor(ShaderUtilities.ID_FaceColor, Color.white);
+            if (mat.HasProperty(ShaderUtilities.ID_OutlineWidth))
+                mat.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
             if (mat.HasProperty(ShaderUtilities.ID_OutlineSoftness))
                 mat.SetFloat(ShaderUtilities.ID_OutlineSoftness, 0f);
+            if (mat.HasProperty(ShaderUtilities.ID_Sharpness))
+                mat.SetFloat(ShaderUtilities.ID_Sharpness, Sharpness);
+            if (mat.HasProperty(ShaderUtilities.ID_UnderlaySoftness))
+                mat.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0f);
+            if (mat.HasProperty(ShaderUtilities.ID_UnderlayOffsetX))
+                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
+            if (mat.HasProperty(ShaderUtilities.ID_UnderlayOffsetY))
+                mat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
         }
 
         static void AttachCjkFallbackIfNeeded(TMP_FontAsset asset)

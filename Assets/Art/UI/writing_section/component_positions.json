@@ -1,0 +1,407 @@
+{
+  "reference_canvas": {
+    "width": 1678,
+    "height": 937
+  },
+  "origin": "top-left",
+  "padding_px": 4,
+  "components": [
+    {
+      "name": "01_article_panel",
+      "source_rect": [
+        82,
+        85,
+        1004,
+        727
+      ],
+      "export_size": [
+        1012,
+        735
+      ],
+      "with_text": "01_with_text/01_article_panel.png",
+      "without_text": "02_without_text/01_article_panel.png"
+    },
+    {
+      "name": "02_publication_header",
+      "source_rect": [
+        88,
+        87,
+        980,
+        80
+      ],
+      "export_size": [
+        988,
+        88
+      ],
+      "with_text": "01_with_text/02_publication_header.png",
+      "without_text": "02_without_text/02_publication_header.png"
+    },
+    {
+      "name": "03_article_title",
+      "source_rect": [
+        91,
+        171,
+        978,
+        69
+      ],
+      "export_size": [
+        986,
+        77
+      ],
+      "with_text": "01_with_text/03_article_title.png",
+      "without_text": "02_without_text/03_article_title.png"
+    },
+    {
+      "name": "04_manuscript_area",
+      "source_rect": [
+        83,
+        246,
+        1002,
+        507
+      ],
+      "export_size": [
+        1010,
+        515
+      ],
+      "with_text": "01_with_text/04_manuscript_area.png",
+      "without_text": "02_without_text/04_manuscript_area.png"
+    },
+    {
+      "name": "05_source_legend",
+      "source_rect": [
+        88,
+        750,
+        980,
+        60
+      ],
+      "export_size": [
+        988,
+        68
+      ],
+      "with_text": "01_with_text/05_source_legend.png",
+      "without_text": "02_without_text/05_source_legend.png"
+    },
+    {
+      "name": "06_direction_panel",
+      "source_rect": [
+        1119,
+        110,
+        521,
+        217
+      ],
+      "export_size": [
+        529,
+        225
+      ],
+      "with_text": "01_with_text/06_direction_panel.png",
+      "without_text": "02_without_text/06_direction_panel.png"
+    },
+    {
+      "name": "07_materials_panel",
+      "source_rect": [
+        1119,
+        344,
+        527,
+        241
+      ],
+      "export_size": [
+        535,
+        249
+      ],
+      "with_text": "01_with_text/07_materials_panel.png",
+      "without_text": "02_without_text/07_materials_panel.png"
+    },
+    {
+      "name": "08_status_panel",
+      "source_rect": [
+        1120,
+        598,
+        532,
+        206
+      ],
+      "export_size": [
+        540,
+        214
+      ],
+      "with_text": "01_with_text/08_status_panel.png",
+      "without_text": "02_without_text/08_status_panel.png"
+    },
+    {
+      "name": "09_direction_selected",
+      "source_rect": [
+        1173,
+        185,
+        418,
+        55
+      ],
+      "export_size": [
+        426,
+        63
+      ],
+      "with_text": "01_with_text/09_direction_selected.png",
+      "without_text": "02_without_text/09_direction_selected.png"
+    },
+    {
+      "name": "10_direction_unselected",
+      "source_rect": [
+        1174,
+        246,
+        416,
+        55
+      ],
+      "export_size": [
+        424,
+        63
+      ],
+      "with_text": "01_with_text/10_direction_unselected.png",
+      "without_text": "02_without_text/10_direction_unselected.png"
+    },
+    {
+      "name": "11_return_button",
+      "source_rect": [
+        70,
+        829,
+        371,
+        69
+      ],
+      "export_size": [
+        379,
+        77
+      ],
+      "with_text": "01_with_text/11_return_button.png",
+      "without_text": "02_without_text/11_return_button.png"
+    },
+    {
+      "name": "12_preview_button",
+      "source_rect": [
+        459,
+        831,
+        321,
+        70
+      ],
+      "export_size": [
+        329,
+        78
+      ],
+      "with_text": "01_with_text/12_preview_button.png",
+      "without_text": "02_without_text/12_preview_button.png"
+    },
+    {
+      "name": "13_edit_button",
+      "source_rect": [
+        798,
+        830,
+        353,
+        71
+      ],
+      "export_size": [
+        361,
+        79
+      ],
+      "with_text": "01_with_text/13_edit_button.png",
+      "without_text": "02_without_text/13_edit_button.png"
+    },
+    {
+      "name": "14_submit_button",
+      "source_rect": [
+        1170,
+        827,
+        453,
+        73
+      ],
+      "export_size": [
+        461,
+        81
+      ],
+      "with_text": "01_with_text/14_submit_button.png",
+      "without_text": "02_without_text/14_submit_button.png"
+    },
+    {
+      "name": "15_direction_heading",
+      "source_rect": [
+        1142,
+        121,
+        412,
+        53
+      ],
+      "export_size": [
+        420,
+        61
+      ],
+      "with_text": "01_with_text/15_direction_heading.png",
+      "without_text": "02_without_text/15_direction_heading.png"
+    },
+    {
+      "name": "16_materials_heading",
+      "source_rect": [
+        1141,
+        354,
+        457,
+        55
+      ],
+      "export_size": [
+        465,
+        63
+      ],
+      "with_text": "01_with_text/16_materials_heading.png",
+      "without_text": "02_without_text/16_materials_heading.png"
+    },
+    {
+      "name": "17_status_heading",
+      "source_rect": [
+        1141,
+        609,
+        411,
+        53
+      ],
+      "export_size": [
+        419,
+        61
+      ],
+      "with_text": "01_with_text/17_status_heading.png",
+      "without_text": "02_without_text/17_status_heading.png"
+    },
+    {
+      "name": "18_materials_empty_state",
+      "source_rect": [
+        1142,
+        417,
+        480,
+        153
+      ],
+      "export_size": [
+        488,
+        161
+      ],
+      "with_text": "01_with_text/18_materials_empty_state.png",
+      "without_text": "02_without_text/18_materials_empty_state.png"
+    },
+    {
+      "name": "19_status_not_ready",
+      "source_rect": [
+        1174,
+        677,
+        212,
+        31
+      ],
+      "export_size": [
+        220,
+        39
+      ],
+      "with_text": "01_with_text/19_status_not_ready.png",
+      "without_text": "02_without_text/19_status_not_ready.png"
+    },
+    {
+      "name": "20_status_direction",
+      "source_rect": [
+        1174,
+        708,
+        221,
+        30
+      ],
+      "export_size": [
+        229,
+        38
+      ],
+      "with_text": "01_with_text/20_status_direction.png",
+      "without_text": "02_without_text/20_status_direction.png"
+    },
+    {
+      "name": "21_status_paragraphs",
+      "source_rect": [
+        1174,
+        739,
+        295,
+        31
+      ],
+      "export_size": [
+        303,
+        39
+      ],
+      "with_text": "01_with_text/21_status_paragraphs.png",
+      "without_text": "02_without_text/21_status_paragraphs.png"
+    },
+    {
+      "name": "22_source_observation",
+      "source_rect": [
+        225,
+        762,
+        257,
+        40
+      ],
+      "export_size": [
+        265,
+        48
+      ],
+      "with_text": "01_with_text/22_source_observation.png",
+      "without_text": "02_without_text/22_source_observation.png"
+    },
+    {
+      "name": "23_source_cat",
+      "source_rect": [
+        519,
+        762,
+        190,
+        40
+      ],
+      "export_size": [
+        198,
+        48
+      ],
+      "with_text": "01_with_text/23_source_cat.png",
+      "without_text": "02_without_text/23_source_cat.png"
+    },
+    {
+      "name": "24_source_interview",
+      "source_rect": [
+        749,
+        762,
+        289,
+        40
+      ],
+      "export_size": [
+        297,
+        48
+      ],
+      "with_text": "01_with_text/24_source_interview.png",
+      "without_text": "02_without_text/24_source_interview.png"
+    },
+    {
+      "name": "25_menu_button",
+      "source_rect": [
+        1609,
+        14,
+        54,
+        56
+      ],
+      "export_size": [
+        62,
+        64
+      ],
+      "with_text": "01_with_text/25_menu_button.png",
+      "without_text": "02_without_text/25_menu_button.png"
+    }
+  ],
+  "icons": [
+    "03_icons/arrow_left.png",
+    "03_icons/eye.png",
+    "03_icons/cat.png",
+    "03_icons/human.png",
+    "03_icons/pencil.png",
+    "03_icons/paper_plane.png",
+    "03_icons/check.png",
+    "03_icons/radio_empty.png",
+    "03_icons/binder_clip.png",
+    "03_icons/material_stack.png",
+    "03_icons/clipboard_pen.png",
+    "03_icons/skyline.png",
+    "03_icons/back_start.png",
+    "03_icons/menu.png",
+    "03_icons/step_1.png",
+    "03_icons/step_2.png",
+    "03_icons/step_3.png",
+    "03_icons/step_blank.png",
+    "03_icons/nav_button_base.png",
+    "03_icons/red_rule.png"
+  ]
+}

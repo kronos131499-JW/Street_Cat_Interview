@@ -129,14 +129,15 @@ namespace StreetCat.Editor
             TMP_FontAsset asset = null;
             try
             {
-                // Match TmpFontCatalog runtime sampling so rebakes stay sharp at UI 40–48pt.
+                // Shared with TmpFontCatalog so a prebaked face and a runtime-built one
+                // land on the same gradient scale, and therefore the same stroke weight.
                 asset = TMP_FontAsset.CreateFontAsset(
                     source,
-                    90,
-                    9,
+                    TmpFontCatalog.SamplingPointSize,
+                    TmpFontCatalog.AtlasPadding,
                     GlyphRenderMode.SDFAA,
-                    2048,
-                    2048,
+                    TmpFontCatalog.AtlasWidth,
+                    TmpFontCatalog.AtlasHeight,
                     AtlasPopulationMode.Dynamic,
                     true);
             }
@@ -155,6 +156,7 @@ namespace StreetCat.Editor
 
             asset.name = name;
             asset.isMultiAtlasTexturesEnabled = true;
+            TmpFontCatalog.TuneSdfMaterial(asset);
             asset.TryAddCharacters(Probe, out var missing);
             if (needCjk && !string.IsNullOrEmpty(missing) && missing.IndexOf('街') >= 0)
             {

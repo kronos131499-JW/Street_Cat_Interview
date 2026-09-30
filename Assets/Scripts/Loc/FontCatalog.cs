@@ -26,6 +26,8 @@ namespace StreetCat.Loc
 
         public static readonly Option[] All =
         {
+            new Option { Id = "vn_gothic", DisplayName = "视觉小说黑体 / Noto Sans SC Medium", ResourcesName = "NotoSansSC-Medium", LatinOnly = false, SizeScale = 1.08f, LetterSpacing = 0.6f },
+            new Option { Id = "vn_serif", DisplayName = "视觉小说宋体 / Noto Serif SC", ResourcesName = "NotoSerifSC-Regular", LatinOnly = false, SizeScale = 1.08f, LetterSpacing = 0.4f },
             new Option { Id = "siyuan", DisplayName = "Source Han Sans / 思源黑体", ResourcesName = "SiYuanHeiTi", LatinOnly = false, SizeScale = 1.15f, LetterSpacing = 2.5f },
             // TrueType CJK (optional): StreetCat/Fonts/Import Windows SimHei — more reliable for TMP FontEngine than CFF OTF.
             new Option { Id = "simhei", DisplayName = "SimHei / 黑体", ResourcesName = "SimHei", LatinOnly = false, SizeScale = 1.15f, LetterSpacing = 2.2f },

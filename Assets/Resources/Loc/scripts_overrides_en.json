@@ -509,6 +509,12 @@
             "text": "Alright. Time to turn all this into something we can publish.",
             "speakerName": "Ling",
             "choices": []
+        },
+        {
+            "key": "talk:ling_phone:9",
+            "text": "New Objective: Meet Lin Min at the café outside Huai’an Community’s south gate tomorrow at 3 p.m.",
+            "speakerName": "System",
+            "choices": []
         }
     ]
 }

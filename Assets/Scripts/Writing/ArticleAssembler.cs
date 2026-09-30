@@ -119,23 +119,28 @@ namespace StreetCat.Writing
             error = null;
             if (selected == null || selected.Count == 0)
             {
-                error = "请先为四个段落各选至少一张素材卡。";
+                error = UiLoc.T("ui.writing.desk.err_empty", "请先为四个段落各选至少一张素材卡。");
                 return false;
             }
             if (selected.Count > 10)
             {
-                error = "素材卡最多选择 10 张。";
+                error = UiLoc.T("ui.writing.desk.err_max", "素材卡最多选择 10 张。");
                 return false;
             }
 
             // Soft requirement only: paragraphs 01–04 each need ≥1 card.
             CountParagraphCoverage(selected, out int p1, out int p2, out int p3, out int p4);
-            if (p1 < 1) { error = "段落 01「现在的大福」还没有素材。"; return false; }
-            if (p2 < 1) { error = "段落 02「受伤与救助」还没有素材。"; return false; }
-            if (p3 < 1) { error = "段落 03「治疗与抉择」还没有素材。"; return false; }
-            if (p4 < 1) { error = "段落 04「回到社区」还没有素材。"; return false; }
+            if (p1 < 1) { error = MissingPara("ui.writing.para_01", "段落 01  现在的大福"); return false; }
+            if (p2 < 1) { error = MissingPara("ui.writing.para_02", "段落 02  受伤与救助"); return false; }
+            if (p3 < 1) { error = MissingPara("ui.writing.para_03", "段落 03  治疗与抉择"); return false; }
+            if (p4 < 1) { error = MissingPara("ui.writing.para_04", "段落 04  回到社区"); return false; }
             return true;
         }
+
+        static string MissingPara(string paraKey, string paraFallback) =>
+            string.Format(
+                UiLoc.T("ui.writing.desk.err_para", "{0}还没有素材。"),
+                UiLoc.T(paraKey, paraFallback));
 
         /// <summary>
         /// Paragraph buckets used by the corkboard UI:
@@ -225,8 +230,8 @@ namespace StreetCat.Writing
         }
 
         /// <summary>
-        /// Offline fallback: stricter than a rubber stamp — reject thin / mismatched picks.
-        /// Pass bar is Score ≥ 70 with branch A.
+        /// Offline fallback. Four covered paragraphs can pass.
+        /// Pass bar is Score ≥ 70 with branch A. Mismatched picks still return.
         /// </summary>
         public void ApplyRuleReview(WritingDirection dir, List<string> selected)
         {
@@ -247,51 +252,39 @@ namespace StreetCat.Writing
 
             int chars = ArticleDraftAi.CountContentChars(Body);
 
-            if (count < 5)
-            {
-                ApplyReview(45, "C", BuildRejectReview("选材过少",
-                    "就这几张卡撑不起一篇特稿。读者读完只会觉得「知道有只猫」，不知道发生过什么。",
-                    "每个段落再补材料，尤其是治疗过程与放归理由。"));
-                return;
-            }
-
-            if (chars < 800)
-            {
-                ApplyReview(48, "C", BuildRejectReview("篇幅与展开不足",
-                    "稿子太薄。关键节点一笔带过，没有把现场、过程、后果写清楚。",
-                    "按四个段落把已选素材展开写满，总篇幅至少接近一千字。"));
-                return;
-            }
-
             if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus + 1 && release < 1)
             {
-                ApplyReview(52, "B", BuildRejectReview("选材与立意不匹配",
-                    "你选的是救助线，却几乎没写出「为什么没收养 / 如何放归」。",
-                    "补放归与限制类素材，或改成立意「大福今天也在上班」。"));
+                ApplyReview(52, "B", BuildRejectReview(
+                    UiLoc.T("ui.writing.review.mismatch_title", "选材与立意不匹配"),
+                    UiLoc.T("ui.writing.review.mismatch_rescue", "你选的是救助线，却几乎没写出「为什么没收养 / 如何放归」。"),
+                    UiLoc.T("ui.writing.review.mismatch_rescue_advice", "补放归与限制类素材，或改成立意「大福今天也在上班」。")));
                 return;
             }
 
             if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus + 2)
             {
-                ApplyReview(52, "B", BuildRejectReview("选材与立意不匹配",
-                    "大半篇幅都在写现在怎么上班、怎么晒太阳，救助主线被挤没了。",
-                    "调整写作方向或重选更匹配的素材。"));
+                ApplyReview(52, "B", BuildRejectReview(
+                    UiLoc.T("ui.writing.review.mismatch_title", "选材与立意不匹配"),
+                    UiLoc.T("ui.writing.review.mismatch_present", "大半篇幅都在写现在怎么上班、怎么晒太阳，救助主线被挤没了。"),
+                    UiLoc.T("ui.writing.review.mismatch_present_advice", "调整写作方向或重选更匹配的素材。")));
                 return;
             }
 
             if (dir == WritingDirection.GuardCatToday && rescueFocus >= present + 2 && present < 1)
             {
-                ApplyReview(52, "B", BuildRejectReview("选材与立意不匹配",
-                    "标题写日常变化，正文却几乎只有救助账本，读者看不到「今天的大福」。",
-                    "补现在的生活/社区照料类素材，或改救助立意。"));
+                ApplyReview(52, "B", BuildRejectReview(
+                    UiLoc.T("ui.writing.review.mismatch_title", "选材与立意不匹配"),
+                    UiLoc.T("ui.writing.review.mismatch_guard", "标题写日常变化，正文却几乎只有救助账本，读者看不到「今天的大福」。"),
+                    UiLoc.T("ui.writing.review.mismatch_guard_advice", "补现在的生活/社区照料类素材，或改救助立意。")));
                 return;
             }
 
             if (injury < 1 || rescueFocus < 1)
             {
-                ApplyReview(50, "C", BuildRejectReview("关键事实链断裂",
-                    "伤势与救助至少各要站住。缺一块，读者会在逻辑上跳戏。",
-                    "回去补访或改选对应段落素材。"));
+                ApplyReview(50, "C", BuildRejectReview(
+                    UiLoc.T("ui.writing.review.gap_title", "关键事实链断裂"),
+                    UiLoc.T("ui.writing.review.gap_detail", "伤势与救助至少各要站住。缺一块，读者会在逻辑上跳戏。"),
+                    UiLoc.T("ui.writing.review.gap_advice", "回去补访或改选对应段落素材。")));
                 return;
             }
 
@@ -306,12 +299,12 @@ namespace StreetCat.Writing
             score = Mathf.Clamp(score, 70, 100);
 
             var sb = new StringBuilder();
-            sb.AppendLine("审核结果——通过");
+            sb.AppendLine(UiLoc.T("ui.writing.review.pass", "审核结果——通过"));
             sb.AppendLine();
-            sb.AppendLine("沈禾：看完了。可以发。");
-            sb.AppendLine("结构站住了，事实也没有乱推。不确定的地方没有硬写成结论。");
-            sb.AppendLine("记者不是负责把故事写得更传奇，是负责别把故事写错。");
-            sb.AppendLine("就这样，发吧。");
+            sb.AppendLine(UiLoc.T("ui.writing.review.pass_1", "沈禾：看完了。可以发。"));
+            sb.AppendLine(UiLoc.T("ui.writing.review.pass_2", "结构站住了，事实也没有乱推。不确定的地方没有硬写成结论。"));
+            sb.AppendLine(UiLoc.T("ui.writing.review.pass_3", "记者不是负责把故事写得更传奇，是负责别把故事写错。"));
+            sb.AppendLine(UiLoc.T("ui.writing.review.pass_4", "就这样，发吧。"));
             ApplyReview(score, "A", sb.ToString());
         }
 
@@ -348,12 +341,12 @@ namespace StreetCat.Writing
         static string BuildRejectReview(string title, string detail, string advice)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("审核结果——退回");
-            sb.AppendLine("问题｜" + title);
+            sb.AppendLine(UiLoc.T("ui.writing.review.fail", "审核结果——退回"));
+            sb.AppendLine(string.Format(UiLoc.T("ui.writing.review.fail_problem", "问题｜{0}"), title));
             sb.AppendLine();
             sb.AppendLine(detail);
             sb.AppendLine();
-            sb.AppendLine("编辑意见——" + advice);
+            sb.AppendLine(string.Format(UiLoc.T("ui.writing.review.fail_advice", "编辑意见——{0}"), advice));
             return sb.ToString();
         }
 

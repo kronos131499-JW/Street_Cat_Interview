@@ -86,6 +86,8 @@ namespace StreetCat.UI
                     Debug.LogError("[VnText] No TMP_FontAsset available — text will render as □ / default LiberationSans.");
                 }
             }
+            // No material work here: TmpFontCatalog.Resolve already tuned the asset material,
+            // and writing through fontSharedMaterial would edit the Resources asset in place.
             if (font != null) t.font = font;
             t.fontSize = size;
             t.color = color;
@@ -130,6 +132,69 @@ namespace StreetCat.UI
             if (t == null) return;
             float size = t.fontSize > 0.5f ? t.fontSize : 24f;
             t.characterSpacing = Loc.TmpFontCatalog.PixelSpacingToCharacterSpacing(pixelSpacing, size);
+        }
+
+        /// <summary>
+        /// One static font file cannot switch cuts, so weight is drawn by thickening the SDF edge.
+        /// 300 thin … 800 heavy. Writes to the per-text instance material, never the shared asset.
+        /// </summary>
+        public static void ApplyFontWeight(TMP_Text t, int weight)
+        {
+            if (t == null) return;
+            int step = SnapFontWeight(weight);
+            var style = t.fontStyle & ~FontStyles.Bold;
+            if (step >= 700)
+                style |= FontStyles.Bold;
+            t.fontStyle = style;
+            // Do not assign TMP fontWeight. On a single static face it synthesizes
+            // a second offset glyph, which is the gray double-edge on the parchment.
+
+            var mat = t.fontMaterial;
+            if (mat == null) return;
+            Loc.TmpFontCatalog.ApplyCrisp(mat);
+            if (mat.HasProperty(ShaderUtilities.ID_FaceDilate))
+                mat.SetFloat(ShaderUtilities.ID_FaceDilate, FaceDilateForWeight(step));
+            // Quad padding is derived from face dilate. Setting the property straight on the
+            // material skips TMP's own recompute, and the widened edge then clips at the quad.
+            t.UpdateMeshPadding();
+            t.havePropertiesChanged = true;
+        }
+
+        public static int SnapFontWeight(int weight)
+        {
+            var steps = Loc.GameSettings.FontWeightSteps;
+            int best = steps[0];
+            int bestDist = int.MaxValue;
+            for (int i = 0; i < steps.Length; i++)
+            {
+                int dist = Mathf.Abs(steps[i] - weight);
+                if (dist < bestDist)
+                {
+                    best = steps[i];
+                    bestDist = dist;
+                }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// One unit of dilate grows the stroke by <see cref="Loc.TmpFontCatalog.FaceDilateEmPerUnit"/>
+        /// em per side, so at a 28px dialogue em these steps span roughly -0.2px to +0.6px.
+        /// 500 is the shipped default and carries a little positive body: at dialogue sizes the bare
+        /// outline of a Medium face leaves sub-pixel stems that anti-alias to gray.
+        /// </summary>
+        static float FaceDilateForWeight(int step)
+        {
+            switch (step)
+            {
+                case 300: return -0.06f;
+                case 400: return -0.02f;
+                case 500: return 0.04f;
+                case 600: return 0.09f;
+                case 700: return 0.14f;
+                case 800: return 0.20f;
+                default: return 0.04f;
+            }
         }
 
         public static void SetFontStyle(TMP_Text t, bool bold)

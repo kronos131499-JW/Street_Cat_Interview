@@ -120,8 +120,14 @@ namespace StreetCat.Investigation
         static TalkBeat TS(string text, string sfx = null) =>
             new TalkBeat { system = true, text = text, sfx = sfx };
 
-        static TalkBeat TP(string image) =>
-            new TalkBeat { narration = true, phoneImage = image };
+        static TalkBeat TP(string image, string speaker, string text) =>
+            new TalkBeat
+            {
+                phoneImage = image,
+                speakerName = speaker,
+                text = text,
+                portrait = "无立绘"
+            };
 
         void BuildDefaults()
         {
@@ -445,8 +451,8 @@ namespace StreetCat.Investigation
             return new List<TalkBeat>
             {
                 TN("保安叔叔拿出手机，发了一条消息。", "信息发送"),
-                TP("01_Guard_LinMin_01"),
-                TP("02_Guard_LinMin_02"),
+                TP("01_Guard_LinMin_01", "保安叔叔", "林敏，这儿有个记者，在打听大福以前的事。你看到了回我一条。"),
+                TP("02_Guard_LinMin_02", "林敏", "行，没问题。"),
                 TB("保安叔叔", "她愿意聊。我来给你们牵个线。", "常态"),
                 TB("小凌", "好，谢谢叔叔。", "常态")
             };
@@ -462,14 +468,14 @@ namespace StreetCat.Investigation
             return new List<TalkBeat>
             {
                 TN("小凌的手机响了一声。是林敏发来的消息。", "消息提示音"),
-                TP("03_Ling_LinMin_01"),
-                TP("04_Ling_LinMin_02"),
-                TP("05_Ling_LinMin_03"),
-                TP("06_Ling_LinMin_04"),
-                TP("07_Ling_LinMin_05"),
-                TP("08_Ling_LinMin_06"),
-                TP("09_Ling_LinMin_07"),
-                TP("10_Ling_LinMin_08"),
+                TP("03_Ling_LinMin_01", "林敏", "你好，我是林敏。保安跟我说，你想问问大福的事。"),
+                TP("04_Ling_LinMin_02", "小凌", "你好，我是小凌，《此时》的记者。我今天在社区见到了大福，也跟保安聊了一会儿。想跟你确认一下它受伤、治疗，还有后来被接回来的一些细节。明天下午方便做个简短采访吗？"),
+                TP("05_Ling_LinMin_03", "林敏", "可以。我明天下午三点左右有空。南门外有家咖啡馆，我们在那儿见吧，平时挺安静的。"),
+                TP("06_Ling_LinMin_04", "小凌", "好啊。方便把位置发我吗？"),
+                TP("07_Ling_LinMin_05", "林敏", "槐安社区南门外的咖啡馆"),
+                TP("08_Ling_LinMin_06", "林敏", "就是这家。"),
+                TP("09_Ling_LinMin_07", "小凌", "收到。那明天下午三点见。谢谢！"),
+                TP("10_Ling_LinMin_08", "林敏", "好，明天见。"),
                 new TalkBeat
                 {
                     system = true,

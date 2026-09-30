@@ -65,12 +65,14 @@ namespace StreetCat.UI
         TextMeshProUGUI interviewInspireHintText;
         TextMeshProUGUI interviewCoachTipText;
         TextMeshProUGUI interviewBannerText;
+        Image interviewBannerCard;
         Image interviewSendBtnImage;
         TextMeshProUGUI interviewSendLabel;
         Transform interviewLogContent;
         Transform interviewToolsRow;
         readonly List<GameObject> interviewBubbleSpawned = new List<GameObject>();
         Sprite interviewCircleMaskSprite;
+        readonly Dictionary<int, Sprite> interviewAvatarCrops = new Dictionary<int, Sprite>();
 
         // Legacy segment refs kept null-safe for any external callers.
         Image[] interviewTrustSegs;
@@ -101,8 +103,9 @@ namespace StreetCat.UI
             var col = new GameObject("LeftColumn", typeof(RectTransform));
             col.transform.SetParent(parent, false);
             // ~13% status + portrait
+            // FreeInterview reference canvas 1675×939: left paper occupies ~19% of the width.
             Stretch(col.GetComponent<RectTransform>(),
-                new Vector2(0.010f, 0.05f), new Vector2(0.140f, 0.955f),
+                new Vector2(0.020f, 0.04f), new Vector2(0.210f, 0.97f),
                 Vector2.zero, Vector2.zero);
 
             BuildInterviewStatusPad(col.transform);
@@ -114,7 +117,7 @@ namespace StreetCat.UI
             var host = new GameObject("StatusPad", typeof(RectTransform));
             host.transform.SetParent(parent, false);
             Stretch(host.GetComponent<RectTransform>(),
-                new Vector2(0f, 0.62f), new Vector2(1f, 1f),
+                new Vector2(0f, 0.52f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(host.transform, "Shadow", IvPaperShadow);
@@ -123,22 +126,26 @@ namespace StreetCat.UI
             shadow.raycastTarget = false;
 
             var paper = CreatePaperFace(host.transform, "Paper");
-            AttachTape(paper.transform, new Vector2(0.12f, 1.02f), 54f, 18f, -8f);
-            AttachPaperclip(paper.transform, new Vector2(0.92f, 1.04f), 30f, 42f, 14f);
+            StampFreePlate(paper, FreeInterviewArt.StatusPanel, preserveAspect: true);
 
+            // Caption stays for label refresh, but the blank status sheet has no header band.
             var header = CreateUiText(paper.transform, "Header", 14, TextAnchor.MiddleLeft, IvInk,
                 Vector2.zero, Vector2.zero);
-            Stretch(header.rectTransform, new Vector2(0.06f, 0.78f), new Vector2(0.94f, 0.96f),
-                Vector2.zero, Vector2.zero);
-            header.fontStyle = FontStyles.Bold;
-            header.text = UiLoc.T("ui.interview.status_header", "受访者状态");
+            header.gameObject.SetActive(false);
             interviewMeterCaption = header;
 
-            interviewTrustFill = BuildMeterBarRow(paper.transform, "Trust", 0, IvTrust,
+            // Three separate bands. A full-card row stacks every bar on top of the others.
+            interviewTrustFill = BuildFreeMeter(paper.transform, "Trust",
+                FreeInterviewArt.TrustIcon, FreeInterviewArt.TrustFill,
+                new Vector2(0.04f, 0.66f), new Vector2(0.96f, 0.98f),
                 out interviewTrustLabel, out interviewTrustValue);
-            interviewStressFill = BuildMeterBarRow(paper.transform, "Stress", 1, IvStress,
+            interviewStressFill = BuildFreeMeter(paper.transform, "Stress",
+                FreeInterviewArt.PressureIcon, FreeInterviewArt.PressureFill,
+                new Vector2(0.04f, 0.34f), new Vector2(0.96f, 0.64f),
                 out interviewStressLabel, out interviewStressValue);
-            interviewFocusFill = BuildMeterBarRow(paper.transform, "Focus", 2, IvFocus,
+            interviewFocusFill = BuildFreeMeter(paper.transform, "Focus",
+                FreeInterviewArt.FocusIcon, FreeInterviewArt.FocusFill,
+                new Vector2(0.04f, 0.02f), new Vector2(0.96f, 0.32f),
                 out interviewFocusLabel, out interviewFocusValue);
             RefreshInterviewMeterLabels();
 
@@ -195,12 +202,95 @@ namespace StreetCat.UI
             return fillImg;
         }
 
+        /// <summary>
+        /// One meter on the blank status sheet: icon, name, empty slot, crayon fill.
+        /// Numbers stay off the paper; the fill length is the value.
+        /// </summary>
+        Image BuildFreeMeter(Transform parent, string name, Sprite icon, Sprite fillSprite,
+            Vector2 bandMin, Vector2 bandMax,
+            out TextMeshProUGUI labelTx, out TextMeshProUGUI valueTx)
+        {
+            var rowGo = new GameObject(name, typeof(RectTransform));
+            rowGo.transform.SetParent(parent, false);
+            Stretch(rowGo.GetComponent<RectTransform>(), bandMin, bandMax, Vector2.zero, Vector2.zero);
+
+            var iconImg = CreateImage(rowGo.transform, "Icon", Color.white);
+            Stretch(iconImg.rectTransform, new Vector2(0f, 0.28f), new Vector2(0.16f, 0.92f),
+                Vector2.zero, Vector2.zero);
+            iconImg.preserveAspect = true;
+            iconImg.raycastTarget = false;
+            if (icon != null)
+            {
+                iconImg.sprite = icon;
+                iconImg.color = Color.white;
+            }
+
+            labelTx = CreateUiText(rowGo.transform, "Label", 16, TextAnchor.LowerLeft, FreeInterviewArt.Ink,
+                Vector2.zero, Vector2.zero);
+            Stretch(labelTx.rectTransform, new Vector2(0.18f, 0.52f), new Vector2(0.70f, 1f),
+                Vector2.zero, Vector2.zero);
+            labelTx.fontStyle = FontStyles.Bold;
+            labelTx.enableWordWrapping = false;
+            labelTx.overflowMode = TextOverflowModes.Overflow;
+            labelTx.raycastTarget = false;
+
+            valueTx = CreateUiText(rowGo.transform, "Value", 16, TextAnchor.LowerRight, FreeInterviewArt.Ink,
+                Vector2.zero, Vector2.zero);
+            Stretch(valueTx.rectTransform, new Vector2(0.62f, 0.52f), new Vector2(0.96f, 1f),
+                Vector2.zero, Vector2.zero);
+            valueTx.fontStyle = FontStyles.Bold;
+            valueTx.enableWordWrapping = false;
+            valueTx.raycastTarget = false;
+
+            var track = CreateImage(rowGo.transform, "Track", IvBarTrack);
+            Stretch(track.rectTransform, new Vector2(0.18f, 0.08f), new Vector2(0.96f, 0.42f),
+                Vector2.zero, Vector2.zero);
+            track.raycastTarget = false;
+            var empty = FreeInterviewArt.BarEmpty;
+            if (empty != null)
+            {
+                track.sprite = empty;
+                track.type = Image.Type.Simple;
+                track.color = Color.white;
+            }
+
+            var fillImg = CreateImage(track.transform, "Fill", Color.white);
+            StretchFull(fillImg.rectTransform);
+            fillImg.rectTransform.offsetMin = new Vector2(3f, 3f);
+            fillImg.rectTransform.offsetMax = new Vector2(-3f, -3f);
+            fillImg.raycastTarget = false;
+            if (fillSprite != null)
+            {
+                fillImg.sprite = fillSprite;
+                fillImg.type = Image.Type.Filled;
+                fillImg.fillMethod = Image.FillMethod.Horizontal;
+                fillImg.fillOrigin = (int)Image.OriginHorizontal.Left;
+                fillImg.fillAmount = 0f;
+                fillImg.color = Color.white;
+            }
+            else
+            {
+                fillImg.color = IvTrust;
+                fillImg.type = Image.Type.Simple;
+            }
+            return fillImg;
+        }
+
+        static void StampFreePlate(Image image, Sprite sprite, bool preserveAspect)
+        {
+            if (image == null || sprite == null) return;
+            image.sprite = sprite;
+            image.color = Color.white;
+            image.preserveAspect = preserveAspect;
+            image.type = sprite.border.sqrMagnitude > 0.01f ? Image.Type.Sliced : Image.Type.Simple;
+        }
+
         void BuildInterviewPortraitPad(Transform parent)
         {
             var host = new GameObject("PortraitPad", typeof(RectTransform));
             host.transform.SetParent(parent, false);
             Stretch(host.GetComponent<RectTransform>(),
-                new Vector2(0f, 0f), new Vector2(1f, 0.58f),
+                new Vector2(0f, 0f), new Vector2(1f, 0.48f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(host.transform, "Shadow", IvPaperShadow);
@@ -209,28 +299,23 @@ namespace StreetCat.UI
             shadow.raycastTarget = false;
 
             var paper = CreatePaperFace(host.transform, "Paper");
-            AttachTape(paper.transform, new Vector2(0.1f, 1.01f), 48f, 16f, -12f);
-            AttachTape(paper.transform, new Vector2(0.9f, 1.01f), 48f, 16f, 10f);
+            StampFreePlate(paper, FreeInterviewArt.Photo, preserveAspect: true);
 
-            interviewPortraitImage = CreateImage(paper.transform, "Portrait", Color.white);
-            // Keep bust above the name plate so "Dafu" / "Lin" stays readable.
+            // Brown window inside 01_photo_background. The frame itself stays unclipped.
+            var window = new GameObject("PhotoWindow", typeof(RectTransform), typeof(RectMask2D));
+            window.transform.SetParent(paper.transform, false);
+            Stretch(window.GetComponent<RectTransform>(),
+                new Vector2(0.10f, 0.34f), new Vector2(0.90f, 0.92f),
+                Vector2.zero, Vector2.zero);
+
+            interviewPortraitImage = CreateImage(window.transform, "Portrait", Color.white);
             Stretch(interviewPortraitImage.rectTransform,
-                new Vector2(0.08f, 0.16f), new Vector2(0.92f, 0.96f),
+                new Vector2(0.08f, 0.02f), new Vector2(0.92f, 0.98f),
                 Vector2.zero, Vector2.zero);
             interviewPortraitImage.preserveAspect = true;
             interviewPortraitImage.raycastTarget = false;
             interviewPortraitImage.enabled = false;
-
-            var plate = CreateImage(paper.transform, "NamePlate", IvNamePlate);
-            Stretch(plate.rectTransform, new Vector2(0.10f, 0.03f), new Vector2(0.90f, 0.14f),
-                Vector2.zero, Vector2.zero);
-            plate.raycastTarget = false;
-
-            interviewSubjectText = CreateUiText(plate.transform, "Name", 15, TextAnchor.MiddleCenter, IvInk,
-                Vector2.zero, Vector2.zero);
-            StretchFull(interviewSubjectText.rectTransform);
-            interviewSubjectText.fontStyle = FontStyles.Bold;
-            interviewSubjectText.text = "";
+            // The polaroid already prints the name. Do not stack a live "Dafu" label on it.
         }
 
         void BuildInterviewCenterColumn(Transform parent)
@@ -239,7 +324,7 @@ namespace StreetCat.UI
             col.transform.SetParent(parent, false);
             // ~60% center chat — leave room for EN Ask Ideas chips on the right
             Stretch(col.GetComponent<RectTransform>(),
-                new Vector2(0.150f, 0.05f), new Vector2(0.755f, 0.955f),
+                new Vector2(0.215f, 0.04f), new Vector2(0.810f, 0.97f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(col.transform, "Shadow", IvPaperShadow);
@@ -267,12 +352,25 @@ namespace StreetCat.UI
             interviewTitleSubText.characterSpacing = 4f;
             interviewTitleSubText.gameObject.SetActive(false);
 
-            interviewBannerText = CreateUiText(paper.transform, "Banner", 13, TextAnchor.MiddleLeft,
-                new Color(0.55f, 0.28f, 0.18f, 1f), Vector2.zero, Vector2.zero);
-            Stretch(interviewBannerText.rectTransform, new Vector2(0.05f, 0.135f), new Vector2(0.95f, 0.22f),
+            // Quiet note on the lower sheet. Kept clear of the typing line.
+            interviewBannerCard = CreateImage(paper.transform, "BannerCard", new Color(0.93f, 0.86f, 0.74f, 0.55f));
+            Stretch(interviewBannerCard.rectTransform, new Vector2(0.05f, 0.15f), new Vector2(0.95f, 0.48f),
+                Vector2.zero, Vector2.zero);
+            interviewBannerCard.raycastTarget = false;
+            interviewBannerCard.gameObject.SetActive(false);
+            var bannerRule = CreateImage(interviewBannerCard.transform, "Rule", new Color(0.62f, 0.32f, 0.18f, 0.9f));
+            Stretch(bannerRule.rectTransform, new Vector2(0f, 0.06f), new Vector2(0.012f, 0.94f),
+                Vector2.zero, Vector2.zero);
+            bannerRule.raycastTarget = false;
+
+            interviewBannerText = CreateUiText(paper.transform, "Banner", 18, TextAnchor.UpperLeft,
+                new Color(0.33f, 0.20f, 0.14f, 1f), Vector2.zero, Vector2.zero);
+            Stretch(interviewBannerText.rectTransform, new Vector2(0.08f, 0.17f), new Vector2(0.93f, 0.46f),
                 Vector2.zero, Vector2.zero);
             interviewBannerText.enableWordWrapping = true;
-            interviewBannerText.overflowMode = TextOverflowModes.Truncate;
+            interviewBannerText.overflowMode = TextOverflowModes.Overflow;
+            interviewBannerText.lineSpacing = 6f;
+            interviewBannerText.margin = new Vector4(6f, 4f, 8f, 4f);
             interviewBannerText.gameObject.SetActive(false);
 
             // Scrollable chat log (bottom expands when end-warn banner is hidden)
@@ -301,7 +399,7 @@ namespace StreetCat.UI
             crt.pivot = new Vector2(0.5f, 1f);
             crt.sizeDelta = Vector2.zero;
             var vlg = content.GetComponent<VerticalLayoutGroup>();
-            vlg.padding = new RectOffset(8, 8, 8, 14);
+            vlg.padding = new RectOffset(8, 8, 18, 16);
             vlg.spacing = 14f;
             vlg.childAlignment = TextAnchor.UpperCenter;
             vlg.childControlWidth = true;
@@ -330,6 +428,7 @@ namespace StreetCat.UI
             var inputBar = CreateImage(paper.transform, "InputBar", IvInputBg);
             Stretch(inputBar.rectTransform, new Vector2(0.04f, 0.02f), new Vector2(0.82f, 0.115f),
                 Vector2.zero, Vector2.zero);
+            StampFreePlate(inputBar, FreeInterviewArt.Input, preserveAspect: false);
             inputBar.raycastTarget = true;
 
             interviewInput = CreateVnInput(inputBar.transform);
@@ -351,6 +450,16 @@ namespace StreetCat.UI
                 ph.fontSize = 17;
                 ph.text = UiLoc.T("ui.interview.input_placeholder", "输入你的问题...");
                 ApplyLetterSpacing(ph, 0f);
+            }
+            // 打字框 sprite is 949px wide; the brown fold ends at x≈80 (~8%).
+            // Keep placeholder and typed text in the white field to the right of it.
+            if (interviewInput.textViewport != null)
+            {
+                var area = interviewInput.textViewport;
+                area.anchorMin = new Vector2(0.10f, 0f);
+                area.anchorMax = Vector2.one;
+                area.offsetMin = new Vector2(4f, 2f);
+                area.offsetMax = new Vector2(-8f, -2f);
             }
 
             var sendGo = new GameObject("Send", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -379,7 +488,7 @@ namespace StreetCat.UI
             col.transform.SetParent(parent, false);
             // ~23% right — EN ask chips need wrap width
             Stretch(col.GetComponent<RectTransform>(),
-                new Vector2(0.765f, 0.05f), new Vector2(0.990f, 0.955f),
+                new Vector2(0.825f, 0.04f), new Vector2(0.985f, 0.97f),
                 Vector2.zero, Vector2.zero);
 
             BuildInterviewInspirePad(col.transform);
@@ -391,7 +500,7 @@ namespace StreetCat.UI
             var host = new GameObject("InspirePad", typeof(RectTransform));
             host.transform.SetParent(parent, false);
             Stretch(host.GetComponent<RectTransform>(),
-                new Vector2(0f, 0.34f), new Vector2(1f, 1f),
+                new Vector2(0f, 0.40f), new Vector2(1f, 1f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(host.transform, "Shadow", IvPaperShadow);
@@ -447,7 +556,7 @@ namespace StreetCat.UI
             var host = new GameObject("ToolbarPad", typeof(RectTransform));
             host.transform.SetParent(parent, false);
             Stretch(host.GetComponent<RectTransform>(),
-                new Vector2(0f, 0f), new Vector2(1f, 0.32f),
+                new Vector2(0f, 0f), new Vector2(1f, 0.38f),
                 Vector2.zero, Vector2.zero);
 
             var shadow = CreateImage(host.transform, "Shadow", IvPaperShadow);
@@ -604,8 +713,8 @@ namespace StreetCat.UI
             go.transform.SetParent(interviewActionRoot, false);
             var le = go.GetComponent<LayoutElement>();
             le.flexibleWidth = 1f;
-            le.minHeight = 128f;
-            le.preferredHeight = 140f;
+            le.minHeight = 226f;
+            le.preferredHeight = 232f;
             le.flexibleHeight = 0f;
             var vlg = go.GetComponent<VerticalLayoutGroup>();
             vlg.spacing = 5f;
@@ -619,22 +728,56 @@ namespace StreetCat.UI
             return interviewToolsRow;
         }
 
+        Transform EnsureEndConfirmHost()
+        {
+            if (interviewActionRoot == null) return null;
+            var go = new GameObject("EndConfirm", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            go.transform.SetParent(interviewActionRoot, false);
+            var rt = go.GetComponent<RectTransform>();
+            // The orange END INTERVIEW tape is baked across the top of this sheet.
+            rt.anchorMin = new Vector2(0.08f, 0.06f);
+            rt.anchorMax = new Vector2(0.92f, 0.58f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            var vlg = go.GetComponent<VerticalLayoutGroup>();
+            vlg.spacing = 16f;
+            vlg.childAlignment = TextAnchor.MiddleCenter;
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = true;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+            vlg.padding = new RectOffset(6, 6, 4, 4);
+            var le = go.AddComponent<LayoutElement>();
+            le.ignoreLayout = true;
+            interviewSpawned.Add(go);
+            return go.transform;
+        }
+
         void AddInterviewAction(string label, UnityEngine.Events.UnityAction action, bool primary = false,
-            bool fullWidth = false)
+            bool fullWidth = false, Transform host = null)
         {
             if (interviewActionRoot == null) return;
 
             bool useFull = primary || fullWidth;
-            Transform parent = useFull ? interviewActionRoot : EnsureInterviewToolsRow();
+            Transform parent = host != null
+                ? host
+                : (useFull ? interviewActionRoot : EnsureInterviewToolsRow());
             if (parent == null) return;
 
             // Plain Loc text only — no emoji/symbol Icon layer (missing glyphs → □ spam).
             var go = new GameObject(primary ? "ActEnd" : "Act", typeof(RectTransform), typeof(Image),
                 typeof(Button), typeof(LayoutElement));
             go.transform.SetParent(parent, false);
-            go.GetComponent<Image>().color = primary
-                ? IvEndAccent
-                : new Color(0.94f, 0.91f, 0.86f, 0.96f);
+            var face = go.GetComponent<Image>();
+            face.color = primary
+                ? new Color(0.68f, 0.30f, 0.18f, 1f)
+                : new Color(0.97f, 0.94f, 0.88f, 1f);
+            if (host != null)
+            {
+                var shadow = go.AddComponent<Shadow>();
+                shadow.effectColor = new Color(0.22f, 0.12f, 0.06f, 0.22f);
+                shadow.effectDistance = new Vector2(0f, -2f);
+            }
             go.GetComponent<Image>().raycastTarget = true;
             go.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -644,7 +787,12 @@ namespace StreetCat.UI
 
             var le = go.GetComponent<LayoutElement>();
             le.flexibleWidth = 1f;
-            if (primary)
+            if (host != null)
+            {
+                le.minHeight = 52f;
+                le.preferredHeight = 56f;
+            }
+            else if (primary)
             {
                 le.minHeight = 46f;
                 le.preferredHeight = 50f;
@@ -656,14 +804,18 @@ namespace StreetCat.UI
             }
             else
             {
-                // Stacked tool chips — readable EN labels (Backlog / Notebook / Menu).
-                le.minHeight = 40f;
-                le.preferredHeight = 42f;
+                // Same box for Review / Notes / Menu. 230×72 matches the paper-strip art.
+                le.minWidth = 230f;
+                le.preferredWidth = 230f;
+                le.flexibleWidth = 0f;
+                le.minHeight = 72f;
+                le.preferredHeight = 72f;
                 le.flexibleHeight = 0f;
             }
 
-            var labelTx = CreateUiText(go.transform, "L", primary ? 17 : 15, TextAnchor.MiddleCenter,
-                primary ? Color.white : IvInk, Vector2.zero, Vector2.zero);
+            var labelTx = CreateUiText(go.transform, "L", primary ? 16 : 15, TextAnchor.MiddleCenter,
+                primary ? new Color(0.99f, 0.96f, 0.92f, 1f) : new Color(0.30f, 0.18f, 0.12f, 1f),
+                Vector2.zero, Vector2.zero);
             Stretch(labelTx.rectTransform, new Vector2(0.04f, 0.08f), new Vector2(0.96f, 0.92f),
                 Vector2.zero, Vector2.zero);
             labelTx.text = label;
@@ -676,6 +828,16 @@ namespace StreetCat.UI
             ApplyInterviewActionArt(go.GetComponent<Button>(), label, labelTx);
 
             interviewSpawned.Add(go);
+        }
+
+        static void PlaceInterviewTool(RectTransform rt, float x, float y, float w, float h)
+        {
+            if (rt == null) return;
+            rt.anchorMin = new Vector2(x, 1f - (y + h));
+            rt.anchorMax = new Vector2(x + w, 1f - y);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            rt.pivot = new Vector2(0.5f, 0.5f);
         }
 
         void SubmitInterviewQuestion()
@@ -912,6 +1074,7 @@ namespace StreetCat.UI
         void RebuildInterviewChatLog()
         {
             ClearInterviewBubbles();
+            interviewAvatarCrops.Clear();
             if (interviewLogContent == null) return;
 
             // Layout must run before we measure chat width for bubbles.
@@ -945,6 +1108,7 @@ namespace StreetCat.UI
         void SpawnInterviewLogLine(string line)
         {
             if (string.IsNullOrEmpty(line)) return;
+            if (IsMaterialNotice(line)) return;
 
             if (line.StartsWith("小凌：") || line.StartsWith("小凌:")
                 || line.StartsWith("Ling: ") || line.StartsWith("Ling:"))
@@ -974,6 +1138,14 @@ namespace StreetCat.UI
             }
         }
 
+        static bool IsMaterialNotice(string line)
+        {
+            if (string.IsNullOrEmpty(line)) return false;
+            return line.Contains("【素材】")
+                   || line.Contains("[Materials]")
+                   || line.Contains("[Material]");
+        }
+
         static string StripSpeakerPrefix(string line)
         {
             int colon = line.IndexOf('：');
@@ -994,58 +1166,47 @@ namespace StreetCat.UI
                                           || body.Contains("[Material]"));
             bool isAction = isSystem && (body.StartsWith("（") || body.StartsWith("("));
 
-            const float AvatarSize = 72f;
-            const float AvatarGap = 12f;
             float contentW = EstimateInterviewChatContentWidth();
-            // NPC/player bubbles: almost full chat row minus avatar. System: ~92% centered.
+            float fontPx = (isSystem ? 16f : 22f) * scale;
+            float measured = body.Length * fontPx * 0.55f;
+            float maxFrac = kind == BubbleKind.Npc ? 0.90f : 0.96f;
             float bubbleW = isSystem
-                ? Mathf.Clamp(contentW * 0.92f, 640f, 1400f)
-                : Mathf.Clamp(contentW - AvatarSize - AvatarGap - 16f, 560f, 1400f);
+                ? Mathf.Clamp(measured, 280f, Mathf.Max(280f, contentW * 0.86f))
+                : Mathf.Max(480f, contentW * maxFrac);
 
             var row = new GameObject("Bubble", typeof(RectTransform), typeof(HorizontalLayoutGroup),
                 typeof(LayoutElement));
             row.transform.SetParent(interviewLogContent, false);
             var hlg = row.GetComponent<HorizontalLayoutGroup>();
-            hlg.spacing = AvatarGap;
-            hlg.childAlignment = isSystem
-                ? TextAnchor.MiddleCenter
-                : (kind == BubbleKind.Player ? TextAnchor.UpperRight : TextAnchor.UpperLeft);
-            hlg.childControlWidth = false;
-            hlg.childControlHeight = false;
+            hlg.spacing = 0f;
+            hlg.childAlignment = TextAnchor.UpperLeft;
+            hlg.childControlWidth = true;
+            hlg.childControlHeight = true;
             hlg.childForceExpandWidth = false;
             hlg.childForceExpandHeight = false;
-            hlg.padding = new RectOffset(4, 4, 2, 2);
+            int leftPad = kind == BubbleKind.Npc ? 72 : 4;
+            hlg.padding = new RectOffset(leftPad, 8, 10, 4);
             var rowLe = row.GetComponent<LayoutElement>();
-            rowLe.minHeight = isSystem ? 32f : AvatarSize;
+            rowLe.minHeight = isSystem ? 32f : 36f;
             rowLe.flexibleWidth = 1f;
-            rowLe.preferredWidth = -1f;
-
-            if (kind == BubbleKind.Player)
-            {
-                var spacer = new GameObject("Spacer", typeof(RectTransform), typeof(LayoutElement));
-                spacer.transform.SetParent(row.transform, false);
-                var sle = spacer.GetComponent<LayoutElement>();
-                sle.flexibleWidth = 1f;
-                sle.minWidth = 8f;
-            }
-            else if (isSystem)
-            {
-                var spacerL = new GameObject("SpacerL", typeof(RectTransform), typeof(LayoutElement));
-                spacerL.transform.SetParent(row.transform, false);
-                var sle = spacerL.GetComponent<LayoutElement>();
-                sle.flexibleWidth = 1f;
-                sle.minWidth = 8f;
-            }
-
-            Image avatarImg = null;
-            if (!isSystem && !string.IsNullOrEmpty(avatarWho))
-                avatarImg = CreateCircularAvatar(row.transform, avatarWho, AvatarSize);
 
             var bubbleGo = new GameObject("Face", typeof(RectTransform), typeof(Image),
                 typeof(VerticalLayoutGroup), typeof(ContentSizeFitter), typeof(LayoutElement));
             bubbleGo.transform.SetParent(row.transform, false);
             var bubble = bubbleGo.GetComponent<Image>();
+            Sprite plate = null;
             if (kind == BubbleKind.Player)
+                plate = FreeInterviewArt.DialogueCream;
+            else if (kind == BubbleKind.Npc)
+                plate = FreeInterviewArt.DialoguePeach;
+            if (plate != null)
+            {
+                bubble.sprite = plate;
+                bubble.type = Image.Type.Simple;
+                bubble.preserveAspect = false;
+                bubble.color = Color.white;
+            }
+            else if (kind == BubbleKind.Player)
                 bubble.color = IvBubblePlayer;
             else if (kind == BubbleKind.Npc)
                 bubble.color = IvBubbleNpc;
@@ -1055,35 +1216,44 @@ namespace StreetCat.UI
                 bubble.color = IvBubbleSystem;
             bubble.raycastTarget = false;
 
-            // Lock bubble width — TMP preferred-width otherwise collapses to ~1 character.
             var ble = bubbleGo.GetComponent<LayoutElement>();
-            ble.minWidth = bubbleW;
+            ble.minWidth = 320f;
             ble.preferredWidth = bubbleW;
             ble.flexibleWidth = 0f;
-            ble.minHeight = isSystem ? 28f : 40f;
-
-            var brt = bubbleGo.GetComponent<RectTransform>();
-            brt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, bubbleW);
+            float innerW = Mathf.Max(80f, bubbleW - 72f);
+            int lines = Mathf.Max(1, Mathf.CeilToInt(measured / innerW));
+            float stripAspect = plate != null && plate.rect.height > 1f
+                ? plate.rect.width / plate.rect.height
+                : 7.5f;
+            float bubbleH = isSystem
+                ? lines * fontPx * 1.15f + 8f
+                : Mathf.Max(bubbleW / stripAspect, lines * fontPx * 1.15f + 36f);
+            ble.minHeight = bubbleH;
+            ble.preferredHeight = bubbleH;
+            ble.layoutPriority = 2;
 
             var bVlg = bubbleGo.GetComponent<VerticalLayoutGroup>();
-            int padX = isSystem ? 16 : 18;
-            int padY = isSystem ? 8 : 12;
-            bVlg.padding = new RectOffset(padX, padX, padY, padY);
+            bVlg.padding = new RectOffset(32, 32, 28, 16);
+            bVlg.childAlignment = TextAnchor.UpperLeft;
             bVlg.childControlWidth = true;
             bVlg.childControlHeight = true;
             bVlg.childForceExpandWidth = true;
             bVlg.childForceExpandHeight = false;
             var fitter = bubbleGo.GetComponent<ContentSizeFitter>();
             fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            if (!isSystem && !string.IsNullOrEmpty(avatarWho))
+                AttachSpeakerTab(bubbleGo.transform, avatarWho, scale);
 
             var tgo = new GameObject("T", typeof(RectTransform), typeof(LayoutElement));
             tgo.transform.SetParent(bubbleGo.transform, false);
             var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
-            tx.fontSize = Mathf.RoundToInt((isSystem ? 15f : 17f) * scale);
-            tx.color = isSystem ? IvInkMuted : IvInk;
-            tx.alignment = VnText.ToAlignment(isSystem ? TextAnchor.MiddleCenter : TextAnchor.UpperLeft);
+            tx.fontSize = Mathf.RoundToInt(fontPx);
+            VnText.ApplyFontWeight(tx, GameSettings.FontWeight);
+            tx.color = isSystem ? IvInkMuted : FreeInterviewArt.Ink;
+            tx.alignment = VnText.ToAlignment(isSystem ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft);
             tx.text = body;
             tx.fontStyle = isAction ? FontStyles.Italic : FontStyles.Normal;
             tx.enableWordWrapping = true;
@@ -1091,28 +1261,56 @@ namespace StreetCat.UI
             tx.raycastTarget = false;
             ApplyLetterSpacing(tx, 0f);
 
-            float textW = Mathf.Max(120f, bubbleW - padX * 2);
             var tLe = tgo.GetComponent<LayoutElement>();
-            tLe.minWidth = textW;
-            tLe.preferredWidth = textW;
+            tLe.minWidth = 80f;
+            tLe.preferredWidth = innerW;
             tLe.flexibleWidth = 1f;
-            tgo.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, textW);
 
-            if (kind == BubbleKind.Player && avatarImg != null)
-                avatarImg.transform.SetAsLastSibling();
-            else if (kind == BubbleKind.Npc && avatarImg != null)
-                avatarImg.transform.SetAsFirstSibling();
-
-            if (kind != BubbleKind.Player)
-            {
-                var spacer = new GameObject("Spacer", typeof(RectTransform), typeof(LayoutElement));
-                spacer.transform.SetParent(row.transform, false);
-                var sle = spacer.GetComponent<LayoutElement>();
-                sle.flexibleWidth = 1f;
-                sle.minWidth = 8f;
-            }
+            var spacer = new GameObject("Spacer", typeof(RectTransform), typeof(LayoutElement));
+            spacer.transform.SetParent(row.transform, false);
+            var sle = spacer.GetComponent<LayoutElement>();
+            sle.flexibleWidth = 1f;
+            sle.minWidth = 0f;
 
             interviewBubbleSpawned.Add(row);
+        }
+
+        void AttachSpeakerTab(Transform bubble, string who, float scale)
+        {
+            var tabGo = new GameObject("NameTab", typeof(RectTransform), typeof(Image), typeof(LayoutElement));
+            tabGo.transform.SetParent(bubble, false);
+            var tab = tabGo.GetComponent<Image>();
+            var tabSprite = FreeInterviewArt.NameTab;
+            if (tabSprite != null)
+            {
+                tab.sprite = tabSprite;
+                tab.type = Image.Type.Simple;
+                tab.preserveAspect = true;
+                tab.color = Color.white;
+            }
+            else
+            {
+                tab.color = IvNamePlate;
+            }
+            tab.raycastTarget = false;
+            var le = tabGo.GetComponent<LayoutElement>();
+            le.ignoreLayout = true;
+
+            var rt = tabGo.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(22f, 10f);
+            rt.sizeDelta = new Vector2(108f, 34f);
+
+            var label = CreateUiText(tabGo.transform, "Name", Mathf.RoundToInt(15f * scale),
+                TextAnchor.MiddleCenter, FreeInterviewArt.Ink, Vector2.zero, Vector2.zero);
+            VnText.ApplyFontWeight(label, GameSettings.FontWeight);
+            StretchFull(label.rectTransform);
+            label.text = ScriptLoc.MapSpeaker(who);
+            label.enableWordWrapping = false;
+            label.overflowMode = TextOverflowModes.Overflow;
+            label.raycastTarget = false;
         }
 
         /// <summary>
@@ -1161,44 +1359,28 @@ namespace StreetCat.UI
             le.minHeight = size;
             le.flexibleWidth = 0f;
             le.flexibleHeight = 0f;
+            le.layoutPriority = 2;
             var hrt = host.GetComponent<RectTransform>();
-            hrt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size);
-            hrt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size);
+            hrt.anchorMin = new Vector2(0f, 1f);
+            hrt.anchorMax = new Vector2(0f, 1f);
+            hrt.pivot = new Vector2(0f, 1f);
+            hrt.sizeDelta = new Vector2(size, size);
 
             var face = CreateImage(host.transform, "Face", Color.white);
-            // Keep the head inside the circle. The old box sat above the mask and cropped the face.
             var frt = face.rectTransform;
-            frt.anchorMin = new Vector2(0.02f, -0.35f);
-            frt.anchorMax = new Vector2(0.98f, 1.02f);
+            frt.anchorMin = Vector2.zero;
+            frt.anchorMax = Vector2.one;
             frt.offsetMin = Vector2.zero;
             frt.offsetMax = Vector2.zero;
             face.preserveAspect = true;
             face.raycastTarget = false;
 
-            Sprite spr = null;
-            // Prefer the large left-column portrait already shown for the interviewee.
-            if (who != "小凌" && interviewPortraitImage != null && interviewPortraitImage.enabled
-                && interviewPortraitImage.sprite != null)
-            {
-                spr = interviewPortraitImage.sprite;
-            }
-            else
-            {
-                string key = who == "小凌"
-                    ? VnArt.ResolvePortrait("小凌", LineSpeaker.Character, null)
-                    : VnArt.ResolvePortrait(who, LineSpeaker.Character, null);
-                if (who != "小凌" && InterviewController.Instance != null)
-                {
-                    var expression = InterviewPortraitService.PickExpression(
-                        InterviewPortraitService.BuildContext(InterviewController.Instance));
-                    key = VnArt.ResolvePortrait(who, LineSpeaker.Character, expression);
-                }
-                spr = VnArt.GetPortrait(key);
-            }
+            // Fixed default portrait. Expression swaps move the head and the circle clips the chin.
+            var spr = VnArt.GetPortrait(FixedInterviewAvatarKey(who));
 
             if (spr != null)
             {
-                face.sprite = spr;
+                face.sprite = GetInterviewAvatarCrop(spr, who);
                 face.color = Color.white;
                 if (spr.texture != null && spr.texture.filterMode == FilterMode.Point)
                     spr.texture.filterMode = FilterMode.Bilinear;
@@ -1208,6 +1390,59 @@ namespace StreetCat.UI
                 face.color = new Color(0.75f, 0.72f, 0.68f, 1f);
             }
             return hostImg;
+        }
+
+        static string FixedInterviewAvatarKey(string who)
+        {
+            if (!string.IsNullOrEmpty(who) && (who.Contains("小凌") || who.Contains("Ling")))
+                return "ch_xiaoling_default";
+            if (!string.IsNullOrEmpty(who)
+                && (who.Contains("林女士") || who.Contains("Ms. Lin") || who.Contains("Ms Lin") || who == "Lin"))
+                return "ch_lin_default";
+            return "ch_dafu_default";
+        }
+
+        /// <summary>
+        /// Head window in sprite space (x, y from the bottom, width, height), 0–1.
+        /// Loose on purpose: a tight crop puts the chin on the circle edge and clips it.
+        /// </summary>
+        static Rect InterviewAvatarCrop01(string who, string spriteName)
+        {
+            var n = spriteName ?? "";
+            if (n.Contains("xiaoling")
+                || (!string.IsNullOrEmpty(who) && (who.Contains("小凌") || who.Contains("Ling"))))
+                return new Rect(0.16f, 0.40f, 0.57f, 0.38f);
+            if (n.Contains("ch_lin")
+                || (!string.IsNullOrEmpty(who)
+                    && (who.Contains("林女士") || who.Contains("Ms. Lin") || who.Contains("Ms Lin") || who == "Lin")))
+                return new Rect(0.12f, 0.50f, 0.57f, 0.38f);
+            return new Rect(0.20f, 0.38f, 0.60f, 0.40f);
+        }
+
+        Sprite GetInterviewAvatarCrop(Sprite source, string who)
+        {
+            if (source == null || source.texture == null) return source;
+            int id = source.GetInstanceID();
+            if (interviewAvatarCrops.TryGetValue(id, out var cached) && cached != null)
+                return cached;
+
+            var norm = InterviewAvatarCrop01(who, source.name);
+            var texRect = source.textureRect;
+            var raw = new Rect(
+                texRect.x + norm.x * texRect.width,
+                texRect.y + norm.y * texRect.height,
+                norm.width * texRect.width,
+                norm.height * texRect.height);
+            var tex = source.texture;
+            float x = Mathf.Clamp(raw.x, 0f, tex.width - 1f);
+            float y = Mathf.Clamp(raw.y, 0f, tex.height - 1f);
+            float w = Mathf.Clamp(raw.width, 1f, tex.width - x);
+            float h = Mathf.Clamp(raw.height, 1f, tex.height - y);
+            var crop = Sprite.Create(tex, new Rect(x, y, w, h), new Vector2(0.5f, 0.5f),
+                source.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+            crop.name = source.name + "_avatar";
+            interviewAvatarCrops[id] = crop;
+            return crop;
         }
 
         void UpdateInterviewMeters(InterviewerStats st)
@@ -1244,6 +1479,11 @@ namespace StreetCat.UI
         {
             if (fill == null) return;
             float t = Mathf.Clamp01(value0to100 / 100f);
+            if (fill.type == Image.Type.Filled)
+            {
+                fill.fillAmount = t;
+                return;
+            }
             var rt = fill.rectTransform;
             rt.anchorMin = Vector2.zero;
             rt.anchorMax = new Vector2(t, 1f);
@@ -1299,6 +1539,8 @@ namespace StreetCat.UI
                 return;
             }
 
+            // Expression portraits, not the fixed profile headshot. The polaroid
+            // used to swap with the interview mood; the profile photo froze it.
             var sprite = VnArt.GetPortrait(portraitKey);
             if (sprite == null)
             {
@@ -1328,7 +1570,10 @@ namespace StreetCat.UI
         {
             mode = Mode.Interview;
             if (GameState.Instance != null)
+            {
                 GameState.Instance.Data.uiMode = subject == InterviewSubject.Lin ? "interview_lin" : "interview_dafu";
+                GameState.Instance.Data.reinterviewReturnToWriting = returnToWritingAfter;
+            }
             SetAdvanceEnabled(false);
             SaveSystem.Autosave();
             InterviewController.Instance.Begin(subject, returnToWritingAfter);
@@ -1361,12 +1606,8 @@ namespace StreetCat.UI
 
             ClearButtons();
             RefreshInterviewView();
-            if (LlmClient.Instance == null || !LlmClient.Instance.IsConfigured)
-            {
-                ShowInterviewBanner(GameSettings.IsEnglish
-                    ? "AI is off — no API key, so replies stay on the rule script. Menu: StreetCat/LLM/Paste API Key."
-                    : "未接入 AI（没有 API Key），现在是规则台词。菜单：StreetCat/LLM/Paste API Key。");
-            }
+            // The missing-key note is a developer hint. The reference sheet has no banner
+            // across the blank page, so it stays off the paper.
         }
 
         void HideInterviewBanner()
@@ -1376,6 +1617,8 @@ namespace StreetCat.UI
                 interviewBannerText.text = "";
                 interviewBannerText.gameObject.SetActive(false);
             }
+            if (interviewBannerCard != null)
+                interviewBannerCard.gameObject.SetActive(false);
             SetInterviewLogBottom(0.135f);
         }
 
@@ -1384,8 +1627,13 @@ namespace StreetCat.UI
             if (interviewBannerText == null) return;
             interviewBannerText.gameObject.SetActive(true);
             interviewBannerText.text = msg;
+            interviewBannerText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            interviewBannerText.color = new Color(0.33f, 0.20f, 0.14f, 1f);
+            interviewBannerText.lineSpacing = 6f;
             ApplyLetterSpacing(interviewBannerText, 0f);
-            SetInterviewLogBottom(0.225f);
+            if (interviewBannerCard != null)
+                interviewBannerCard.gameObject.SetActive(true);
+            SetInterviewLogBottom(0.50f);
         }
 
         void SetInterviewLogBottom(float minY)
@@ -1507,43 +1755,38 @@ namespace StreetCat.UI
                 typeof(LayoutElement));
             go.transform.SetParent(interviewHintRoot, false);
             var img = go.GetComponent<Image>();
-            var idle = LoadArtPackSprite("自由采访/笔记框（未选中）");
-            var hover = LoadArtPackSprite("自由采访/笔记框（选中）") ?? idle;
-            if (idle != null)
+            var card = FreeInterviewArt.QuestionCard;
+            if (card != null)
             {
-                img.sprite = idle;
+                img.sprite = card;
                 img.type = Image.Type.Simple;
-                img.preserveAspect = false;
+                img.preserveAspect = true;
                 img.color = Color.white;
             }
             else
-                img.color = IvChipFill;
+            {
+                img.sprite = null;
+                img.color = new Color(0.98f, 0.95f, 0.90f, 0.98f);
+            }
             img.raycastTarget = true;
             var btn = go.GetComponent<Button>();
-            if (idle != null && hover != null)
-            {
-                btn.transition = Selectable.Transition.SpriteSwap;
-                btn.spriteState = new SpriteState
-                {
-                    highlightedSprite = hover,
-                    pressedSprite = hover,
-                    selectedSprite = hover,
-                    disabledSprite = idle
-                };
-            }
+            var pressed = new Color(0.94f, 0.88f, 0.78f, 1f);
+            btn.transition = Selectable.Transition.ColorTint;
+            btn.targetGraphic = img;
+            var colors = btn.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(1f, 0.98f, 0.94f, 1f);
+            colors.pressedColor = pressed;
+            colors.selectedColor = colors.highlightedColor;
+            colors.fadeDuration = 0.08f;
+            btn.colors = colors;
             var le = go.GetComponent<LayoutElement>();
-            le.minHeight = 92f;
-            le.preferredHeight = 100f;
+            le.minHeight = 112f;
+            le.preferredHeight = 118f;
             le.flexibleWidth = 1f;
             le.flexibleHeight = 0f;
-
-            if (idle != null)
-            {
-                var cover = CreateImage(go.transform, "Cover", new Color(0.94f, 0.87f, 0.74f, 1f));
-                Stretch(cover.rectTransform, new Vector2(0.07f, 0.16f), new Vector2(0.93f, 0.84f),
-                    Vector2.zero, Vector2.zero);
-                cover.raycastTarget = false;
-            }
+            le.flexibleWidth = 1f;
+            le.flexibleHeight = 0f;
 
             string fill = question;
             btn.onClick.AddListener(() =>
@@ -1558,10 +1801,13 @@ namespace StreetCat.UI
                 new Vector2(18f, 14f), new Vector2(-16f, -12f));
             var tx = tgo.AddComponent<TextMeshProUGUI>();
             tx.font = font;
-            tx.fontSize = 20f;
+            tx.fontSize = Mathf.RoundToInt(20f * GameSettings.FontSizeScale);
+            VnText.ApplyFontWeight(tx, GameSettings.FontWeight);
             tx.alignment = VnText.ToAlignment(TextAnchor.MiddleLeft);
-            tx.color = new Color(0.28f, 0.16f, 0.10f, 1f);
-            tx.text = (colorIdx + 1) + "  " + question;
+            tx.color = FreeInterviewArt.Ink;
+            // The blank question card has no number disc. The index stays unused.
+            tx.text = question;
+            _ = colorIdx;
             tx.raycastTarget = false;
             tx.enableWordWrapping = true;
             tx.overflowMode = TextOverflowModes.Truncate;
@@ -1595,17 +1841,18 @@ namespace StreetCat.UI
                 ShowInterviewBanner(msg);
 
                 ClearInterviewChromeButtons();
+                var confirmHost = EnsureEndConfirmHost();
                 AddInterviewAction(UiLoc.T("ui.interview.continue", "继续采访"), () =>
                 {
                     HideInterviewBanner();
                     RefreshInterviewView();
-                }, fullWidth: true);
+                }, fullWidth: true, host: confirmHost);
                 AddInterviewAction(UiLoc.T("ui.interview.confirm_end", "确认结束"), () =>
                 {
                     HideInterviewBanner();
                     SetInterviewChrome(false);
                     InterviewController.Instance.End(true);
-                }, primary: true);
+                }, primary: true, host: confirmHost);
                 return;
             }
             HideInterviewBanner();
@@ -1642,7 +1889,8 @@ namespace StreetCat.UI
             if (interviewBannerText != null)
             {
                 interviewBannerText.font = font;
-                interviewBannerText.fontSize = Mathf.RoundToInt(13f * scale);
+                interviewBannerText.fontSize = Mathf.RoundToInt(18f * scale);
+                interviewBannerText.color = new Color(0.33f, 0.20f, 0.14f, 1f);
             }
             if (interviewSubjectText != null)
             {
@@ -1669,18 +1917,19 @@ namespace StreetCat.UI
             if (interviewInput != null)
             {
                 interviewInput.fontAsset = font;
-                interviewInput.pointSize = Mathf.RoundToInt(17f * scale);
+                interviewInput.pointSize = Mathf.RoundToInt(22f * scale);
                 if (interviewInput.textComponent != null)
                 {
                     interviewInput.textComponent.font = font;
-                    interviewInput.textComponent.fontSize = Mathf.RoundToInt(17f * scale);
+                    interviewInput.textComponent.fontSize = Mathf.RoundToInt(22f * scale);
                     interviewInput.textComponent.color = IvInk;
+                    VnText.ApplyFontWeight(interviewInput.textComponent, GameSettings.FontWeight);
                     ApplyLetterSpacing(interviewInput.textComponent, 0f);
                 }
                 if (interviewInput.placeholder is TextMeshProUGUI ph)
                 {
                     ph.font = font;
-                    ph.fontSize = Mathf.RoundToInt(16f * scale);
+                    ph.fontSize = Mathf.RoundToInt(20f * scale);
                     ph.color = new Color(0.28f, 0.24f, 0.20f, 0.78f);
                     ApplyLetterSpacing(ph, 0f);
                 }
@@ -1691,20 +1940,27 @@ namespace StreetCat.UI
         {
             if (tx == null) return;
             tx.font = font;
-            tx.fontSize = Mathf.RoundToInt(13f * scale);
-            tx.color = IvInk;
-            tx.fontStyle = FontStyles.Bold;
+            tx.fontSize = Mathf.RoundToInt(20f * scale);
+            tx.color = new Color(0.28f, 0.19f, 0.13f, 1f);
+            tx.extraPadding = true;
+            tx.fontStyle = FontStyles.Normal;
+            VnText.ApplyFontWeight(tx, GameSettings.FontWeight);
+            ApplyLetterSpacing(tx, 0f);
             tx.enableWordWrapping = false;
             tx.overflowMode = TextOverflowModes.Overflow;
+            tx.alignment = VnText.ToAlignment(TextAnchor.LowerLeft);
         }
 
         void ApplyMeterValueFont(TextMeshProUGUI tx, float scale)
         {
             if (tx == null) return;
             tx.font = font;
-            tx.fontSize = Mathf.RoundToInt(13f * scale);
-            tx.fontStyle = FontStyles.Bold;
-            tx.color = new Color(0.12f, 0.10f, 0.08f, 1f);
+            tx.fontSize = Mathf.RoundToInt(20f * scale);
+            tx.extraPadding = true;
+            tx.fontStyle = FontStyles.Normal;
+            tx.color = new Color(0.22f, 0.16f, 0.12f, 1f);
+            VnText.ApplyFontWeight(tx, GameSettings.FontWeight);
+            tx.alignment = VnText.ToAlignment(TextAnchor.MiddleRight);
             tx.enableWordWrapping = false;
             tx.overflowMode = TextOverflowModes.Overflow;
         }
