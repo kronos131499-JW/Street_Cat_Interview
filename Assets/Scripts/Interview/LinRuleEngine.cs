@@ -7,6 +7,8 @@ namespace StreetCat.Interview
     {
         public override InterviewSubject Subject => InterviewSubject.Lin;
         string lastTopic = "intro";
+        bool warnedAttention30;
+        bool warnedAttention15;
 
         /// <summary>Canon numbers for LLM hard gates (must stay aligned with BuildReply).</summary>
         public const int HomeCatCount = 4;
@@ -29,8 +31,8 @@ namespace StreetCat.Interview
             // Aftercare questions also say 「放归」; that word must not steal them.
             if (ContainsAny(input, "照看", "换水", "添粮", "猫屋", "继续照顾"))
                 return "community";
-            if (ContainsAny(input, "为什么不养", "不收养", "带回家", "放归", "送回",
-                    "家里几只", "几只猫", "家里有猫", "四只", "第五只", "养猫", "家里猫", "为什么放"))
+            if (ContainsAny(input, "为什么不养", "不收养", "收养", "没养", "不养", "养它", "带回家", "放归", "送回",
+                    "家里几只", "几只猫", "家里有猫", "四只", "第五只", "养猫", "家里猫", "为什么放", "康复后"))
                 return "release";
             if (ContainsAny(input, "犹豫", "放弃", "救不活"))
                 return "hesitate";
@@ -47,12 +49,13 @@ namespace StreetCat.Interview
             if (ContainsAny(input, "四天", "四个晚", "投喂", "罐头", "喂", "送吃的", "连续几天",
                     "喂养", "为什么喂", "喂了几天", "怎么喂", "连续喂"))
                 return "feeding";
-            if (ContainsAny(input, "发现", "第一次", "怎么遇到", "垃圾桶", "开始", "怎么认识"))
+            if (ContainsAny(input, "发现", "第一次", "怎么遇到", "垃圾桶", "开始", "怎么认识",
+                    "注意到", "留意", "怎么发现", "如何发现"))
                 return "discovery";
             // 「然后/后来/接着」 alone count as follow-up (not only 「然后呢」).
             if (ContainsAny(input, "后来呢", "然后呢", "继续", "然后", "后来", "接着", "再然后", "之后呢"))
                 return "followup";
-            if (ContainsAny(input, "故意", "谁勒的", "谁干的"))
+            if (ContainsAny(input, "故意", "谁勒的", "谁干的", "怎么套", "怎么来的", "谁弄的", "无法确认"))
                 return "cause_unknown";
             if (ContainsAny(input, "社区", "保安", "投喂点", "狸花", "现在", "门口"))
                 return "community";
@@ -73,8 +76,9 @@ namespace StreetCat.Interview
                 return "oob";
             if (ContainsAny(input, "abandoned him", "threw him", "irresponsible"))
                 return "release_accuse";
-            if (ContainsAny(input, "not adopt", "wasn't adopted", "why wasn't", "send him back", "send back",
-                    "other cats", "cats at home", "fifth cat", "bring him home"))
+            if (ContainsAny(input, "not adopt", "wasn't adopted", "why wasn't", "didn't adopt", "keep him",
+                    "send him back", "send back", "other cats", "cats at home", "fifth cat", "bring him home",
+                    "after he recovered"))
                 return "release";
             if (ContainsAny(input, "hesitat", "give up", "couldn't save"))
                 return "hesitate";
@@ -88,11 +92,11 @@ namespace StreetCat.Interview
                 return "hospital";
             if (ContainsAny(input, "several days", "bring food", "feeding", "fed him", "why feed", "cans"))
                 return "feeding";
-            if (ContainsAny(input, "first notice", "first time", "how did you first", "dumpster"))
+            if (ContainsAny(input, "first notice", "first time", "how did you first", "dumpster", "notice him", "noticed"))
                 return "discovery";
             if (ContainsAny(input, "and then", "what next", "what happened next", "go on"))
                 return "followup";
-            if (ContainsAny(input, "who tied", "who did that", "on purpose"))
+            if (ContainsAny(input, "who tied", "who did that", "on purpose", "how did the rope", "can't be sure"))
                 return "cause_unknown";
             if (ContainsAny(input, "community", "guard", "tabby", "looking after", "after the return"))
                 return "community";
@@ -229,7 +233,11 @@ namespace StreetCat.Interview
 
                 case "cause_unknown":
                     return R("cause_unknown",
-                        new[] { "这个不能确定。", "没有人看见绳子是怎么到它脖子上的。" },
+                        new[]
+                        {
+                            "这个不能确定。",
+                            "我也不知道绳子是怎么到它脖子上的。当时只能看出它伤得很重，没有人看见。"
+                        },
                         null,
                         new[] { IntelIds.CauseUnknown });
 
@@ -313,6 +321,68 @@ namespace StreetCat.Interview
             if (intel != null)
                 r.unlockedIntel.AddRange(intel);
             return r;
+        }
+
+        protected override InterviewReply PostProcessReply(InterviewReply reply)
+        {
+            if (reply == null) return reply;
+
+            if (!IsSensitive(reply.intent))
+                stats.stress = System.Math.Max(10, stats.stress - 6);
+
+            if (stats.trust <= 0)
+            {
+                reply.replyLines = new List<string>
+                {
+                    "我觉得你已经有自己的结论了。",
+                    "今天就先到这里吧。"
+                };
+                reply.behavior = "林女士把纸杯往旁边推了推。";
+                reply.shouldEnd = true;
+                reply.unlockedIntel.Clear();
+                return reply;
+            }
+
+            if (stats.stress >= 70 && IsSensitive(reply.intent))
+            {
+                reply.replyLines = new List<string> { "这段我现在不太想再往下说了。" };
+                reply.behavior = "林女士停了一会儿，没有再往下说。";
+                reply.systemHint = "林女士似乎不愿继续回忆这部分内容，可以先换一个话题。";
+                reply.unlockedIntel.Clear();
+                return reply;
+            }
+
+            if (stats.attention <= 0)
+            {
+                reply.replyLines = new List<string> { "今天先到这里吧。之后还有需要确认的，可以再联系我。" };
+                reply.behavior = "林女士看了一眼时间。";
+                reply.shouldEnd = true;
+                return reply;
+            }
+
+            if (stats.attention < 15 && !warnedAttention15)
+            {
+                warnedAttention15 = true;
+                reply.replyLines.Add("我等会儿还有点事。");
+                reply.replyLines.Add("你再问一两个吧。");
+                reply.systemHint = (reply.systemHint ?? "") + " 剩余提问机会有限。";
+            }
+            else if (stats.attention < 30 && !warnedAttention30)
+            {
+                warnedAttention30 = true;
+                reply.behavior = string.IsNullOrEmpty(reply.behavior) ? "林女士看了一眼时间。" : reply.behavior;
+                reply.replyLines.Add("还有很多问题吗？");
+                reply.systemHint = (reply.systemHint ?? "") + " 林女士的注意力正在下降，建议优先确认关键信息。";
+            }
+
+            return reply;
+        }
+
+        static bool IsSensitive(string intent)
+        {
+            return intent == "cost" || intent == "hesitate" || intent == "release"
+                   || intent == "release_accuse" || intent == "privacy"
+                   || intent == "injury" || intent == "hospital";
         }
 
         protected override List<string> GetRepeatLines(string intent)

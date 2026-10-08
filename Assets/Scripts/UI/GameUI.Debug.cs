@@ -29,7 +29,6 @@ namespace StreetCat.UI
                 VnTheme.Accent, Vector2.zero, Vector2.zero);
             Stretch(title.GetComponent<RectTransform>(),
                 new Vector2(0.04f, 0.92f), new Vector2(0.96f, 0.99f), Vector2.zero, Vector2.zero);
-            title.text = "测试跳转 (F9)";
             title.fontStyle = FontStyles.Bold;
             title.raycastTarget = false;
 
@@ -37,7 +36,6 @@ namespace StreetCat.UI
                 VnTheme.TextMuted, Vector2.zero, Vector2.zero);
             Stretch(hint.GetComponent<RectTransform>(),
                 new Vector2(0.04f, 0.86f), new Vector2(0.96f, 0.92f), Vector2.zero, Vector2.zero);
-            hint.text = "会重置当前进度并补齐前置旗标";
             hint.raycastTarget = false;
 
             var scrollGo = new GameObject("Scroll", typeof(RectTransform), typeof(ScrollRect), typeof(Image));
@@ -80,7 +78,6 @@ namespace StreetCat.UI
             foreach (var target in ChapterFlowController.DebugJumpTargets)
             {
                 var jumpId = target.Id;
-                var label = target.Label;
                 var row = new GameObject("Jump_" + jumpId, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
                 row.transform.SetParent(list.transform, false);
                 row.GetComponent<Image>().color = new Color(0.14f, 0.16f, 0.2f, 0.95f);
@@ -95,11 +92,32 @@ namespace StreetCat.UI
                 var tx = CreateUiText(row.transform, "T", 14, TextAnchor.MiddleLeft,
                     VnTheme.TextPrimary, Vector2.zero, Vector2.zero);
                 StretchFull(tx.GetComponent<RectTransform>());
-                tx.text = "  " + label;
                 tx.raycastTarget = false;
             }
 
+            RefreshDebugJumpPanelText();
             debugJumpRoot.SetActive(false);
+        }
+
+        /// <summary>The panel is built once; re-label on open so the tool-language switch takes effect.</summary>
+        void RefreshDebugJumpPanelText()
+        {
+            if (debugJumpRoot == null) return;
+            var root = debugJumpRoot.transform;
+            var title = root.Find("Title")?.GetComponent<TextMeshProUGUI>();
+            if (title != null) title.text = ToolLang.T("测试跳转 (F9)", "Test Jump (F9)");
+            var hint = root.Find("Hint")?.GetComponent<TextMeshProUGUI>();
+            if (hint != null)
+                hint.text = ToolLang.T("会重置当前进度并补齐前置旗标",
+                    "Resets current progress and sets the required prerequisite flags");
+
+            var list = root.Find("Scroll/Viewport/List");
+            if (list == null) return;
+            foreach (var target in ChapterFlowController.DebugJumpTargets)
+            {
+                var tx = list.Find("Jump_" + target.Id + "/T")?.GetComponent<TextMeshProUGUI>();
+                if (tx != null) tx.text = "  " + target.Label;
+            }
         }
 
         void EnsureDebugJumpPanel()
@@ -120,7 +138,10 @@ namespace StreetCat.UI
             if (debugJumpRoot == null) return;
             debugJumpRoot.SetActive(on);
             if (on)
+            {
+                RefreshDebugJumpPanelText();
                 debugJumpRoot.transform.SetAsLastSibling();
+            }
         }
 
         /// <returns>True if Escape was consumed by the debug panel.</returns>

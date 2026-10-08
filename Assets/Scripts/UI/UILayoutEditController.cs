@@ -51,11 +51,11 @@ namespace StreetCat.UI
         public bool CanRestoreLastDeleted => !string.IsNullOrEmpty(_lastDeletedPath);
         public bool CanUndoStep => _undoSteps.Count > 0;
         public int UndoStepCount => _undoSteps.Count;
-        public string LastDeletedDisplayName => string.IsNullOrEmpty(_lastDeletedPath) ? "无" : _lastDeletedPath;
+        public string LastDeletedDisplayName => string.IsNullOrEmpty(_lastDeletedPath) ? ToolLang.T("无", "None") : _lastDeletedPath;
         public bool SelectionControlledByLayout => IsControlledByLayout(_selected);
         public string SelectedDisplayName => _selected != null
             ? UILayoutOverrides.GetPath(_targetCanvas, _selected)
-            : "未选择 / None";
+            : ToolLang.T("未选择", "None");
         public string StatusLine => !string.IsNullOrEmpty(_statusLine)
             ? _statusLine
             : UILayoutOverrides.LastOperationMessage;
@@ -115,8 +115,9 @@ namespace StreetCat.UI
             {
                 UILayoutEditMode.LockSelection = !UILayoutEditMode.LockSelection;
                 SetStatus(true, UILayoutEditMode.LockSelection
-                    ? "已锁定当前组件 — 可以拖动它，点别的不会切换"
-                    : "已解锁 — 点哪个就改哪个");
+                    ? ToolLang.T("已锁定当前组件 — 可以拖动它，点别的不会切换",
+                        "Locked — you can drag this component; clicks elsewhere won't switch")
+                    : ToolLang.T("已解锁 — 点哪个就改哪个", "Unlocked — click any component to edit it"));
             }
 
             if (Time.unscaledTime >= _nextRefresh)
@@ -255,7 +256,8 @@ namespace StreetCat.UI
                 if (ContainsScreenPoint(_selected, eventData.position))
                     BeginDragOnSelected(eventData);
                 else
-                    SetStatus(true, "已锁定当前组件 — 只能改它。按 L 解锁后再选别的。");
+                    SetStatus(true, ToolLang.T("已锁定当前组件 — 只能改它。按 L 解锁后再选别的。",
+                        "Locked to the current component. Press L to unlock before picking another."));
                 return;
             }
 
@@ -273,7 +275,7 @@ namespace StreetCat.UI
             if (picked == null)
             {
                 if (UILayoutEditMode.TextFocus)
-                    SetStatus(false, "这里没有可编辑的文字");
+                    SetStatus(false, ToolLang.T("这里没有可编辑的文字", "No editable text here"));
                 return;
             }
             picked = ResolveEditableTarget(picked, !UILayoutEditMode.TextFocus);
@@ -295,7 +297,8 @@ namespace StreetCat.UI
             if (newlySelected)
             {
                 UILayoutEditMode.LockSelection = true;
-                SetStatus(true, "已锁定当前组件 — 可以拖动它，点别的不会切换。按 L 解锁后再选别的。");
+                SetStatus(true, ToolLang.T("已锁定当前组件 — 可以拖动它，点别的不会切换。按 L 解锁后再选别的。",
+                    "Locked — drag this component freely; clicks elsewhere won't switch. Press L to unlock."));
             }
             BeginDragOnSelected(eventData);
         }
@@ -543,7 +546,7 @@ namespace StreetCat.UI
         {
             if (_selected == null || _targetCanvas == null || SelectedText == null)
             {
-                SetStatus(false, "文本样式失败 — 先点选一个文字");
+                SetStatus(false, ToolLang.T("文本样式失败 — 先点选一个文字", "Text style failed — select a text first"));
                 return false;
             }
             RememberUndoPoint(_selected);
@@ -571,7 +574,7 @@ namespace StreetCat.UI
         {
             if (_selected == null || _targetCanvas == null)
             {
-                SetStatus(false, "保存失败 — 无选中 / Save failed — nothing selected");
+                SetStatus(false, ToolLang.T("保存失败 — 无选中", "Save failed — nothing selected"));
                 return false;
             }
             var ok = UILayoutOverrides.Save(_targetCanvas, _selected, captureFontSize);
@@ -587,7 +590,7 @@ namespace StreetCat.UI
         {
             if (_undoSteps.Count == 0)
             {
-                SetStatus(false, "没有可回退的上一步");
+                SetStatus(false, ToolLang.T("没有可回退的上一步", "Nothing to undo"));
                 return;
             }
             var step = _undoSteps[_undoSteps.Count - 1];
@@ -595,11 +598,11 @@ namespace StreetCat.UI
             _pendingUndo = null;
             if (step == null || step.before == null || !UILayoutOverrides.ApplyUndoSnapshot(step.hadSavedEntry, step.before))
             {
-                SetStatus(false, "回退失败");
+                SetStatus(false, ToolLang.T("回退失败", "Undo failed"));
                 return;
             }
             ApplyUndoToLive(step.before);
-            SetStatus(true, "已回退上一步 / " + step.before.path);
+            SetStatus(true, ToolLang.T("已回退上一步 / ", "Undid last step / ") + step.before.path);
         }
 
         void RememberUndoPoint(RectTransform target)
@@ -700,7 +703,7 @@ namespace StreetCat.UI
         {
             if (_selected == null || _targetCanvas == null)
             {
-                SetStatus(false, "还原失败 — 无选中");
+                SetStatus(false, ToolLang.T("还原失败 — 无选中", "Revert failed — nothing selected"));
                 return false;
             }
             var path = UILayoutOverrides.GetPath(_targetCanvas, _selected);
@@ -708,12 +711,12 @@ namespace StreetCat.UI
             var entry = data != null ? data.Find(path) : null;
             if (entry == null || entry.deleted)
             {
-                SetStatus(false, "还原失败 — 无已保存条目 / no saved override");
+                SetStatus(false, ToolLang.T("还原失败 — 无已保存条目", "Revert failed — no saved override"));
                 return false;
             }
             UILayoutOverrides.Apply(_selected, entry);
             _dirty = false;
-            SetStatus(true, "已还原到已保存布局 / reverted " + path);
+            SetStatus(true, ToolLang.T("已还原到已保存布局 / ", "Reverted to saved layout / ") + path);
             return true;
         }
 
@@ -721,7 +724,7 @@ namespace StreetCat.UI
         {
             if (_selected == null || _targetCanvas == null)
             {
-                SetStatus(false, "删除布局失败 — 无选中");
+                SetStatus(false, ToolLang.T("删除布局失败 — 无选中", "Remove override failed — nothing selected"));
                 return;
             }
             _pendingUndo = null;
@@ -739,10 +742,12 @@ namespace StreetCat.UI
             if (_selected == null || _targetCanvas == null) return;
             var path = UILayoutOverrides.GetPath(_targetCanvas, _selected);
             var confirmed = UnityEditor.EditorUtility.DisplayDialog(
-                "删除 UI 组件",
-                "确定隐藏并持久删除「" + _selected.name + "」吗？\n\n" +
-                path + "\n\n可以通过布局工具的恢复按钮撤销。",
-                "删除", "取消");
+                ToolLang.T("删除 UI 组件", "Delete UI component"),
+                ToolLang.T("确定隐藏并持久删除「" + _selected.name + "」吗？\n\n" +
+                           path + "\n\n可以通过布局工具的恢复按钮撤销。",
+                           "Hide and permanently delete \"" + _selected.name + "\"?\n\n" +
+                           path + "\n\nYou can undo this with the layout tool's Restore button."),
+                ToolLang.T("删除", "Delete"), ToolLang.T("取消", "Cancel"));
             if (!confirmed) return;
 
             var target = _selected;
@@ -810,7 +815,7 @@ namespace StreetCat.UI
             }
             if (UILayoutOverrides.RestoreAllDeleted() <= 0)
             {
-                SetStatus(false, "没有可恢复的已删除组件");
+                SetStatus(false, ToolLang.T("没有可恢复的已删除组件", "No deleted components to restore"));
                 return;
             }
             _lastDeletedPath = null;
@@ -1071,7 +1076,7 @@ namespace StreetCat.UI
                 DrawHandle(rect.xMin, rect.yMax, locked);
                 DrawHandle(rect.xMax, rect.yMax, locked);
                 var labelColor = locked ? new Color(1f, 0.7f, 0.25f) : Color.cyan;
-                var label = (locked ? "[锁定 LOCK] " : "") + (_dirty ? "* " : "") + _selected.name;
+                var label = (locked ? ToolLang.T("[锁定] ", "[LOCKED] ") : "") + (_dirty ? "* " : "") + _selected.name;
                 GUI.Label(new Rect(rect.x + 3f, rect.y + 2f, Mathf.Max(140f, rect.width), 22f),
                     label, new GUIStyle(GUI.skin.label) { normal = { textColor = labelColor } });
             }
@@ -1086,18 +1091,22 @@ namespace StreetCat.UI
                 var textMode = UILayoutEditMode.TextFocus;
                 var panel = new Rect(12f, 12f, 380f, 118f + extra);
                 GUI.Box(panel, textMode
-                    ? "文本样式 (F7 隐藏)"
-                    : (locked ? "通用 UI 布局 · 已锁定 (F7 隐藏)" : "通用 UI 布局 (F7 隐藏)"));
+                    ? ToolLang.T("文本样式 (F7 隐藏)", "Text Style (F7 to hide)")
+                    : (locked
+                        ? ToolLang.T("通用 UI 布局 · 已锁定 (F7 隐藏)", "UI Layout · Locked (F7 to hide)")
+                        : ToolLang.T("通用 UI 布局 (F7 隐藏)", "UI Layout (F7 to hide)")));
                 GUI.Label(new Rect(22f, 36f, 360f, 20f), textMode
-                    ? "点击文字 · 在「文本样式」窗口里改字体和字号"
-                    : "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
+                    ? ToolLang.T("点击文字 · 在「文本样式」窗口里改字体和字号", "Click a text · edit font & size in the Text Style window")
+                    : ToolLang.T("点击选择 · 拖动移动 · 四角缩放 · Alt 选父级", "Click to select · drag to move · corners resize · Alt = parent"));
                 GUI.Label(new Rect(22f, 54f, 360f, 20f), textMode
-                    ? "改完立刻保存 · 未单独设置的文字仍跟随全局字体"
-                    : "锁定后只改当前这个 · 按 L 解除后再选别的 · Delete 删除");
+                    ? ToolLang.T("改完立刻保存 · 未单独设置的文字仍跟随全局字体", "Saves instantly · unstyled text follows the global font")
+                    : ToolLang.T("锁定后只改当前这个 · 按 L 解除后再选别的 · Delete 删除", "Locked = edit only this one · L to unlock · Delete removes"));
 
                 var y = 76f;
                 var lockNext = GUI.Toggle(new Rect(22f, y, 360f, 20f), locked,
-                    locked ? "已锁定当前组件 (可以拖它，点别的不会切换)" : "未锁定 (点哪个就改哪个)");
+                    locked
+                        ? ToolLang.T("已锁定当前组件 (可以拖它，点别的不会切换)", "Locked (drag it; clicks elsewhere won't switch)")
+                        : ToolLang.T("未锁定 (点哪个就改哪个)", "Unlocked (click any component to edit it)"));
                 if (lockNext != locked)
                     UILayoutEditMode.LockSelection = lockNext;
                 y += 22f;
@@ -1105,13 +1114,14 @@ namespace StreetCat.UI
                 if (_selected != null)
                 {
                     var dirtyMark = _dirty ? " *" : "";
-                    GUI.Label(new Rect(22f, y, 360f, 20f), "当前：" + _selected.name + dirtyMark);
+                    GUI.Label(new Rect(22f, y, 360f, 20f), ToolLang.T("当前：", "Selected: ") + _selected.name + dirtyMark);
                     y += 22f;
                     if (SelectionControlledByLayout)
                     {
                         var warning = new GUIStyle(GUI.skin.label);
                         warning.normal.textColor = new Color(1f, 0.72f, 0.2f);
-                        GUI.Label(new Rect(22f, y, 360f, 20f), "父级 LayoutGroup 会接管位置，请 Alt+点击选择父级", warning);
+                        GUI.Label(new Rect(22f, y, 360f, 20f), ToolLang.T("父级 LayoutGroup 会接管位置，请 Alt+点击选择父级",
+                            "Parent LayoutGroup controls this position — Alt+click to select the parent"), warning);
                         y += 22f;
                     }
                 }

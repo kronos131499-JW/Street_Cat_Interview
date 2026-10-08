@@ -712,10 +712,11 @@ namespace StreetCat.UI
                 typeof(LayoutElement));
             go.transform.SetParent(interviewActionRoot, false);
             var le = go.GetComponent<LayoutElement>();
+            // Fills the rest of the sheet so the strips can sit low, under the END INTERVIEW tape.
             le.flexibleWidth = 1f;
             le.minHeight = 226f;
             le.preferredHeight = 232f;
-            le.flexibleHeight = 0f;
+            le.flexibleHeight = 1f;
             var vlg = go.GetComponent<VerticalLayoutGroup>();
             vlg.spacing = 5f;
             vlg.childAlignment = TextAnchor.UpperCenter;
@@ -866,8 +867,7 @@ namespace StreetCat.UI
 
             var reply = ic.Ask(q, deferSpeakerLines: llmReady);
 
-            bool skipLlm = reply != null
-                           && string.Equals(reply.intent, "hostile", StringComparison.Ordinal);
+            bool skipLlm = reply != null && InterviewRuleEngine.IsLlmUnsafeIntent(reply.intent);
 
             if (llmReady && reply != null
                 && !skipLlm
@@ -969,6 +969,8 @@ namespace StreetCat.UI
             }
 
             var aiLines = string.IsNullOrWhiteSpace(rephrased) ? null : SplitLlmReplyLines(rephrased);
+            if (!HasSpokenLines(aiLines))
+                aiLines = null;
             string outcome;
             string detail = null;
             if (aiLines != null && !ic.AcceptRephrasedLines(aiLines, reply, out var reject))
@@ -1002,12 +1004,29 @@ namespace StreetCat.UI
                 outcome: outcome,
                 detail: detail);
 
-            if (aiLines != null && aiLines.Count > 0)
+            if (HasSpokenLines(aiLines))
                 aiLines = ic.EnforceDafuFoodQuota(aiLines, reply, question);
             else
+            {
+                aiLines = null;
+                if (reply.scriptLines != null && reply.scriptLines.Count > 0
+                    && LooksLikeStaleRepeatRule(ruleLines))
+                    ruleLines = new List<string>(reply.scriptLines);
                 ruleLines = ic.EnforceDafuFoodQuota(ruleLines, reply, question);
+            }
 
             FinishInterviewReply(ic, reply, who, ruleLines, aiLines);
+        }
+
+        static bool HasSpokenLines(IList<string> lines)
+        {
+            if (lines == null) return false;
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(lines[i]))
+                    return true;
+            }
+            return false;
         }
 
         static bool LooksLikeStaleRepeatRule(IList<string> ruleLines)
@@ -1028,7 +1047,7 @@ namespace StreetCat.UI
             List<string> aiLines)
         {
             ic?.SetTranslatingPlaceholder(false);
-            var lines = (aiLines != null && aiLines.Count > 0) ? aiLines : ruleLines;
+            var lines = HasSpokenLines(aiLines) ? aiLines : ruleLines;
             if (reply != null)
                 reply.replyLines = lines != null ? new List<string>(lines) : new List<string>();
             ic?.AppendSpeakerReply(reply, lines);

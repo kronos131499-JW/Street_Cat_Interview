@@ -20,10 +20,8 @@ namespace StreetCat.UI
             host.AddComponent<UILayoutOverrideRuntime>();
         }
 
-        static bool _scanRequested = true;
-
-        /// <summary>Scan on the next LateUpdate. Call after building a screen.</summary>
-        public static void RequestScan() => _scanRequested = true;
+        /// <summary>No-op: LateUpdate already scans every frame. Kept for existing callers.</summary>
+        public static void RequestScan() { }
 
         void LateUpdate()
         {
@@ -32,13 +30,11 @@ namespace StreetCat.UI
             {
                 _seenRevision = UILayoutOverrides.Revision;
                 _applied.Clear();
-                _scanRequested = true;
             }
 
             // New widgets used to sit at the code size for up to 1.5s, then snap
             // to the saved layout. Apply them the frame they appear. Already-settled
             // objects stay in _applied so this does not restamp them every frame.
-            _scanRequested = false;
             var data = UILayoutOverrides.Asset;
             if (data == null || data.entries == null || data.entries.Count == 0) return;
             var canvases = FindObjectsOfType<Canvas>();

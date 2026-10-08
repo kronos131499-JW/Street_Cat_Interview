@@ -155,14 +155,15 @@ namespace StreetCat.UI
             float h = Mathf.Min(maxH, 720f);
             var outer = new Rect(12f, 12f, w, h);
             _portraitEditPanelScreenRect = outer;
-            GUI.Box(outer, "立绘布局 (F10 隐藏)");
+            GUI.Box(outer, ToolLang.T("立绘布局 (F10 隐藏)", "Portrait Layout (F10 to hide)"));
 
             var inner = new Rect(outer.x + 8f, outer.y + 22f, outer.width - 16f, outer.height - 30f);
             _portraitEditScroll = GUI.BeginScrollView(inner, _portraitEditScroll,
                 new Rect(0f, 0f, inner.width - 22f, 680f));
 
             GUILayout.BeginArea(new Rect(0f, 0f, inner.width - 24f, 680f));
-            GUILayout.Label("Game 视图：拖青色框移动/缩放", new GUIStyle(GUI.skin.label) { wordWrap = true });
+            GUILayout.Label(ToolLang.T("Game 视图：拖青色框移动/缩放", "Game view: drag the cyan box to move / resize"),
+                new GUIStyle(GUI.skin.label) { wordWrap = true });
 
             var d = PortraitLayout.EnsureAsset();
             if (d == null)
@@ -177,9 +178,9 @@ namespace StreetCat.UI
 
             GUILayout.Space(6);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("保存"))
+            if (GUILayout.Button(ToolLang.T("保存", "Save")))
                 PortraitLayout.SaveCurrent();
-            if (GUILayout.Button("恢复默认"))
+            if (GUILayout.Button(ToolLang.T("恢复默认", "Reset defaults")))
             {
                 PortraitLayout.ResetToThemeDefaults();
                 RefreshPortraitLayoutFromAsset();
@@ -187,9 +188,11 @@ namespace StreetCat.UI
             GUILayout.EndHorizontal();
 
             GUILayout.Space(4);
-            GUILayout.Label("预览角色", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            GUILayout.Label(ToolLang.T("预览角色", "Preview character"), new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
             string[] keys = { "ch_shenhe_default", "ch_dafu_default", "ch_lin_default", "ch_guard_default", "ch_xiaoling_default" };
-            string[] labels = { "沈禾", "大福", "林女士", "保安", "小凌" };
+            string[] labels = ToolLang.English
+                ? new[] { "Shen He", "Dafu", "Ms. Lin", "Guard", "Ling" }
+                : new[] { "沈禾", "大福", "林女士", "保安", "小凌" };
             GUILayout.BeginHorizontal();
             for (int i = 0; i < keys.Length; i++)
             {
@@ -201,11 +204,14 @@ namespace StreetCat.UI
             }
             GUILayout.EndHorizontal();
 
-            GUILayout.Label(
-                $"区域 ({d.slotLeft:F2},{d.slotBottom:F2})–({d.slotRight:F2},{d.slotTop:F2})\n"
-                + $"缩放 {d.heightScale:F2}  偏右 {d.centerBias:F2}  上移 {d.offsetY:F3}",
+            GUILayout.Label(ToolLang.English
+                    ? $"Slot ({d.slotLeft:F2},{d.slotBottom:F2})–({d.slotRight:F2},{d.slotTop:F2})\n"
+                      + $"Scale {d.heightScale:F2}  Right bias {d.centerBias:F2}  Lift {d.offsetY:F3}"
+                    : $"区域 ({d.slotLeft:F2},{d.slotBottom:F2})–({d.slotRight:F2},{d.slotTop:F2})\n"
+                      + $"缩放 {d.heightScale:F2}  偏右 {d.centerBias:F2}  上移 {d.offsetY:F3}",
                 new GUIStyle(GUI.skin.label) { wordWrap = true });
-            GUILayout.Label("顶/底边界：数值越小越靠下；垂直微调可负值下移",
+            GUILayout.Label(ToolLang.T("顶/底边界：数值越小越靠下；垂直微调可负值下移",
+                    "Top/bottom: smaller = lower on screen; negative vertical offset moves down"),
                 new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 11 });
 
             GUILayout.EndArea();
@@ -262,7 +268,9 @@ namespace StreetCat.UI
                     break;
 
                 case EventType.Repaint:
-                    var label = _slotHotControl != 0 ? "拖动中…" : "立绘区域 · 拖中间移动 · 拖角缩放";
+                    var label = _slotHotControl != 0
+                        ? ToolLang.T("拖动中…", "Dragging…")
+                        : ToolLang.T("立绘区域 · 拖中间移动 · 拖角缩放", "Portrait slot · drag middle to move · corners to resize");
                     var style = new GUIStyle(GUI.skin.label) { fontSize = 12, fontStyle = FontStyle.Bold };
                     GUI.color = new Color(0.2f, 0.75f, 1f, 1f);
                     GUI.Label(new Rect(slotRect.x, slotRect.y - 20f, slotRect.width, 20f), label, style);
@@ -387,19 +395,19 @@ namespace StreetCat.UI
             float minTop = minBottom + PortraitLayout.MinSlotHeight;
 
             changed |= ApplySlider(ref d.slotLeft, GUILayout.HorizontalSlider(d.slotLeft, 0.35f, 0.95f));
-            GUILayout.Label("左边界 " + d.slotLeft.ToString("F2"));
+            GUILayout.Label(ToolLang.T("左边界 ", "Slot left ") + d.slotLeft.ToString("F2"));
             changed |= ApplySlider(ref d.slotRight, GUILayout.HorizontalSlider(d.slotRight, 0.45f, 1f));
-            GUILayout.Label("右边界 " + d.slotRight.ToString("F2"));
+            GUILayout.Label(ToolLang.T("右边界 ", "Slot right ") + d.slotRight.ToString("F2"));
             changed |= ApplySlider(ref d.slotTop, GUILayout.HorizontalSlider(d.slotTop, minTop, 1f));
-            GUILayout.Label("顶边界 " + d.slotTop.ToString("F2") + "（↓变小）");
+            GUILayout.Label(ToolLang.T("顶边界 ", "Slot top ") + d.slotTop.ToString("F2") + ToolLang.T("（↓变小）", " (lower = smaller)"));
             changed |= ApplySlider(ref d.slotBottom, GUILayout.HorizontalSlider(d.slotBottom, minBottom, 0.85f));
-            GUILayout.Label("底边界 " + d.slotBottom.ToString("F2"));
+            GUILayout.Label(ToolLang.T("底边界 ", "Slot bottom ") + d.slotBottom.ToString("F2"));
             changed |= ApplySlider(ref d.heightScale, GUILayout.HorizontalSlider(d.heightScale, 0.45f, 1.8f));
-            GUILayout.Label("缩放 " + d.heightScale.ToString("F2"));
+            GUILayout.Label(ToolLang.T("缩放 ", "Scale ") + d.heightScale.ToString("F2"));
             changed |= ApplySlider(ref d.centerBias, GUILayout.HorizontalSlider(d.centerBias, 0f, 1f));
-            GUILayout.Label("水平位置 " + d.centerBias.ToString("F2"));
+            GUILayout.Label(ToolLang.T("水平位置 ", "Horizontal position ") + d.centerBias.ToString("F2"));
             changed |= ApplySlider(ref d.offsetY, GUILayout.HorizontalSlider(d.offsetY, -0.35f, 0.35f));
-            GUILayout.Label("垂直微调 " + d.offsetY.ToString("F3") + "（负=下移）");
+            GUILayout.Label(ToolLang.T("垂直微调 ", "Vertical offset ") + d.offsetY.ToString("F3") + ToolLang.T("（负=下移）", " (− = down)"));
 
             if (changed)
                 d.Clamp();

@@ -134,17 +134,21 @@ namespace StreetCat.UI
         string GetPortraitDebugUnavailableHint()
         {
             if (mode == Mode.Investigate && investigateHotspotsVisible)
-                return "当前在调查地图，请先点击场景物件进入对话。";
+                return ToolLang.T("当前在调查地图，请先点击场景物件进入对话。",
+                    "You're on the investigation map. Click an object to start a conversation first.");
             if (mode == Mode.Talk && talkQueue.Count == 0 && !talkAwaitingClickReturn)
-                return "当前在话题菜单，请先选择一个话题。";
+                return ToolLang.T("当前在话题菜单，请先选择一个话题。",
+                    "You're in the topic menu. Pick a topic first.");
             if (mode == Mode.Title || mode == Mode.Menu || mode == Mode.Backlog || mode == Mode.Notebook)
-                return "请在有角色立绘的对话中使用（F9 测试跳转）。";
+                return ToolLang.T("请在有角色立绘的对话中使用（F9 测试跳转）。",
+                    "Use this during a dialogue with a character portrait (F9 test jump).");
 
             var lineKey = GetPortraitDebugLineKey();
             if (!string.IsNullOrEmpty(lineKey) && !TryGetCurrentPortraitLine(out _, out _, out _, out _))
-                return "当前句为旁白/系统，无立绘可改。";
+                return ToolLang.T("当前句为旁白/系统，无立绘可改。",
+                    "This line is narration/system — no portrait to change.");
 
-            return "当前界面不支持立绘调试。";
+            return ToolLang.T("当前界面不支持立绘调试。", "Portrait debug isn't available on this screen.");
         }
 
         bool TryGetCurrentPortraitLine(out string speaker, out LineSpeaker kind,
@@ -291,7 +295,7 @@ namespace StreetCat.UI
             var outer = new Rect(Screen.width - w - 12f, 12f, w, h);
             portraitDebugPanelScreenRect = outer;
 
-            GUI.Box(outer, "立绘调试 (F11)");
+            GUI.Box(outer, ToolLang.T("立绘调试 (F11)", "Portrait Debug (F11)"));
 
             var inner = new Rect(outer.x + 8f, outer.y + 22f, outer.width - 16f, outer.height - 30f);
             portraitDebugScroll = GUI.BeginScrollView(inner, portraitDebugScroll,
@@ -314,23 +318,28 @@ namespace StreetCat.UI
             var preview = PortraitDebugOverrides.PreviewPortraitKey;
             var hasPreview = PortraitDebugOverrides.HasPreviewForLine(lineKey);
 
-            GUILayout.Label("当前句：" + lineKey, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            var confirmedPrefix = ToolLang.T("已确认 · ", "Confirmed · ");
+            GUILayout.Label(ToolLang.T("当前句：", "Current line: ") + lineKey, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
             GUILayout.Label(
                 hasPreview
-                    ? (saved == preview ? "已确认 · " + PortraitDebugCatalog.LabelForKey(preview) : "预览中 · " + PortraitDebugCatalog.LabelForKey(preview))
-                    : (string.IsNullOrEmpty(saved) ? "默认立绘" : "已确认 · " + PortraitDebugCatalog.LabelForKey(saved)),
+                    ? (saved == preview
+                        ? confirmedPrefix + PortraitDebugCatalog.LabelForKey(preview)
+                        : ToolLang.T("预览中 · ", "Previewing · ") + PortraitDebugCatalog.LabelForKey(preview))
+                    : (string.IsNullOrEmpty(saved)
+                        ? ToolLang.T("默认立绘", "Default portrait")
+                        : confirmedPrefix + PortraitDebugCatalog.LabelForKey(saved)),
                 new GUIStyle(GUI.skin.label) { wordWrap = true, fontSize = 11 });
 
             GUILayout.Space(4);
             GUILayout.BeginHorizontal();
             GUI.enabled = hasPreview && preview != saved;
-            if (GUILayout.Button("确认本句立绘"))
+            if (GUILayout.Button(ToolLang.T("确认本句立绘", "Confirm for this line")))
             {
                 PortraitDebugOverrides.ConfirmPreview(lineKey);
                 ApplyPortraitDebugToCurrentLine();
             }
             GUI.enabled = true;
-            if (GUILayout.Button("恢复默认"))
+            if (GUILayout.Button(ToolLang.T("恢复默认", "Reset to default")))
             {
                 PortraitDebugOverrides.ClearSaved(lineKey);
                 ReapplyDefaultPortraitForCurrentLine();
@@ -338,15 +347,19 @@ namespace StreetCat.UI
             GUILayout.EndHorizontal();
 
             GUILayout.Space(6);
-            GUILayout.Label("角色", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-            GUILayout.BeginHorizontal();
-            foreach (var g in PortraitDebugCatalog.All)
+            GUILayout.Label(ToolLang.T("角色", "Character"), new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+            // English names are wider; wrap to rows of three so they fit the 300px panel.
+            var perRow = ToolLang.English ? 3 : PortraitDebugCatalog.All.Length;
+            var buttonWidth = ToolLang.English ? 80f : 48f;
+            for (int i = 0; i < PortraitDebugCatalog.All.Length; i++)
             {
+                if (i % perRow == 0) GUILayout.BeginHorizontal();
+                var g = PortraitDebugCatalog.All[i];
                 var style = portraitDebugCharId == g.Id ? GUI.skin.box : GUI.skin.button;
-                if (GUILayout.Button(g.Label, style, GUILayout.Width(48f)))
+                if (GUILayout.Button(PortraitDebugCatalog.DisplayLabel(g), style, GUILayout.Width(buttonWidth)))
                     portraitDebugCharId = g.Id;
+                if (i % perRow == perRow - 1 || i == PortraitDebugCatalog.All.Length - 1) GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
 
             GUILayout.Space(6);
             var group = PortraitDebugCatalog.Find(portraitDebugCharId);

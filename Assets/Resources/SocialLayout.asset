@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 072f315cce4afab40975de47d158488f, type: 3}
   m_Name: SocialLayout
   m_EditorClassIdentifier: 
-  width: 511.077
-  height: 840.43774
+  width: 462.35675
+  height: 760.32
   anchorX: 0.48687398
-  anchorY: 0.6146685
+  anchorY: 0.638
   detailScale: 1.06
+  zoomWidth: 680
+  zoomHeight: 1120
+  zoomAnchorX: 0.5
+  zoomAnchorY: 0.5

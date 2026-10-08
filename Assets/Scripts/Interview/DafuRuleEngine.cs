@@ -63,9 +63,11 @@ namespace StreetCat.Interview
                 return "daily";
             if (ContainsAny(input, "名字", "叫什么", "你叫", "怎么称呼"))
                 return "name";
-            if (ContainsAny(input, "开心", "喜欢", "高兴", "舒服", "讨厌", "害怕吗"))
+            if (ContainsAny(input, "谁救", "谁照顾", "谁管你", "谁养"))
+                return "woman";
+            if (ContainsAny(input, "开心", "喜欢", "高兴", "舒服", "讨厌", "害怕吗", "可爱", "好看", "爱你", "喜欢我"))
                 return "feeling";
-            if (ContainsAny(input, "你好", "在吗", "打招呼", "认识我"))
+            if (ContainsAny(input, "你好", "在吗", "打招呼", "认识我", "嗨", "哈喽"))
                 return "greeting";
             if (ContainsAny(input, "保安亭", "保安", "快递柜", "快递", "门口", "睡觉", "狸花", "伙伴",
                     "哪里", "生活", "上班", "几点", "下午", "白天", "晚上", "冷", "热", "雨",
@@ -95,7 +97,9 @@ namespace StreetCat.Interview
                 return "neck";
             if (ContainsAny(input, "hungry", "food today", "got food", "treats", "snack", "want to eat"))
                 return "hungry";
-            if (ContainsAny(input, "woman", "fed you", "bring you food", "who feeds", "who gave you"))
+            if (ContainsAny(input, "woman", "fed you", "bring you food", "who feeds", "who gave you",
+                    "who saved", "who rescued", "saved you", "rescued you", "take care of you",
+                    "look after you", "who cares you"))
                 return "woman";
             if (ContainsAny(input, "cage", "carrier", "take you away", "taken away", "caught you"))
                 return "capture";
@@ -107,17 +111,33 @@ namespace StreetCat.Interview
                 return "past_fear";
             if (ContainsAny(input, "your name", "what's your name", "what is your name"))
                 return "name";
-            if (ContainsAny(input, "happy", "do you like", "comfortable"))
+            if (ContainsAny(input, "happy", "do you like", "comfortable", "cute", "love you", "like me"))
                 return "feeling";
-            if (ContainsAny(input, "hello", "hi there", "good morning"))
+            if (IsEnglishGreeting(input))
                 return "greeting";
-            if (ContainsAny(input, "guard", "locker", "booth", "usually come", "usually show", "where do you", "when do you", "what time"))
+            if (ContainsAny(input, "guard", "locker", "booth", "usually come", "usually show",
+                    "where do you", "when do you", "what time", "tabby", "the other cat", "your friend"))
                 return "daily";
             if (ContainsAny(input, "whole story", "tell me everything", "everything that"))
                 return "too_broad";
             if (ContainsAny(input, "system prompt", "ignore the setting", "ignore instructions"))
                 return "oob";
             return null;
+        }
+
+        bool IsEnglishGreeting(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            if (ContainsAny(input, "hello", "hi there", "good morning", "good afternoon", "howdy"))
+                return true;
+            var t = input.Trim();
+            if (t.Equals("hi", StringComparison.OrdinalIgnoreCase)
+                || t.Equals("hey", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("hey ", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("hi ", StringComparison.OrdinalIgnoreCase)
+                || t.StartsWith("hey,", StringComparison.OrdinalIgnoreCase))
+                return true;
+            return false;
         }
 
         protected override InterviewReply BuildReply(string input, string intent)

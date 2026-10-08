@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Text;
 using StreetCat.Interview;
+using StreetCat.Loc;
 using UnityEngine;
 
 namespace StreetCat.Writing
@@ -37,16 +38,23 @@ namespace StreetCat.Writing
                 yield break;
             }
 
-            var style =
-                "你是《街角专访》的写稿助手。在不新增事实、人名、数字或因果的前提下，把特稿写得更充实："
-                + "总字数（不计空白）尽量达到 " + ArticleDraftAi.TargetMinChars + " 字以上；"
-                + "保留小标题；补场景过渡与叙述节奏，但每句都必须能从原稿事实推出。"
-                + "只输出成稿全文。";
+            bool en = GameSettings.IsEnglish;
+            var style = en
+                ? "You are a writing assistant for the magazine Here & Now. Without adding any facts, names, numbers, or causes, "
+                  + "make the feature fuller: aim for at least " + ArticleDraftAi.TargetMinWordsEn + " words; "
+                  + "keep the section headings; add scene transitions and narrative rhythm, but every sentence must follow from the draft's facts. "
+                  + "Write in natural English. Output the full article only."
+                : "你是《街角专访》的写稿助手。在不新增事实、人名、数字或因果的前提下，把特稿写得更充实："
+                  + "总字数（不计空白）尽量达到 " + ArticleDraftAi.TargetMinChars + " 字以上；"
+                  + "保留小标题；补场景过渡与叙述节奏，但每句都必须能从原稿事实推出。"
+                  + "只输出成稿全文。";
             var facts = new StringBuilder();
-            facts.AppendLine("【权威台词/事实】");
+            facts.AppendLine(en ? "[Authoritative facts]" : "【权威台词/事实】");
             facts.AppendLine(draft.Trim());
             facts.AppendLine();
-            facts.AppendLine("在事实边界内扩写至充实特稿。只输出全文。");
+            facts.AppendLine(en
+                ? "Expand into a full feature within these facts. Output the full text only."
+                : "在事实边界内扩写至充实特稿。只输出全文。");
 
             string polished = null;
             yield return llm.RephraseCoroutine(style, facts.ToString(), "", text => polished = text);

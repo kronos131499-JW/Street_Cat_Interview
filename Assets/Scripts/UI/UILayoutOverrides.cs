@@ -67,6 +67,7 @@ namespace StreetCat.UI
             if (IsSocialOwnedPath(path) || IsInvestigateHotspotPath(path) || IsEphemeralControlPath(path)
                 || IsInterviewMeterPath(path) || IsInterviewChatBubblePath(path)
                 || IsFreeInterviewPath(path)
+                || IsWritingReviewPath(path)
                 || IsStagePortraitPath(path))
                 return false;
             var data = Asset;
@@ -97,6 +98,12 @@ namespace StreetCat.UI
         {
             if (string.IsNullOrEmpty(path)) return false;
             return path.IndexOf("InterviewOverlay", System.StringComparison.Ordinal) >= 0;
+        }
+
+        public static bool IsWritingReviewPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            return path.IndexOf("EditorReviewOverlay", System.StringComparison.Ordinal) >= 0;
         }
 
         /// <summary>Phone overlay is owned by SocialLayout.asset — never generic UI overrides.</summary>
@@ -342,7 +349,7 @@ namespace StreetCat.UI
                     RecordOperation(true, "saved social phone → SocialLayout.asset @ " + Timestamp());
                     return true;
                 }
-                RecordOperation(false, "save blocked — use 社交帖子布局编辑器 for " + path + " @ " + Timestamp());
+                RecordOperation(false, "save blocked — use the Social Post Layout Editor for " + path + " @ " + Timestamp());
                 return false;
             }
             if (IsInvestigateHotspotPath(path) || IsInvestigateHotspotSpot(target))
@@ -499,7 +506,8 @@ namespace StreetCat.UI
             }
             if (IsInvestigateHotspotSpot(target))
             {
-                RecordOperation(false, "调查热点不能从通用布局删除，请用调查热点编辑器移动 @ " + Timestamp());
+                RecordOperation(false, ToolLang.T("调查热点不能从通用布局删除，请用调查热点编辑器移动 @ ",
+                    "delete blocked — investigation hotspots are owned by the Hotspot Editor @ ") + Timestamp());
                 return false;
             }
             var path = GetPath(canvas, target);

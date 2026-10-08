@@ -83,8 +83,6 @@ namespace StreetCat.UI
             var canvas = phone.GetComponentInParent<Canvas>();
             float canvasScale = canvas != null && canvas.scaleFactor > 0.01f ? canvas.scaleFactor : 1f;
             float local = visualScale / canvasScale;
-            asset.width = Mathf.Max(40f, phone.rect.width * local);
-            asset.height = Mathf.Max(40f, phone.rect.height * local);
 
             float ax = phone.anchorMin.x;
             float ay = phone.anchorMin.y;
@@ -94,8 +92,24 @@ namespace StreetCat.UI
                 ax += phone.anchoredPosition.x / parent.rect.width;
                 ay += phone.anchoredPosition.y / parent.rect.height;
             }
-            asset.anchorX = ax;
-            asset.anchorY = ay;
+
+            bool zoom = GameUI.Instance != null && GameUI.Instance.IsSocialZoomOpen;
+            float w = Mathf.Max(40f, phone.rect.width * local);
+            float h = Mathf.Max(40f, phone.rect.height * local);
+            if (zoom)
+            {
+                asset.zoomWidth = w;
+                asset.zoomHeight = h;
+                asset.zoomAnchorX = ax;
+                asset.zoomAnchorY = ay;
+            }
+            else
+            {
+                asset.width = w;
+                asset.height = h;
+                asset.anchorX = ax;
+                asset.anchorY = ay;
+            }
             asset.Clamp();
             SaveCurrent();
             return true;
@@ -117,6 +131,7 @@ namespace StreetCat.UI
                       + " | " + asset.width.ToString("F0") + "×" + asset.height.ToString("F0")
                       + " @(" + asset.anchorX.ToString("F3") + "," + asset.anchorY.ToString("F3") + ")"
                       + " detail×" + asset.detailScale.ToString("F2")
+                      + " zoom " + asset.zoomWidth.ToString("F0") + "×" + asset.zoomHeight.ToString("F0")
                       + " @ " + Timestamp());
         }
 

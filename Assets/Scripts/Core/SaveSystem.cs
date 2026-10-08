@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using StreetCat.Data;
+using StreetCat.Loc;
 using StreetCat.UI;
 using UnityEngine;
 
@@ -54,9 +55,19 @@ namespace StreetCat.Core
         static string BuildTitle(GameSaveData data)
         {
             var scene = string.IsNullOrEmpty(data.currentSceneId) ? SceneIds.SC01 : data.currentSceneId;
-            var obj = string.IsNullOrEmpty(data.currentObjective) ? "进行中" : data.currentObjective;
-            if (obj.Length > 22) obj = obj.Substring(0, 22) + "…";
-            return $"{scene}　{obj}";
+            var obj = string.IsNullOrEmpty(data.currentObjective)
+                ? UiLoc.T("ui.save.in_progress", "进行中")
+                : ScriptLoc.MapObjective(data.currentObjective);
+            int max = GameSettings.IsEnglish ? 48 : 22;
+            if (obj.Length > max) obj = obj.Substring(0, max) + "…";
+            return scene + (GameSettings.IsEnglish ? "  " : "　") + obj;
+        }
+
+        public static string SlotName(int slot)
+        {
+            return slot == AutoSlot
+                ? UiLoc.T("ui.save.auto_slot", "自动存档")
+                : string.Format(UiLoc.T("ui.save.slot_fmt", "存档位 {0}"), slot + 1);
         }
 
         public static void SaveToSlot(int slot, GameSaveData data)
@@ -101,18 +112,18 @@ namespace StreetCat.Core
             if (!TryLoadSlot(slot, out var data))
             {
                 info.empty = true;
-                info.label = slot == AutoSlot ? "自动存档　（空）" : $"存档位 {slot + 1}　（空）";
-                info.detail = "空";
+                info.label = SlotName(slot) + UiLoc.T("ui.save.slot_empty_suffix", "　（空）");
+                info.detail = UiLoc.T("ui.save.slot_empty", "空");
                 return info;
             }
 
             info.empty = false;
             var time = data.savedAtUnix > 0
                 ? DateTimeOffset.FromUnixTimeSeconds(data.savedAtUnix).LocalDateTime.ToString("yyyy-MM-dd HH:mm")
-                : "未知时间";
-            var prefix = slot == AutoSlot ? "自动存档" : $"存档位 {slot + 1}";
-            info.label = $"{prefix}　{time}";
-            info.detail = string.IsNullOrEmpty(data.saveTitle) ? BuildTitle(data) : data.saveTitle;
+                : UiLoc.T("ui.save.unknown_time", "未知时间");
+            info.label = SlotName(slot) + (GameSettings.IsEnglish ? "  " : "　") + time;
+            // saveTitle was baked in the language active at save time; rebuild for the current one.
+            info.detail = BuildTitle(data);
             info.objective = data.currentObjective ?? "";
             return info;
         }

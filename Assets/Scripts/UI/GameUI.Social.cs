@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
 
@@ -33,6 +34,11 @@ namespace StreetCat.UI
         const float SocialDialogueClearance = 0.006f;
         const float SocialTopClearance = 0f;
         bool socialShowingDetail;
+        Image socialHit;
+        bool socialZoomOpen;
+        bool socialZoomHidDialogue;
+
+        public bool IsSocialZoomOpen => socialZoomOpen;
 
         /// <summary>
         /// Phone mockups are ~1700px tall and land on roughly half that on screen.
@@ -59,12 +65,22 @@ namespace StreetCat.UI
         {
             if (socialPhoneRt == null) return;
             var d = SocialLayout.Current;
+            bool zoom = socialZoomOpen;
+            if (zoom && d != null)
+                d.EnsureZoomDefaults();
             float w = d != null && d.width > 40f ? d.width : SocialDefaultWidth;
             float h = d != null && d.height > 40f ? d.height : SocialDefaultHeight;
             float ax = d != null ? d.anchorX : 0.5f;
             float ay = d != null ? d.anchorY : 0.58f;
+            if (zoom && d != null && d.HasZoomFrame)
+            {
+                w = d.zoomWidth;
+                h = d.zoomHeight;
+                ax = d.zoomAnchorX;
+                ay = d.zoomAnchorY;
+            }
             float detailScale = d != null && d.detailScale > 0.1f ? d.detailScale : SocialDefaultDetailScale;
-            float scale = detail ? detailScale : 1f;
+            float scale = !zoom && detail ? detailScale : 1f;
 
             // Fit between dialogue top and HUD in screen pixels.
             // sizeDelta is in canvas units and CanvasScaler multiplies by scaleFactor.
@@ -96,7 +112,7 @@ namespace StreetCat.UI
 #if UNITY_EDITOR
             editingLayout = UILayoutEditMode.Enabled || SocialEditMode.Enabled;
 #endif
-            if (!editingLayout && phonePx > availPx && h > 1f)
+            if (!zoom && !editingLayout && phonePx > availPx && h > 1f)
             {
                 scale *= availPx / phonePx;
                 phonePx = h * scale * pixelScale;
@@ -107,7 +123,7 @@ namespace StreetCat.UI
             float halfHNorm = phonePx / Mathf.Max(1f, Screen.height) * 0.5f;
             float minAy = botLimit + halfHNorm;
             float maxAy = topLimit - halfHNorm;
-            if (!editingLayout)
+            if (!zoom && !editingLayout)
             {
                 if (minAy <= maxAy)
                     ay = Mathf.Clamp(ay, minAy, maxAy);
@@ -170,6 +186,8 @@ namespace StreetCat.UI
             socialDim = CreateImage(socialRoot.transform, "Dim", new Color(0.02f, 0.03f, 0.05f, 0.55f));
             StretchFull(socialDim.rectTransform);
             socialDim.raycastTarget = false;
+            var dimClick = socialDim.gameObject.AddComponent<SocialFeedClickRelay>();
+            dimClick.onClick = CloseSocialZoomFromOutside;
 
             var phone = new GameObject("Phone", typeof(RectTransform));
             phone.transform.SetParent(socialRoot.transform, false);
@@ -191,6 +209,12 @@ namespace StreetCat.UI
             socialLayerB.raycastTarget = false;
             socialFadeB = socialLayerB.gameObject.AddComponent<CanvasGroup>();
             socialFadeB.alpha = 0f;
+
+            socialHit = CreateImage(phone.transform, "Hit", new Color(0f, 0f, 0f, 0f));
+            StretchFull(socialHit.rectTransform);
+            socialHit.raycastTarget = false;
+            var hitClick = socialHit.gameObject.AddComponent<SocialFeedClickRelay>();
+            hitClick.onClick = OnSocialPostClicked;
 
             socialRoot.SetActive(false);
         }
@@ -261,6 +285,7 @@ namespace StreetCat.UI
             socialPhoneRt.localScale = Vector3.one;
             socialShowingDetail = false;
             ApplySocialPhoneLayout(detail: false);
+            SyncSocialPostInput();
             if (instant)
             {
                 socialRootFade.alpha = 1f;
@@ -328,13 +353,29 @@ namespace StreetCat.UI
             socialAIsFront = true;
             socialSpriteKey = "msg:" + fileStem;
             socialShowingDetail = false;
+            if (socialZoomOpen)
+                SetSocialZoom(false);
+            else
+                SyncSocialPostInput();
         }
 
         void SocialHide(bool instant)
         {
+            if (socialZoomOpen)
+                SetSocialZoom(false);
+            if (socialHit != null)
+                socialHit.raycastTarget = false;
+            if (socialDim != null)
+                socialDim.raycastTarget = false;
+            if (socialRootFade != null)
+            {
+                socialRootFade.blocksRaycasts = false;
+                socialRootFade.interactable = false;
+            }
             if (socialRoot == null || !socialRoot.activeSelf)
             {
                 socialSpriteKey = null;
+                SyncSocialPostInput();
                 return;
             }
 
@@ -351,6 +392,7 @@ namespace StreetCat.UI
                 socialShowingDetail = false;
                 socialRoot.SetActive(false);
                 socialCo = null;
+                SyncSocialPostInput();
             }
             else
                 socialCo = StartCoroutine(SocialHideCo());
@@ -425,6 +467,7 @@ namespace StreetCat.UI
             socialAIsFront = !socialAIsFront;
             socialSpriteKey = key;
             ApplySocialPhoneLayout(detail);
+            SyncSocialPostInput();
             socialCo = null;
         }
 
@@ -470,6 +513,136 @@ namespace StreetCat.UI
             socialShowingDetail = false;
             socialRoot.SetActive(false);
             socialCo = null;
+            SyncSocialPostInput();
+        }
+
+        static bool IsZoomableSocialPost(string key)
+        {
+            return !string.IsNullOrEmpty(key) && key.StartsWith("social_post_");
+        }
+
+        /// <summary>
+        /// Keep the phone above the dialogue click target while a post is up,
+        /// and keep the top HUD above the phone.
+        /// </summary>
+        void MaintainSocialInputLayer()
+        {
+            if (socialRoot == null || !socialRoot.activeSelf) return;
+            if (!IsZoomableSocialPost(socialSpriteKey) && !socialZoomOpen) return;
+
+            int minIndex = 0;
+            if (dialoguePanel != null)
+                minIndex = Mathf.Max(minIndex, dialoguePanel.transform.GetSiblingIndex() + 1);
+            if (advanceCatcher != null)
+                minIndex = Mathf.Max(minIndex, advanceCatcher.transform.GetSiblingIndex() + 1);
+            if (socialRoot.transform.GetSiblingIndex() < minIndex)
+            {
+                socialRoot.transform.SetSiblingIndex(minIndex);
+                EnsureTopHudClickable();
+            }
+        }
+
+        void OnSocialPostClicked()
+        {
+#if UNITY_EDITOR
+            if (SocialEditPanelConsumesMouse()) return;
+#endif
+            if (socialZoomOpen || waitingForChoice) return;
+            if (!IsZoomableSocialPost(socialSpriteKey)) return;
+            SetSocialZoom(true);
+        }
+
+        void CloseSocialZoomFromOutside()
+        {
+#if UNITY_EDITOR
+            if (SocialEditPanelConsumesMouse()) return;
+#endif
+            if (!socialZoomOpen) return;
+            SetSocialZoom(false);
+        }
+
+        public bool CloseSocialZoomIfOpen()
+        {
+            if (!socialZoomOpen) return false;
+            SetSocialZoom(false);
+            return true;
+        }
+
+        void SetSocialZoom(bool open)
+        {
+            if (socialZoomOpen == open) return;
+            socialZoomOpen = open;
+            if (open)
+                SuppressDialogueForSocialZoom();
+            else
+                RestoreDialogueAfterSocialZoom();
+            ApplySocialPhoneLayout(socialShowingDetail);
+            SyncSocialPostInput();
+        }
+
+        void SuppressDialogueForSocialZoom()
+        {
+            socialZoomHidDialogue = dialoguePanel != null && dialoguePanel.gameObject.activeSelf;
+            if (dialoguePanel != null)
+                dialoguePanel.gameObject.SetActive(false);
+            if (advanceCatcher != null)
+                advanceCatcher.gameObject.SetActive(false);
+            if (dialogueClick != null)
+                dialogueClick.interactable = false;
+        }
+
+        void RestoreDialogueAfterSocialZoom()
+        {
+            if (socialZoomHidDialogue && dialoguePanel != null && !dialogueHidden)
+                dialoguePanel.gameObject.SetActive(true);
+            socialZoomHidDialogue = false;
+            SetAdvanceEnabled(canClickAdvance, waitingForChoice);
+        }
+
+        void SyncSocialPostInput()
+        {
+            bool post = socialRoot != null && socialRoot.activeSelf && IsZoomableSocialPost(socialSpriteKey);
+            if (socialHit != null)
+                socialHit.raycastTarget = post;
+            if (socialDim != null)
+            {
+                socialDim.raycastTarget = socialZoomOpen;
+                var c = socialDim.color;
+                c.a = socialZoomOpen ? 0.72f : 0.55f;
+                socialDim.color = c;
+            }
+            if (socialRootFade != null)
+                socialRootFade.blocksRaycasts = post || socialZoomOpen;
+            if (socialRootFade != null)
+                socialRootFade.interactable = post || socialZoomOpen;
+            MaintainSocialInputLayer();
+        }
+    }
+
+    /// <summary>Clicks the phone image or the dim around an enlarged post. Ignores drags.</summary>
+    public class SocialFeedClickRelay : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    {
+        public System.Action onClick;
+        Vector2 downPos;
+        bool pressed;
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left) return;
+            pressed = true;
+            downPos = eventData.position;
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (!pressed || eventData.button != PointerEventData.InputButton.Left)
+            {
+                pressed = false;
+                return;
+            }
+            pressed = false;
+            if ((eventData.position - downPos).sqrMagnitude > 36f) return;
+            onClick?.Invoke();
         }
     }
 }

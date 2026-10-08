@@ -278,6 +278,8 @@ namespace StreetCat.Interview
                 sb.AppendLine("3. Answer common small talk naturally; don't only ask for food.");
                 sb.AppendLine("4. If you don't understand abstract/medical/legal questions, stay confused—don't invent human explanations.");
                 sb.AppendLine("5. No invented human names (except Dafu), addresses, money amounts, or medical diagnoses.");
+                sb.AppendLine("5b. Do not invent plot that is not in the hard facts: no dogs, romance/kissing, owning the gate, or mistaking the reporter for the woman who left food.");
+                sb.AppendLine("5c. If reference intent is generic: only show you didn't understand, or ask them to rephrase. Do not invent a story.");
                 sb.AppendLine("6. One sentence per line, usually 1–4 lines; character lines only—no narration, quotes, or \"Dafu:\" prefix.");
                 sb.AppendLine("7. Food talk (eat/treats/kibble/hungry/feed etc.) at most "
                     + dafuFoodMax + " times in the last " + dafuFoodWindow + " replies."
@@ -311,6 +313,7 @@ namespace StreetCat.Interview
                 sb.AppendLine("1. Helping ≠ must adopt; release was a capacity choice.");
                 sb.AppendLine("2. You may be guarded if accused, but don't attack the reporter; no sermon or inspirational speech.");
                 sb.AppendLine("3. No new plot twists that contradict canon; say \"I don't quite remember\" when unsure.");
+                sb.AppendLine("3b. If reference intent is generic: you MUST ask which part they want (found him / feeding / hospital / why he came back). Do NOT invent your own visiting hours.");
                 sb.AppendLine("4. One sentence per line, usually 1–4; Ms. Lin's lines only—no narration or name prefix.");
                 sb.AppendLine("5. Always refer to Dafu as he/him/his, never it.");
                 sb.AppendLine("6. Respond in natural English only.");
@@ -375,8 +378,88 @@ namespace StreetCat.Interview
                 for (int i = start; i < recentLog.Count; i++)
                     sb.AppendLine(recentLog[i]);
             }
+            if (reply != null && InterviewRuleEngine.IsLlmUnsafeIntent(reply.intent))
+            {
+                sb.AppendLine(subject == InterviewSubject.Lin
+                    ? "[Lock] generic: only redirect to which part of Dafu's story. No personal schedule."
+                    : "[Lock] generic: only confusion / ask to rephrase. No new scenes or relationships.");
+            }
             sb.AppendLine("[Output] English character answer only, one sentence per line.");
             return sb.ToString();
+        }
+
+        static readonly string[] InventedDafuAsideEn =
+        {
+            "dog", "puppy", "bark",
+            "gay", "lesbian", "boyfriend", "girlfriend", "marry you", "kiss", "make out",
+            "i own", "own this gate", "owns this gate",
+            "smell like the woman", "smell like that woman",
+            "the tabby thinks", "thinks he's cuter"
+        };
+
+        static readonly string[] InventedDafuAsideZh =
+        {
+            "狗", "汪汪", "接吻", "亲亲", "同性恋", "这扇门是我的", "占领这扇门",
+            "你身上有那个女人", "你有那个女人的味道"
+        };
+
+        /// <summary>True when Dafu's LLM reply adds off-canon asides (romance, dogs, owning the gate…).</summary>
+        public static bool HasInventedDafuAside(string joined, out string rejectReason)
+        {
+            rejectReason = null;
+            if (string.IsNullOrEmpty(joined)) return false;
+            var lower = joined.ToLowerInvariant();
+            for (int i = 0; i < InventedDafuAsideEn.Length; i++)
+            {
+                if (lower.IndexOf(InventedDafuAsideEn[i], StringComparison.Ordinal) >= 0)
+                {
+                    rejectReason = "invented:" + InventedDafuAsideEn[i];
+                    return true;
+                }
+            }
+            for (int i = 0; i < InventedDafuAsideZh.Length; i++)
+            {
+                if (joined.IndexOf(InventedDafuAsideZh[i], StringComparison.Ordinal) >= 0)
+                {
+                    rejectReason = "invented:" + InventedDafuAsideZh[i];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>Lin generic replies must stay a topic redirect, not a made-up personal timetable.</summary>
+        public static bool AcceptLinGenericRedirect(string joined, out string rejectReason)
+        {
+            rejectReason = null;
+            if (string.IsNullOrWhiteSpace(joined))
+            {
+                rejectReason = "lin_generic_empty";
+                return false;
+            }
+
+            var lower = joined.ToLowerInvariant();
+            if (lower.Contains("i usually come") || lower.Contains("i usually show")
+                || lower.Contains("late afternoon") || lower.Contains("on my way home")
+                || (lower.Contains("after work") && !lower.Contains("dumpster") && !lower.Contains("bin")))
+            {
+                rejectReason = "lin_generic_schedule";
+                return false;
+            }
+
+            bool redirectZh = joined.Contains("哪一段")
+                              || (joined.Contains("发现") && joined.Contains("投喂"));
+            bool redirectEn = (lower.Contains("which part") || lower.Contains("which bit")
+                               || lower.Contains("what part"))
+                              && (lower.Contains("found") || lower.Contains("feed")
+                                  || lower.Contains("hospital") || lower.Contains("brought")
+                                  || lower.Contains("came back"));
+            if (!redirectZh && !redirectEn)
+            {
+                rejectReason = "lin_generic_no_redirect";
+                return false;
+            }
+            return true;
         }
 
         public static bool ContainsQuestionHintEn(string question, params string[] hints)

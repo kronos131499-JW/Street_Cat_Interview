@@ -56,43 +56,31 @@ namespace StreetCat.Writing
                 yield break;
             }
 
-            int chars = ArticleDraftAi.CountContentChars(assembler.Body);
-            var style =
-                "你是《街角专访》的主编沈禾，审核标准严格。"
-                + "根据记者成稿、写作立意与已选素材给出审核。"
-                + "只根据给定正文与素材评价，禁止新增新闻事实。"
-                + "必须打回（pass=false）的情况包括但不限于："
-                + "①明显逻辑断裂或关键过程跳戏；"
-                + "②文笔过差、流水账、几乎没有展开；"
-                + "③选材与立意严重不匹配；"
-                + "④把猜测写成铁板事实；"
-                + "⑤正文过短（有效字数明显不足 " + ArticleDraftAi.TargetMinChars + "）；"
-                + "⑥四个叙事段落里有的形同虚设。"
-                + "只有结构清楚、事实克制、选材撑得住立意、篇幅充实，才可通过。"
-                + "通过分通常 70–92；问题明显时 35–65 并退回。"
-                + "只输出一行 JSON（不要 markdown 代码块），字段："
-                + "{\"pass\":bool,\"score\":0-100整数,\"branch\":\"A|B|C|D\",\"review\":\"沈禾口吻评语，多行用\\n\"}。"
-                + "branch：A=通过；B=立意/选材不匹配；C=逻辑差/写太差/篇幅不足；D=把推测当事实。";
+            bool en = GameSettings.IsEnglish;
+            int length = ArticleDraftAi.CountLength(assembler.Body);
+            var style = en ? ReviewStyleEn() : ReviewStyleZh();
 
             var facts = new StringBuilder();
-            facts.AppendLine("【权威台词/事实】");
-            facts.AppendLine("立意：" + ArticleAssembler.TitleFor(dir));
-            facts.AppendLine("成稿有效字数（约）：" + chars);
-            facts.AppendLine("已选素材：");
+            facts.AppendLine(en ? "[Authoritative facts]" : "【权威台词/事实】");
+            facts.AppendLine((en ? "Angle: " : "立意：") + ArticleAssembler.TitleFor(dir));
+            facts.AppendLine(en
+                ? "Approximate word count: " + length
+                : "成稿有效字数（约）：" + length);
+            facts.AppendLine(en ? "Selected materials:" : "已选素材：");
             if (selected != null)
             {
                 foreach (var id in selected)
                 {
                     var m = MaterialCatalog.Get(id);
                     if (m == null) continue;
-                    facts.AppendLine("- " + m.id + " " + m.title + "：" + m.body);
+                    facts.AppendLine("- " + m.id + " " + m.LocalizedTitle + (en ? ": " : "：") + m.LocalizedBody);
                 }
             }
             facts.AppendLine();
-            facts.AppendLine("【成稿正文】");
+            facts.AppendLine(en ? "[Article]" : "【成稿正文】");
             facts.AppendLine(assembler.Body.Trim());
             facts.AppendLine();
-            facts.AppendLine("严格审核。只输出 JSON。");
+            facts.AppendLine(en ? "Review strictly. Output JSON only." : "严格审核。只输出 JSON。");
 
             string raw = null;
             yield return llm.RephraseCoroutine(style, facts.ToString(), "", text => raw = text);
@@ -130,6 +118,40 @@ namespace StreetCat.Writing
 
             onDone?.Invoke();
         }
+
+        static string ReviewStyleEn() =>
+            "You are Shen He, editor-in-chief of Here & Now, and a strict reviewer. "
+            + "Review the reporter's article against its angle and the selected materials. "
+            + "Judge only the given text and materials; never add new facts. "
+            + "You must reject (pass=false) in cases including: "
+            + "1) obvious logical gaps or skipped key events; "
+            + "2) very weak writing, a flat list of facts, almost no development; "
+            + "3) materials that badly mismatch the angle; "
+            + "4) speculation stated as fact; "
+            + "5) far too short (clearly under " + ArticleDraftAi.TargetMinWordsEn + " words); "
+            + "6) one of the four narrative sections is effectively empty. "
+            + "Pass only when the structure is clear, the facts are restrained, the materials support the angle, and the piece is substantial. "
+            + "Passing scores are usually 70-92; clear problems score 35-65 and are rejected. "
+            + "Output a single line of JSON (no markdown fences) with fields: "
+            + "{\"pass\":bool,\"score\":integer 0-100,\"branch\":\"A|B|C|D\",\"review\":\"feedback in Shen He's voice, in English, use \\n for line breaks\"}. "
+            + "branch: A=pass; B=angle/material mismatch; C=poor logic, weak writing, or too short; D=speculation as fact.";
+
+        static string ReviewStyleZh() =>
+                "你是《街角专访》的主编沈禾，审核标准严格。"
+                + "根据记者成稿、写作立意与已选素材给出审核。"
+                + "只根据给定正文与素材评价，禁止新增新闻事实。"
+                + "必须打回（pass=false）的情况包括但不限于："
+                + "①明显逻辑断裂或关键过程跳戏；"
+                + "②文笔过差、流水账、几乎没有展开；"
+                + "③选材与立意严重不匹配；"
+                + "④把猜测写成铁板事实；"
+                + "⑤正文过短（有效字数明显不足 " + ArticleDraftAi.TargetMinChars + "）；"
+                + "⑥四个叙事段落里有的形同虚设。"
+                + "只有结构清楚、事实克制、选材撑得住立意、篇幅充实，才可通过。"
+                + "通过分通常 70–92；问题明显时 35–65 并退回。"
+                + "只输出一行 JSON（不要 markdown 代码块），字段："
+                + "{\"pass\":bool,\"score\":0-100整数,\"branch\":\"A|B|C|D\",\"review\":\"沈禾口吻评语，多行用\\n\"}。"
+                + "branch：A=通过；B=立意/选材不匹配；C=逻辑差/写太差/篇幅不足；D=把推测当事实。";
 
         static bool TryParseReview(string raw, out ReviewDto dto)
         {

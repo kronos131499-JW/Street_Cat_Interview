@@ -92,7 +92,7 @@ namespace StreetCat.UI
             if (!socialEditPanelVisible) return;
 
             const float w = 300f;
-            float h = Mathf.Min(Screen.height - 24f, 480f);
+            float h = Mathf.Min(Screen.height - 24f, 720f);
             var outer = new Rect(Screen.width - w - 12f, 12f, w, h);
             _socialEditPanelScreenRect = outer;
             GUI.Box(outer, "社交帖子布局 (F8 隐藏)");
@@ -110,6 +110,7 @@ namespace StreetCat.UI
             }
 
             bool changed = false;
+            GUILayout.Label("浏览尺寸");
             float nw = GUILayout.HorizontalSlider(d.width, 220f, 1400f);
             GUILayout.Label($"宽度 {nw:F0}");
             if (!Mathf.Approximately(nw, d.width)) { d.width = nw; changed = true; }
@@ -129,6 +130,27 @@ namespace StreetCat.UI
             float ds = GUILayout.HorizontalSlider(d.detailScale, 0.85f, 1.35f);
             GUILayout.Label($"详情放大 {ds:F2}");
             if (!Mathf.Approximately(ds, d.detailScale)) { d.detailScale = ds; changed = true; }
+
+            GUILayout.Space(4);
+            GUILayout.Label(socialZoomOpen ? "正在调放大帖（点图外关闭）" : "放大帖尺寸");
+            d.EnsureZoomDefaults();
+            float zw = GUILayout.HorizontalSlider(d.zoomWidth, 220f, 1600f);
+            GUILayout.Label($"放大宽度 {zw:F0}");
+            if (!Mathf.Approximately(zw, d.zoomWidth)) { d.zoomWidth = zw; changed = true; }
+            float zh = GUILayout.HorizontalSlider(d.zoomHeight, 360f, 2000f);
+            GUILayout.Label($"放大高度 {zh:F0}");
+            if (!Mathf.Approximately(zh, d.zoomHeight)) { d.zoomHeight = zh; changed = true; }
+            float zax = GUILayout.HorizontalSlider(d.zoomAnchorX, 0.15f, 0.85f);
+            GUILayout.Label($"放大水平 {zax:F2}");
+            if (!Mathf.Approximately(zax, d.zoomAnchorX)) { d.zoomAnchorX = zax; changed = true; }
+            float zay = GUILayout.HorizontalSlider(d.zoomAnchorY, 0.15f, 0.95f);
+            GUILayout.Label($"放大垂直 {zay:F2}");
+            if (!Mathf.Approximately(zay, d.zoomAnchorY)) { d.zoomAnchorY = zay; changed = true; }
+            if (GUILayout.Button(socialZoomOpen ? "关闭放大" : "预览放大"))
+            {
+                if (socialZoomOpen || IsZoomableSocialPost(socialSpriteKey))
+                    SetSocialZoom(!socialZoomOpen);
+            }
 
             if (changed)
             {
@@ -204,10 +226,12 @@ namespace StreetCat.UI
                     _socialDragMode = PickSocialDragMode(e.mousePosition, phoneRect, handle);
                     if (_socialDragMode == SocialDragNone) break;
                     _socialDragStartMouse = e.mousePosition;
-                    _socialDragW = d.width;
-                    _socialDragH = d.height;
-                    _socialDragAx = d.anchorX;
-                    _socialDragAy = d.anchorY;
+                    if (socialZoomOpen)
+                        d.EnsureZoomDefaults();
+                    _socialDragW = socialZoomOpen ? d.zoomWidth : d.width;
+                    _socialDragH = socialZoomOpen ? d.zoomHeight : d.height;
+                    _socialDragAx = socialZoomOpen ? d.zoomAnchorX : d.anchorX;
+                    _socialDragAy = socialZoomOpen ? d.zoomAnchorY : d.anchorY;
                     _socialHotControl = controlId;
                     GUIUtility.hotControl = controlId;
                     e.Use();
@@ -318,28 +342,47 @@ namespace StreetCat.UI
                     scale = canvas.scaleFactor;
             }
 
+            float w = socialZoomOpen ? d.zoomWidth : d.width;
+            float h = socialZoomOpen ? d.zoomHeight : d.height;
+            float ax = socialZoomOpen ? d.zoomAnchorX : d.anchorX;
+            float ay = socialZoomOpen ? d.zoomAnchorY : d.anchorY;
+            float maxW = socialZoomOpen ? 1600f : 1400f;
             switch (_socialDragMode)
             {
                 case SocialDragMove:
-                    d.anchorX = Mathf.Clamp01(_socialDragAx + deltaGui.x / sw);
-                    d.anchorY = Mathf.Clamp01(_socialDragAy - deltaGui.y / sh);
+                    ax = Mathf.Clamp01(_socialDragAx + deltaGui.x / sw);
+                    ay = Mathf.Clamp01(_socialDragAy - deltaGui.y / sh);
                     break;
                 case SocialDragBR:
-                    d.width = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, 1400f);
-                    d.height = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 2000f);
+                    w = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, maxW);
+                    h = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 2000f);
                     break;
                 case SocialDragBL:
-                    d.width = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, 1400f);
-                    d.height = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 2000f);
+                    w = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, maxW);
+                    h = Mathf.Clamp(_socialDragH + deltaGui.y / scale, 360f, 2000f);
                     break;
                 case SocialDragTR:
-                    d.width = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, 1400f);
-                    d.height = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 2000f);
+                    w = Mathf.Clamp(_socialDragW + deltaGui.x / scale, 220f, maxW);
+                    h = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 2000f);
                     break;
                 case SocialDragTL:
-                    d.width = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, 1400f);
-                    d.height = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 2000f);
+                    w = Mathf.Clamp(_socialDragW - deltaGui.x / scale, 220f, maxW);
+                    h = Mathf.Clamp(_socialDragH - deltaGui.y / scale, 360f, 2000f);
                     break;
+            }
+            if (socialZoomOpen)
+            {
+                d.zoomWidth = w;
+                d.zoomHeight = h;
+                d.zoomAnchorX = ax;
+                d.zoomAnchorY = ay;
+            }
+            else
+            {
+                d.width = w;
+                d.height = h;
+                d.anchorX = ax;
+                d.anchorY = ay;
             }
             d.Clamp();
         }

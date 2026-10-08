@@ -195,10 +195,9 @@ namespace StreetCat.Writing
             var m = MaterialCatalog.Get(matId);
             if (m == null) return "";
 
-            var line = dir == WritingDirection.GuardCatToday ? m.textGuardCat : m.textRescue;
             return string.Format(
                 T("ui.writing.ai.focus_fmt", "【{0} {1}】成稿可能写成：\n{2}"),
-                m.id, m.title, line);
+                m.id, m.LocalizedTitle, m.LocalizedLine(dir));
         }
 
         static string BuildPartialDraft(WritingDirection dir, List<string> ids, HashSet<string> unlocked)
@@ -217,8 +216,7 @@ namespace StreetCat.Writing
                 if (!unlocked.Contains(id)) continue;
                 var m = MaterialCatalog.Get(id);
                 if (m == null) continue;
-                var line = dir == WritingDirection.GuardCatToday ? m.textGuardCat : m.textRescue;
-                sb.AppendLine("· " + line);
+                sb.AppendLine("· " + m.LocalizedLine(dir));
             }
             return sb.ToString();
         }

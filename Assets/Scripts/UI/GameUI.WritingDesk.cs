@@ -715,6 +715,7 @@ namespace StreetCat.UI
         void HideWritingDesk()
         {
             writingDeskActive = false;
+            HideWritingReviewPanel();
             if (writingPolishCo != null)
             {
                 StopCoroutine(writingPolishCo);
@@ -809,15 +810,8 @@ namespace StreetCat.UI
                         StopCoroutine(writingPolishCo);
                         writingPolishCo = null;
                     }
-                    // New mats/dir → assemble offline skeleton once; do NOT auto-expand.
+                    // New mats/dir → assemble offline draft once; do NOT auto-expand.
                     assembler.Assemble(pendingDir, selectedMats);
-                    var richer = ArticleDraftAi.BuildOfflineFeature(
-                        pendingDir, selectedMats, assembler.Title, assembler.Body);
-                    if (ArticleDraftAi.CountContentChars(richer)
-                        > ArticleDraftAi.CountContentChars(assembler.Body))
-                        assembler.ReplaceBody(richer);
-                    else
-                        assembler.ReplaceBody(ArticleDraftAi.StripRelatedVerificationBlocks(assembler.Body));
                     writingPolishKey = key;
                     writingAiPolishUsed = false;
                     SetWritingDeskDraftText(assembler.Body);
@@ -1059,7 +1053,7 @@ namespace StreetCat.UI
         {
             if (wdDraftCharCount == null) return;
             string body = wdDraftInput != null ? wdDraftInput.text : (wdDraftBody != null ? wdDraftBody.text : "");
-            int chars = ArticleDraftAi.CountContentChars(body);
+            int chars = ArticleDraftAi.CountLength(body);
             wdDraftCharCount.text = string.Format(
                 UiLoc.T("ui.writing.desk.chars_fmt", "约 {0} 字"),
                 chars);
@@ -1081,6 +1075,7 @@ namespace StreetCat.UI
         string BuildWritingDraftKey()
         {
             var sb = new StringBuilder();
+            sb.Append((int)GameSettings.Language).Append('|');
             sb.Append((int)pendingDir).Append('|');
             if (selectedMats == null || selectedMats.Count == 0)
                 return sb.ToString();

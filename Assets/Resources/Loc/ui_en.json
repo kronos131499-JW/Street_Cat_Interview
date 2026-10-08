@@ -537,6 +537,54 @@
       "value": "—— Shen He's review ——\n{0}\n\nScore  {1}"
     },
     {
+      "key": "ui.writing.review_panel_title",
+      "value": "Shen He's Review"
+    },
+    {
+      "key": "ui.writing.review_status_pass",
+      "value": "Review — approved"
+    },
+    {
+      "key": "ui.writing.review_status_fail",
+      "value": "Review — returned"
+    },
+    {
+      "key": "ui.writing.review_branch_pill",
+      "value": "Returned branch {0}"
+    },
+    {
+      "key": "ui.writing.review_score_pill",
+      "value": "Score {0}"
+    },
+    {
+      "key": "ui.writing.confirm_publish_sub",
+      "value": "SEND TO PRINT"
+    },
+    {
+      "key": "ui.writing.back_to_write_sub",
+      "value": "KEEP WORKING"
+    },
+    {
+      "key": "ui.writing.view_notebook_sub",
+      "value": "VIEW MATERIALS"
+    },
+    {
+      "key": "ui.writing.reinterview_sub",
+      "value": "ASK AGAIN"
+    },
+    {
+      "key": "ui.writing.reselect_dir_sub",
+      "value": "TRY ANOTHER"
+    },
+    {
+      "key": "ui.writing.review_spoken_pass",
+      "value": "I've read it. Notes are on this sheet."
+    },
+    {
+      "key": "ui.writing.review_spoken_fail",
+      "value": "This draft still needs work. Notes are on this sheet."
+    },
+    {
       "key": "ui.writing.pass_fmt",
       "value": "Approved  {0}"
     },
@@ -1262,7 +1310,7 @@
     },
     {
       "key": "ui.writing.desk.chars_fmt",
-      "value": "~{0} chars"
+      "value": "~{0} words"
     },
     {
       "key": "ui.writing.desk.sources",
@@ -1471,6 +1519,54 @@
     {
       "key": "ui.writing.review.gap_advice",
       "value": "Go back for that material, or pick a different card for the paragraph."
+    },
+    {
+      "key": "ui.backlog.empty",
+      "value": "(No dialogue to review yet.)"
+    },
+    {
+      "key": "ui.save.confirm_overwrite",
+      "value": "Overwrite this save?"
+    },
+    {
+      "key": "ui.save.confirm_overwrite_slot",
+      "value": "Slot {0} already has a save. Overwrite it?"
+    },
+    {
+      "key": "ui.save.saved_slot",
+      "value": "Saved to slot {0}"
+    },
+    {
+      "key": "ui.save.overwrote_slot",
+      "value": "Overwrote slot {0}"
+    },
+    {
+      "key": "ui.save.slot_is_empty",
+      "value": "This slot is empty"
+    },
+    {
+      "key": "ui.save.slot_empty",
+      "value": "Empty"
+    },
+    {
+      "key": "ui.save.slot_empty_suffix",
+      "value": "  (Empty)"
+    },
+    {
+      "key": "ui.save.slot_fmt",
+      "value": "Slot {0}"
+    },
+    {
+      "key": "ui.save.auto_slot",
+      "value": "Autosave"
+    },
+    {
+      "key": "ui.save.unknown_time",
+      "value": "Unknown time"
+    },
+    {
+      "key": "ui.save.in_progress",
+      "value": "In progress"
     }
   ]
 }

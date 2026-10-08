@@ -18,6 +18,13 @@ namespace StreetCat.Writing
         public ArticleStage stage;
         public string textGuardCat;
         public string textRescue;
+
+        public string LineFor(WritingDirection dir) =>
+            dir == WritingDirection.GuardCatToday ? textGuardCat : textRescue;
+
+        public string LocalizedTitle => HardTextLoc.T(title);
+        public string LocalizedBody => HardTextLoc.T(body);
+        public string LocalizedLine(WritingDirection dir) => HardTextLoc.T(LineFor(dir));
     }
 
     public static class MaterialCatalog
@@ -192,26 +199,7 @@ namespace StreetCat.Writing
         public void Assemble(WritingDirection dir, List<string> selected)
         {
             Title = TitleFor(dir);
-            var sb = new StringBuilder();
-            sb.AppendLine(Title);
-            sb.AppendLine();
-
-            if (dir == WritingDirection.GuardCatToday)
-            {
-                AppendNamedStage(sb, "【现在的大福】", selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
-                AppendNamedStage(sb, "【过去】", selected, dir, ArticleStage.B_PastInjury);
-                AppendNamedStage(sb, "【救助】", selected, dir, ArticleStage.C_RescueTreatment);
-                AppendNamedStage(sb, "【放归之后】", selected, dir, ArticleStage.D_Release, ArticleStage.E_AfterReturn);
-            }
-            else
-            {
-                AppendNamedStage(sb, "【发现】", selected, dir, ArticleStage.B_PastInjury);
-                AppendNamedStage(sb, "【接近与治疗】", selected, dir, ArticleStage.C_RescueTreatment);
-                AppendNamedStage(sb, "【为什么没有收养】", selected, dir, ArticleStage.D_Release);
-                AppendNamedStage(sb, "【回到社区】", selected, dir, ArticleStage.A_PresentLife, ArticleStage.E_AfterReturn);
-            }
-
-            Body = sb.ToString();
+            Body = ArticleDraftAi.BuildOfflineFeature(dir, selected);
             ApplyRuleReview(dir, selected);
         }
 
@@ -250,7 +238,7 @@ namespace StreetCat.Writing
                 }
             }
 
-            int chars = ArticleDraftAi.CountContentChars(Body);
+            int length = ArticleDraftAi.CountLength(Body);
 
             if (dir == WritingDirection.RescueWithoutAdoption && present >= rescueFocus + 1 && release < 1)
             {
@@ -293,7 +281,7 @@ namespace StreetCat.Writing
             {
                 if (selected.Contains(MaterialIds.M12)) score += 4;
                 if (selected.Contains(MaterialIds.M16)) score += 3;
-                if (chars >= ArticleDraftAi.TargetMinChars) score += 4;
+                if (length >= ArticleDraftAi.TargetLength) score += 4;
                 if (count >= 7) score += 3;
             }
             score = Mathf.Clamp(score, 70, 100);
@@ -306,36 +294,6 @@ namespace StreetCat.Writing
             sb.AppendLine(UiLoc.T("ui.writing.review.pass_3", "记者不是负责把故事写得更传奇，是负责别把故事写错。"));
             sb.AppendLine(UiLoc.T("ui.writing.review.pass_4", "就这样，发吧。"));
             ApplyReview(score, "A", sb.ToString());
-        }
-
-        void AppendNamedStage(StringBuilder sb, string heading, List<string> selected, WritingDirection dir,
-            params ArticleStage[] stages)
-        {
-            int before = sb.Length;
-            var chunk = new StringBuilder();
-            AppendStage(chunk, selected, dir, stages);
-            if (chunk.Length == 0) return;
-            sb.AppendLine(heading);
-            sb.Append(chunk);
-            if (sb.Length > before) sb.AppendLine();
-        }
-
-        void AppendStage(StringBuilder sb, List<string> selected, WritingDirection dir, params ArticleStage[] stages)
-        {
-            foreach (var id in selected)
-            {
-                var m = MaterialCatalog.Get(id);
-                if (m == null) continue;
-                bool match = false;
-                foreach (var st in stages)
-                    if (m.stage == st) match = true;
-                // M01 can appear in A and E
-                if (!match && m.id == MaterialIds.M01)
-                    foreach (var st in stages)
-                        if (st == ArticleStage.A_PresentLife || st == ArticleStage.E_AfterReturn) match = true;
-                if (!match) continue;
-                sb.AppendLine(dir == WritingDirection.GuardCatToday ? m.textGuardCat : m.textRescue);
-            }
         }
 
         static string BuildRejectReview(string title, string detail, string advice)

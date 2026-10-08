@@ -31,12 +31,10 @@ namespace StreetCat.UI
 
         void ApplyParchmentDialogueColors()
         {
-            // Solid near-black on cream — no washed mid-grays.
             if (nameText != null) nameText.color = ArtPackInk;
             ApplyDialogueBodyColor(dialogueInkKind);
             if (statusText != null) statusText.color = ArtPackInkMuted;
-            if (clickHintText != null)
-                clickHintText.color = new Color(ArtPackInkMuted.r, ArtPackInkMuted.g, ArtPackInkMuted.b, 0.85f);
+            if (clickHintText != null) clickHintText.color = ArtPackInkMuted;
             if (choiceRoot != null)
             {
                 var labels = choiceRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
@@ -60,7 +58,6 @@ namespace StreetCat.UI
             if (bodyText == null) return;
             if (artPackParchmentActive)
             {
-                // All speaker kinds stay dark enough to read on parchment.
                 switch (kind)
                 {
                     case LineSpeaker.Narration:

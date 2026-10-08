@@ -76,6 +76,32 @@ namespace StreetCat.Loc
             { "等待林女士回复。", "Wait for Ms. Lin's reply." },
             { "明天下午三点，在槐安社区南门外的咖啡馆见林敏。", "Meet Lin Min at the café outside Huai’an Community’s south gate tomorrow at 3 p.m." },
             { "整理素材，完成报道。", "Organize materials and finish the article." },
+            { "完成周五的工作。", "Finish Friday's work." },
+            { "补充采访大福，补齐写稿所需素材。", "Re-interview Dafu to fill in the materials the article needs." },
+            { "补充采访林女士，补齐写稿所需素材。", "Re-interview Ms. Lin to fill in the materials the article needs." },
+            { "采访大福，了解它的过去。", "Interview Dafu and learn about his past." },
+            { "采访林女士，核实救助经过。", "Interview Ms. Lin and verify the rescue." },
+            { "等待大福上班，试着用翻译器对话。", "Wait for Dafu to clock in, then try talking through the translator." },
+            { "前往咖啡馆见林女士。", "Go to the café to meet Ms. Lin." },
+            { "去沈禾办公室一趟。", "Stop by Shen He's office." },
+            { "向保安打听救助者的线索。", "Ask the guard for leads on the rescuer." },
+            { "找到编辑部的保安猫。", "Find the guard cat for the editorial team." },
+        };
+
+        /// <summary>Segments of background labels such as「槐安社区_午后」, shown in the scene-title toast.</summary>
+        static readonly Dictionary<string, string> LocationEn = new Dictionary<string, string>
+        {
+            { "编辑部", "Editorial Office" },
+            { "编辑部工位", "Editorial Desk" },
+            { "工位", "Desk" },
+            { "沈禾办公室", "Shen He's Office" },
+            { "槐安社区", "Huai'an Community" },
+            { "社区平面图", "Community Map" },
+            { "保安亭", "Guard Booth" },
+            { "咖啡馆", "Café" },
+            { "上午", "Morning" },
+            { "午后", "Afternoon" },
+            { "傍晚", "Evening" },
         };
 
         public static void Reload()
@@ -243,14 +269,33 @@ namespace StreetCat.Loc
         public static string MapSpeaker(string name)
         {
             if (string.IsNullOrEmpty(name)) return name;
-            if (!GameSettings.IsEnglish) return name;
-            return SpeakerEn.TryGetValue(name, out var en) ? en : name;
+            var trimmed = name.Trim().TrimEnd('：', ':').Trim();
+            if (string.IsNullOrEmpty(trimmed)) return "";
+            if (!GameSettings.IsEnglish) return trimmed;
+            if (SpeakerEn.TryGetValue(trimmed, out var en)) return en;
+            foreach (var kv in SpeakerEn)
+            {
+                if (kv.Key.Length > 0 && trimmed.StartsWith(kv.Key, StringComparison.Ordinal))
+                    return kv.Value;
+            }
+            return HardTextLoc.T(trimmed);
         }
 
         public static string MapObjective(string zh)
         {
             if (string.IsNullOrEmpty(zh) || !GameSettings.IsEnglish) return zh;
-            return ObjectiveEn.TryGetValue(zh, out var en) ? en : zh;
+            return ObjectiveEn.TryGetValue(zh, out var en) ? en : HardTextLoc.T(zh);
+        }
+
+        /// <summary>Display form of a background label: segments split on '_'.</summary>
+        public static string MapLocation(string label)
+        {
+            if (string.IsNullOrEmpty(label)) return label ?? "";
+            if (!GameSettings.IsEnglish) return label.Replace("_", "　");
+            var parts = label.Split('_');
+            for (int i = 0; i < parts.Length; i++)
+                parts[i] = LocationEn.TryGetValue(parts[i], out var en) ? en : HardTextLoc.T(parts[i]);
+            return string.Join(" · ", parts);
         }
 
         public static string SceneTitle(string sceneId, string zhTitle)

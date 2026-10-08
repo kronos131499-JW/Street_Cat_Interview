@@ -168,7 +168,7 @@ namespace StreetCat.Investigation
             float y = Screen.height - tr.y;
             float w = tr.x - bl.x;
             float h = tr.y - bl.y;
-            var label = string.IsNullOrEmpty(Title) ? HotspotId : Title;
+            var label = string.IsNullOrEmpty(Title) || StreetCat.UI.ToolLang.English ? HotspotId : Title;
             GUI.color = new Color(0, 0, 0, 0.55f);
             GUI.Label(new Rect(x + 1, y + 1, w, 22), label);
             GUI.color = Color.white;

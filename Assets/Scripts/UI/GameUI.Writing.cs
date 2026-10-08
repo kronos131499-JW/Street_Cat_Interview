@@ -59,6 +59,12 @@ namespace StreetCat.UI
         TextMeshProUGUI writingDetailBody;
         Image writingDetailTagBg;
         TextMeshProUGUI writingPreviewBody;
+        GameObject writingReviewRoot;
+        TextMeshProUGUI writingReviewTitle;
+        TextMeshProUGUI writingReviewStatus;
+        TextMeshProUGUI writingReviewScore;
+        TextMeshProUGUI writingReviewBody;
+        Transform writingReviewActions;
         TextMeshProUGUI writingStatusHint;
         Button writingGoBtn;
         Button writingPreviewBtn;
@@ -423,6 +429,34 @@ namespace StreetCat.UI
                 writingPreviewBody.enableAutoSizing = false;
                 ApplyLetterSpacing(writingPreviewBody, 0f);
             }
+            if (writingReviewTitle != null)
+            {
+                writingReviewTitle.font = font;
+                writingReviewTitle.fontSize = Mathf.RoundToInt(34f * scale);
+                writingReviewTitle.fontStyle = FontStyles.Bold;
+                ApplyLetterSpacing(writingReviewTitle, 0f);
+            }
+            if (writingReviewStatus != null)
+            {
+                writingReviewStatus.font = font;
+                writingReviewStatus.fontSize = Mathf.RoundToInt(16f * scale);
+                ApplyLetterSpacing(writingReviewStatus, 0f);
+            }
+            if (writingReviewScore != null)
+            {
+                writingReviewScore.font = font;
+                writingReviewScore.fontSize = Mathf.RoundToInt(15f * scale);
+                ApplyLetterSpacing(writingReviewScore, 0f);
+            }
+            if (writingReviewBody != null)
+            {
+                writingReviewBody.font = font;
+                writingReviewBody.fontSize = Mathf.RoundToInt(18f * scale);
+                writingReviewBody.lineSpacing = 12f;
+                writingReviewBody.enableWordWrapping = true;
+                writingReviewBody.overflowMode = TextOverflowModes.Overflow;
+                ApplyLetterSpacing(writingReviewBody, 0f);
+            }
             // Paragraph strip + action buttons built once at overlay create time.
             if (writingParagraphList != null)
             {
@@ -596,6 +630,297 @@ namespace StreetCat.UI
             writingPreviewRoot.SetActive(false);
         }
 
+        void EnsureWritingReviewPanel()
+        {
+            if (writingReviewRoot != null || canvasRt == null) return;
+
+            writingReviewRoot = new GameObject("EditorReviewOverlay", typeof(RectTransform));
+            writingReviewRoot.transform.SetParent(canvasRt, false);
+            StretchFull(writingReviewRoot.GetComponent<RectTransform>());
+
+            var dim = CreateImage(writingReviewRoot.transform, "Dim", new Color(0f, 0f, 0f, 0.001f));
+            StretchFull(dim.rectTransform);
+            dim.raycastTarget = true;
+
+            var sheet = CreateImage(writingReviewRoot.transform, "Sheet", Color.white);
+            Stretch(sheet.rectTransform, new Vector2(0.02f, 0.255f), new Vector2(0.74f, 0.99f),
+                Vector2.zero, Vector2.zero);
+            var plate = LoadWritingSectionSprite("editor_review/panel");
+            if (plate != null)
+            {
+                sheet.sprite = plate;
+                sheet.color = Color.white;
+                sheet.type = Image.Type.Simple;
+                sheet.preserveAspect = true;
+                var fitter = sheet.gameObject.AddComponent<AspectRatioFitter>();
+                fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                fitter.aspectRatio = plate.rect.width / Mathf.Max(1f, plate.rect.height);
+            }
+            else
+            {
+                sheet.color = WmPaper;
+            }
+            sheet.raycastTarget = true;
+
+            writingReviewTitle = CreateUiText(sheet.transform, "Title", 34, TextAnchor.MiddleCenter,
+                WmInk, Vector2.zero, Vector2.zero);
+            Stretch(writingReviewTitle.rectTransform, new Vector2(0.16f, 0.825f), new Vector2(0.84f, 0.905f),
+                Vector2.zero, Vector2.zero);
+            writingReviewTitle.fontStyle = FontStyles.Bold;
+            writingReviewTitle.text = UiLoc.T("ui.writing.review_panel_title", "沈禾审核");
+
+            writingReviewStatus = CreateUiText(sheet.transform, "Status", 16, TextAnchor.MiddleLeft,
+                new Color(0.42f, 0.28f, 0.20f, 1f), Vector2.zero, Vector2.zero);
+            Stretch(writingReviewStatus.rectTransform, new Vector2(0.16f, 0.732f), new Vector2(0.40f, 0.775f),
+                Vector2.zero, Vector2.zero);
+
+            writingReviewScore = CreateUiText(sheet.transform, "Score", 15, TextAnchor.MiddleCenter,
+                new Color(0.48f, 0.22f, 0.20f, 1f), Vector2.zero, Vector2.zero);
+            Stretch(writingReviewScore.rectTransform, new Vector2(0.33f, 0.728f), new Vector2(0.67f, 0.770f),
+                Vector2.zero, Vector2.zero);
+            writingReviewScore.fontStyle = FontStyles.Bold;
+
+            var host = new GameObject("BodyHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+            host.transform.SetParent(sheet.transform, false);
+            Stretch(host.GetComponent<RectTransform>(), new Vector2(0.16f, 0.175f), new Vector2(0.84f, 0.715f),
+                Vector2.zero, Vector2.zero);
+            host.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.001f);
+            var scroll = host.GetComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 28f;
+
+            var vp = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
+            vp.transform.SetParent(host.transform, false);
+            StretchFull(vp.GetComponent<RectTransform>());
+            vp.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.01f);
+
+            var content = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
+            content.transform.SetParent(vp.transform, false);
+            var crt = content.GetComponent<RectTransform>();
+            crt.anchorMin = new Vector2(0f, 1f);
+            crt.anchorMax = new Vector2(1f, 1f);
+            crt.pivot = new Vector2(0.5f, 1f);
+            crt.sizeDelta = Vector2.zero;
+            content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            writingReviewBody = content.AddComponent<TextMeshProUGUI>();
+            writingReviewBody.font = font;
+            writingReviewBody.fontSize = 18;
+            writingReviewBody.color = WmInk;
+            writingReviewBody.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
+            writingReviewBody.enableWordWrapping = true;
+            writingReviewBody.overflowMode = TextOverflowModes.Overflow;
+            writingReviewBody.lineSpacing = 12f;
+            writingReviewBody.raycastTarget = false;
+            scroll.viewport = vp.GetComponent<RectTransform>();
+            scroll.content = crt;
+
+            var actions = new GameObject("Actions", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            actions.transform.SetParent(sheet.transform, false);
+            Stretch(actions.GetComponent<RectTransform>(), new Vector2(0.14f, 0.055f), new Vector2(0.86f, 0.165f),
+                Vector2.zero, Vector2.zero);
+            var row = actions.GetComponent<HorizontalLayoutGroup>();
+            row.spacing = 10f;
+            row.childAlignment = TextAnchor.MiddleCenter;
+            row.childForceExpandHeight = true;
+            row.childForceExpandWidth = true;
+            row.childControlWidth = true;
+            row.childControlHeight = true;
+            row.padding = new RectOffset(4, 4, 0, 0);
+            writingReviewActions = actions.transform;
+
+            writingReviewRoot.SetActive(false);
+        }
+
+        void HideWritingReviewPanel()
+        {
+            if (writingReviewRoot != null)
+                writingReviewRoot.SetActive(false);
+        }
+
+        Button SpawnReviewPanelButton(string name, string label, string subtitle, string spritePath,
+            Color fallback, UnityEngine.Events.UnityAction onClick)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            go.transform.SetParent(writingReviewActions, false);
+            var img = go.GetComponent<Image>();
+            var spr = LoadWritingSectionSprite(spritePath);
+            if (spr != null)
+            {
+                img.sprite = spr;
+                img.color = Color.white;
+                img.type = Image.Type.Simple;
+                img.preserveAspect = false;
+            }
+            else
+                img.color = fallback;
+            var le = go.GetComponent<LayoutElement>();
+            le.preferredHeight = 72f;
+            le.flexibleWidth = 1f;
+            le.minWidth = 90f;
+            var btn = go.GetComponent<Button>();
+            btn.targetGraphic = img;
+            btn.onClick.AddListener(() =>
+            {
+                SfxController.Instance?.PlayUi();
+                onClick?.Invoke();
+            });
+            float scale = GameSettings.FontSizeScale;
+            var cream = new Color(0.98f, 0.94f, 0.86f, 1f);
+            var muted = new Color(0.86f, 0.76f, 0.64f, 1f);
+            var title = CreateUiText(go.transform, "Label", Mathf.RoundToInt(15f * scale),
+                TextAnchor.MiddleCenter, cream, Vector2.zero, Vector2.zero);
+            Stretch(title.rectTransform, new Vector2(0.08f, 0.46f), new Vector2(0.92f, 0.88f),
+                Vector2.zero, Vector2.zero);
+            title.fontStyle = FontStyles.Bold;
+            title.enableWordWrapping = true;
+            title.overflowMode = TextOverflowModes.Truncate;
+            title.text = label;
+            title.raycastTarget = false;
+            var sub = CreateUiText(go.transform, "Sub", Mathf.RoundToInt(11f * scale),
+                TextAnchor.MiddleCenter, muted, Vector2.zero, Vector2.zero);
+            Stretch(sub.rectTransform, new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.48f),
+                Vector2.zero, Vector2.zero);
+            sub.fontStyle = FontStyles.Normal;
+            sub.enableWordWrapping = false;
+            sub.overflowMode = TextOverflowModes.Truncate;
+            sub.characterSpacing = 1.2f;
+            sub.text = subtitle ?? "";
+            sub.raycastTarget = false;
+            sub.gameObject.SetActive(!string.IsNullOrEmpty(subtitle));
+            return btn;
+        }
+
+        void ShowWritingReviewPanel()
+        {
+            EnsureWritingReviewPanel();
+            if (writingReviewRoot == null) return;
+
+            SetChrome(true, false, true);
+            if (writingReviewTitle != null)
+                writingReviewTitle.text = UiLoc.T("ui.writing.review_panel_title", "沈禾审核");
+            bool pass = assembler.CanPublish;
+            if (writingReviewStatus != null)
+            {
+                writingReviewStatus.text = pass
+                    ? UiLoc.T("ui.writing.review_status_pass", "审核通过")
+                    : UiLoc.T("ui.writing.review_status_fail", "审核退回");
+            }
+            if (writingReviewScore != null)
+            {
+                writingReviewScore.text = pass
+                    ? string.Format(UiLoc.T("ui.writing.review_score_pill", "评分 {0}"), assembler.Score)
+                    : string.Format(UiLoc.T("ui.writing.review_branch_pill", "退回分支 {0}"), assembler.ReviewBranch);
+                writingReviewScore.color = pass
+                    ? new Color(0.28f, 0.32f, 0.28f, 1f)
+                    : new Color(0.48f, 0.22f, 0.20f, 1f);
+            }
+            if (writingReviewBody != null)
+                writingReviewBody.text = HardTextLoc.T(assembler.ReviewText ?? "");
+
+            if (writingReviewActions != null)
+            {
+                foreach (Transform child in writingReviewActions)
+                    Destroy(child.gameObject);
+
+                if (pass)
+                {
+                    SpawnReviewPanelButton("Publish",
+                        UiLoc.T("ui.writing.confirm_publish", "确认发布"),
+                        UiLoc.T("ui.writing.confirm_publish_sub", "可以见报"),
+                        "editor_review/back_to_writing", WmTeal,
+                        () =>
+                        {
+                            HideWritingReviewPanel();
+                            ChapterFlowController.Instance.OnArticlePublished();
+                        });
+                }
+                else
+                {
+                    SpawnReviewPanelButton("BackWrite",
+                        UiLoc.T("ui.writing.back_to_write", "返回写稿"),
+                        UiLoc.T("ui.writing.back_to_write_sub", "继续修改"),
+                        "editor_review/back_to_writing", WmTeal,
+                        () =>
+                        {
+                            HideWritingReviewPanel();
+                            ShowMaterialPick();
+                        });
+                    SpawnReviewPanelButton("Notebook",
+                        UiLoc.T("ui.writing.view_notebook", "查看记者笔记"),
+                        UiLoc.T("ui.writing.view_notebook_sub", "查看素材"),
+                        "editor_review/open_notebook", WmInk,
+                        OpenNotebook);
+                    AddReInterviewActionsToReviewPanel();
+                }
+
+                SpawnReviewPanelButton("ReselectDir",
+                    UiLoc.T("ui.writing.reselect_dir", "重选立意"),
+                    UiLoc.T("ui.writing.reselect_dir_sub", "换个角度"),
+                    "editor_review/reselect", new Color(0.62f, 0.32f, 0.20f, 1f),
+                    () =>
+                    {
+                        HideWritingReviewPanel();
+                        ShowWritingDirectionPick();
+                    });
+            }
+
+            writingReviewRoot.SetActive(true);
+            writingReviewRoot.transform.SetAsLastSibling();
+            if (portraitImage != null)
+                portraitImage.transform.SetAsLastSibling();
+            if (dialoguePanel != null)
+                dialoguePanel.transform.SetAsLastSibling();
+            EnsureTopHudClickable();
+            ApplyWritingFonts();
+        }
+
+        void AddReInterviewActionsToReviewPanel()
+        {
+            var dafuDone = GameState.Instance.HasFlag(FlagIds.DafuInterviewDone);
+            var linDone = GameState.Instance.HasFlag(FlagIds.LinInterviewDone);
+            if (!dafuDone && !linDone) return;
+
+            if (dafuDone && linDone)
+            {
+                SpawnReviewPanelButton("ReInterview",
+                    UiLoc.T("ui.writing.reinterview_any", "重新采访…"),
+                    UiLoc.T("ui.writing.reinterview_sub", "再去问问"),
+                    "editor_review/re_interview", WmInk,
+                    () =>
+                    {
+                        HideWritingReviewPanel();
+                        ShowReInterviewMenu();
+                    });
+                return;
+            }
+
+            if (dafuDone)
+            {
+                SpawnReviewPanelButton("ReDafu",
+                    UiLoc.T("ui.writing.reinterview_dafu", "重新采访大福"),
+                    UiLoc.T("ui.writing.reinterview_sub", "再去问问"),
+                    "editor_review/re_interview", WmInk,
+                    () =>
+                    {
+                        HideWritingReviewPanel();
+                        ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Dafu);
+                    });
+            }
+            if (linDone)
+            {
+                SpawnReviewPanelButton("ReLin",
+                    UiLoc.T("ui.writing.reinterview_lin", "重新采访林女士"),
+                    UiLoc.T("ui.writing.reinterview_sub", "再去问问"),
+                    "editor_review/re_interview", WmInk,
+                    () =>
+                    {
+                        HideWritingReviewPanel();
+                        ChapterFlowController.Instance.BeginReInterview(InterviewSubject.Lin);
+                    });
+            }
+        }
+
         Button SpawnWritingActionButton(Transform parent, string name, string label, Color bg,
             Vector2 aMin, Vector2 aMax, UnityEngine.Events.UnityAction onClick)
         {
@@ -761,6 +1086,7 @@ namespace StreetCat.UI
         {
             if (writingMatsRoot != null) writingMatsRoot.SetActive(false);
             if (writingPreviewRoot != null) writingPreviewRoot.SetActive(false);
+            HideWritingReviewPanel();
         }
 
         void RefreshWritingMatsLocalizedChrome()
@@ -1042,11 +1368,22 @@ namespace StreetCat.UI
             {
                 var mark = CreateImage(go.transform, "Picked", Color.white);
                 var mrt = mark.rectTransform;
-                mrt.anchorMin = mrt.anchorMax = new Vector2(0.84f, 0.14f);
+                mrt.anchorMin = mrt.anchorMax = new Vector2(0.82f, 0.16f);
                 mrt.pivot = new Vector2(0.5f, 0.5f);
-                mrt.sizeDelta = new Vector2(28f, 28f);
                 mark.raycastTarget = false;
-                ApplyWritingDotArt(mark, true);
+                var paw = MaterialCardArt.PickedMark;
+                if (paw != null)
+                {
+                    mark.sprite = paw;
+                    mark.preserveAspect = true;
+                    mark.type = Image.Type.Simple;
+                    mrt.sizeDelta = new Vector2(78f, 60f);
+                }
+                else
+                {
+                    mrt.sizeDelta = new Vector2(28f, 28f);
+                    ApplyWritingDotArt(mark, true);
+                }
             }
         }
 
@@ -1321,6 +1658,7 @@ namespace StreetCat.UI
             // Preserve player edits from the desk input before tearing the overlay down.
             SyncWritingDeskDraftToAssembler();
             HideWritingDesk();
+            HideWritingReviewPanel();
             if (!assembler.CanAssemble(pendingDir, selectedMats, out var err))
             {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -1389,25 +1727,15 @@ namespace StreetCat.UI
             NotifyPortraitDebugLineChanged();
 #endif
             SetSpeaker("沈禾", LineSpeaker.Character, assembler.CanPublish ? "淡淡认可" : "认真");
-            // Review / score only — full article stays on the writing desk.
-            SetBody(string.Format(
-                UiLoc.T("ui.writing.review_header", "—— 沈禾审核 ——\n{0}\n\n评分　{1}"),
-                HardTextLoc.T(assembler.ReviewText),
-                assembler.Score));
+            SetBody(assembler.CanPublish
+                ? UiLoc.T("ui.writing.review_spoken_pass", "看完了。意见写在这张纸上。")
+                : UiLoc.T("ui.writing.review_spoken_fail", "这稿还得改。意见写在这张纸上。"));
             statusText.text = assembler.CanPublish
                 ? string.Format(UiLoc.T("ui.writing.pass_fmt", "审核通过　{0}"), assembler.Score)
                 : string.Format(UiLoc.T("ui.writing.fail_fmt", "审核退回　分支{0}"), assembler.ReviewBranch);
             ClearButtons();
-            if (assembler.CanPublish)
-                AddAction(UiLoc.T("ui.writing.confirm_publish", "确认发布"),
-                    () => ChapterFlowController.Instance.OnArticlePublished(), true);
-            else
-            {
-                AddAction(UiLoc.T("ui.writing.back_to_write", "返回写稿"), ShowMaterialPick, true);
-                AddAction(UiLoc.T("ui.writing.view_notebook", "查看记者笔记"), OpenNotebook);
-                AddReInterviewActions(true);
-            }
-            AddAction(UiLoc.T("ui.writing.reselect_dir", "重选立意"), ShowWritingDirectionPick);
+            SetAdvanceEnabled(false);
+            ShowWritingReviewPanel();
             writingReviewCo = null;
         }
 

@@ -206,6 +206,8 @@ namespace StreetCat.Interview
                 sb.AppendLine("3. 对常见闲聊要贴切回答；不要只会反问「有吃的吗」。");
                 sb.AppendLine("4. 听不懂人类抽象/医疗/制度问题时保持困惑，不要编造人类解释。");
                 sb.AppendLine("5. 不要编造具体人名（除「大福」）、地址、金额、医疗诊断。");
+                sb.AppendLine("5b. 禁止编造硬事实里没有的情节：狗、接吻/恋爱、占领大门、把记者认成那个女人的味道。");
+                sb.AppendLine("5c. 若参考意图是 generic：只能表示没听懂或请对方换个问法，禁止补一段新故事。");
                 sb.AppendLine("6. 每行一句，通常 1～4 句；只输出大福台词，不要旁白、引号或「大福：」前缀。");
                 sb.AppendLine("7. 食物相关（吃/粮/罐头/小鱼干/投喂/好吃/饭/饿/喂等）在最近 "
                     + DafuFoodWindowSize + " 句回答中最多出现 " + DafuFoodMaxPerWindow + " 次。"
@@ -238,6 +240,7 @@ namespace StreetCat.Interview
                 sb.AppendLine("1. 态度：救助≠必须收养；放归是容量限制下的选择。");
                 sb.AppendLine("2. 对指责可防备，但不攻击记者；不说教、不写成鸡汤演讲。");
                 sb.AppendLine("3. 不要编造与主线冲突的新反转；不确定时可以说「记不清了」或「当时顾不上」。");
+                sb.AppendLine("3b. 若参考意图是 generic：必须反问想了解哪一段（发现 / 投喂 / 送医 / 为什么送回来），禁止编造自己几点路过社区。");
                 sb.AppendLine("4. 每行一句，通常 1～4 句；只输出林女士台词，不要旁白或角色名前缀。");
                 if (reply != null && reply.isRepeat)
                     sb.AppendLine("5. 本题不宜复读旧说明：可简短接话或请对方换个问法，勿堆砌重复事实清单。");
@@ -288,6 +291,12 @@ namespace StreetCat.Interview
                 int start = Math.Max(0, log.Count - 10);
                 for (int i = start; i < log.Count; i++)
                     sb.AppendLine(log[i]);
+            }
+            if (reply != null && InterviewRuleEngine.IsLlmUnsafeIntent(reply.intent))
+            {
+                sb.AppendLine(subject == InterviewSubject.Lin
+                    ? "【锁定】generic：只能反问想了解哪一段，禁止编造自己几点来社区。"
+                    : "【锁定】generic：只能表示没听懂或请换个问法，禁止补新情节。");
             }
             sb.AppendLine("【输出】只输出角色回答，每行一句。");
             return sb.ToString();
@@ -348,6 +357,15 @@ namespace StreetCat.Interview
             }
 
             if (subject == InterviewSubject.Lin && !AcceptLinCanon(joined, ruleReply, out rejectReason))
+                return false;
+
+            if (subject == InterviewSubject.Dafu
+                && InterviewLoc.HasInventedDafuAside(joined, out rejectReason))
+                return false;
+
+            var intent = ruleReply?.intent ?? "";
+            if (intent == "generic" && subject == InterviewSubject.Lin
+                && !InterviewLoc.AcceptLinGenericRedirect(joined, out rejectReason))
                 return false;
 
             // Block prompt-injection style leakage.

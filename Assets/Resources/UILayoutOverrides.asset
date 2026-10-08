@@ -450,25 +450,6 @@ MonoBehaviour:
     textColor: {r: 1, g: 1, b: 1, a: 1}
     textMarginTop: 0
     textOnly: 0
-  - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_tabby#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0.4897962, y: 0.78743976}
-    anchorMax: {x: 0.6308796, y: 0.92849433}
-    pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: -8.4, y: 33.6}
-    sizeDelta: {x: 0, y: 0}
-    fontSize: 0
-    fontId: 
-    overrideLetterSpacing: 0
-    letterSpacing: 0
-    overrideFontStyle: 0
-    bold: 0
-    fontWeight: 0
-    overrideColor: 0
-    textColor: {r: 1, g: 1, b: 1, a: 1}
-    textMarginTop: 0
-    textOnly: 0
   - path: VnCanvas/InvestigateOverlay#0/HotspotLayer#0/Spot_vending#0
     deleted: 0
     ignoreParentLayout: 0
@@ -523,7 +504,7 @@ MonoBehaviour:
     bold: 0
     fontWeight: 0
     overrideColor: 0
-    textColor: {r: 0.02, g: 0.02, b: 0.02, a: 1}
+    textColor: {r: 0.16470589, g: 0.07058824, b: 0.007843137, a: 1}
     textMarginTop: 0
     textOnly: 0
   - path: VnCanvas/NotebookOverlay#0/Desk#0/InspireHost#0/InspireSticky#0
@@ -551,8 +532,8 @@ MonoBehaviour:
     anchorMin: {x: 0, y: 1}
     anchorMax: {x: 0, y: 1}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 897.9, y: 36.9}
-    sizeDelta: {x: 147.6, y: 98.4}
+    anchoredPosition: {x: 881.6, y: 30.4}
+    sizeDelta: {x: 167.2, y: 106.4}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -1688,11 +1669,11 @@ MonoBehaviour:
   - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0/Act#0
     deleted: 0
     ignoreParentLayout: 1
-    anchorMin: {x: 0, y: 1}
-    anchorMax: {x: 0, y: 1}
+    anchorMin: {x: 0.05, y: 0.54}
+    anchorMax: {x: 0.95, y: 0.74}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 119.641754, y: -29}
-    sizeDelta: {x: 239.28351, y: 58}
+    anchoredPosition: {x: -3.999939, y: 25.96}
+    sizeDelta: {x: 13.16807, y: 29.600002}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -1707,11 +1688,11 @@ MonoBehaviour:
   - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0/Act#2
     deleted: 0
     ignoreParentLayout: 1
-    anchorMin: {x: 0, y: 1}
-    anchorMax: {x: 0, y: 1}
+    anchorMin: {x: 0.05, y: 0.10000001}
+    anchorMax: {x: 0.95, y: 0.3}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 119.641754, y: -92}
-    sizeDelta: {x: 239.28351, y: 58}
+    anchoredPosition: {x: -0, y: -40}
+    sizeDelta: {x: 13.16807, y: 29.600002}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -1748,8 +1729,8 @@ MonoBehaviour:
     anchorMin: {x: 0, y: 1}
     anchorMax: {x: 0, y: 1}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 121.641754, y: -120}
-    sizeDelta: {x: 239.28351, y: 232}
+    anchoredPosition: {x: 136.8, y: -182.4}
+    sizeDelta: {x: 272.47992, y: 232}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -1764,11 +1745,11 @@ MonoBehaviour:
   - path: VnCanvas/InterviewOverlay#0/RightColumn#0/ToolbarPad#0/Paper#0/Actions#0/Tools#0/Act#1
     deleted: 0
     ignoreParentLayout: 1
-    anchorMin: {x: 0, y: 1}
-    anchorMax: {x: 0, y: 1}
+    anchorMin: {x: 0.05, y: 0.32}
+    anchorMax: {x: 0.95, y: 0.52}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 169.17159, y: -37.3415}
-    sizeDelta: {x: 356.7, y: 73.8}
+    anchoredPosition: {x: 0, y: -7}
+    sizeDelta: {x: 13.16807, y: 29.600002}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -1875,25 +1856,6 @@ MonoBehaviour:
     textColor: {r: 0.1, g: 0.08, b: 0.06, a: 1}
     textMarginTop: 0
     textOnly: 1
-  - path: VnCanvas/DialogueBox#0/BodyHost#0/Viewport#0/Content#0
-    deleted: 0
-    ignoreParentLayout: 0
-    anchorMin: {x: 0, y: 1}
-    anchorMax: {x: 1, y: 1}
-    pivot: {x: 0.5, y: 1}
-    anchoredPosition: {x: 0, y: 0.84906006}
-    sizeDelta: {x: 0, y: 236.34901}
-    fontSize: 0
-    fontId: 
-    overrideLetterSpacing: 0
-    letterSpacing: 0.56
-    overrideFontStyle: 0
-    bold: 0
-    fontWeight: 0
-    overrideColor: 0
-    textColor: {r: 0.05, g: 0.04, b: 0.03, a: 1}
-    textMarginTop: 20.543213
-    textOnly: 0
   - path: VnCanvas/DialogueBox#0
     deleted: 0
     ignoreParentLayout: 0
@@ -2331,4 +2293,42 @@ MonoBehaviour:
     overrideColor: 0
     textColor: {r: 1, g: 1, b: 1, a: 1}
     textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/ChoiceHost#0/Viewport#0/Choices#0/Btn#1
+    deleted: 0
+    ignoreParentLayout: 1
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 0, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 666.5739, y: -280}
+    sizeDelta: {x: 814.8, y: 168}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/DialogueBox#0/BodyHost#0/Viewport#0/Content#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 1}
+    anchoredPosition: {x: -0, y: 0.000015258789}
+    sizeDelta: {x: 0, y: 134.04001}
+    fontSize: 0
+    fontId: verdana
+    overrideLetterSpacing: 1
+    letterSpacing: 1.14
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 1
+    textColor: {r: 0.16470589, g: 0.07058824, b: 0.007843137, a: 1}
+    textMarginTop: 34.543182
     textOnly: 0

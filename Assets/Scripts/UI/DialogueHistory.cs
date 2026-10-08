@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using StreetCat.Core;
+using StreetCat.Loc;
 using UnityEngine;
 
 namespace StreetCat.UI
@@ -120,11 +121,15 @@ namespace StreetCat.UI
         public string BuildPlainText()
         {
             var sb = new StringBuilder();
+            var english = GameSettings.IsEnglish;
+            var gap = english ? ": " : "　";
             foreach (var e in entries)
             {
-                if (!string.IsNullOrEmpty(e.speaker))
-                    sb.Append(e.speaker).Append("　");
-                sb.AppendLine(e.text);
+                var speaker = ScriptLoc.MapSpeaker(e.speaker);
+                var text = HardTextLoc.T(e.text ?? "");
+                if (!string.IsNullOrEmpty(speaker))
+                    sb.Append(speaker).Append(gap);
+                sb.AppendLine(text);
                 sb.AppendLine();
             }
             return sb.ToString().TrimEnd();

@@ -537,6 +537,13 @@ namespace StreetCat.UI
                 backlogTitleText.text = UiLoc.T("ui.backlog.title", "对话回看");
             if (backlogCloseLabel != null)
                 backlogCloseLabel.text = UiLoc.T("ui.backlog.close", "关闭");
+            if (backlogRoot != null && backlogRoot.activeSelf && backlogText != null)
+            {
+                var hist = DialogueHistory.Instance != null ? DialogueHistory.Instance.BuildPlainText() : "";
+                backlogText.text = string.IsNullOrEmpty(hist)
+                    ? UiLoc.T("ui.backlog.empty", "（还没有可回看的对话）")
+                    : hist;
+            }
             if (menuRoot != null)
             {
                 foreach (var tag in menuRoot.GetComponentsInChildren<LocTag>(true))
@@ -555,6 +562,8 @@ namespace StreetCat.UI
                 ApplyHideDialogueArt(hideDialogueBtn, hideDialogueLabel);
             RefreshNotebookLocalizedChrome();
             RefreshWritingMatsLocalizedChrome();
+            if (writingReviewRoot != null && writingReviewRoot.activeSelf)
+                ShowWritingReviewPanel();
             RefreshInterviewMeterLabels();
             if (mode == Mode.Title)
                 RebuildTitleActionsOnly();

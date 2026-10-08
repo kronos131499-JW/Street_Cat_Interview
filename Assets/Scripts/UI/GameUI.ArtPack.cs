@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using StreetCat.Data;
+using StreetCat.Interview;
 using StreetCat.Loc;
 using TMPro;
 using UnityEngine;
@@ -15,18 +17,23 @@ namespace StreetCat.UI
         const string ArtPackRoot = "VnArt/UI/ArtPack/";
         static readonly Dictionary<string, Sprite> ArtPackCache = new Dictionary<string, Sprite>();
 
-        // Near-black ink. The parchment grain shows through gray edges, so narration
-        // must stay as dark as speech or the line looks washed out.
-        static readonly Color ArtPackInk = new Color(0.02f, 0.02f, 0.02f, 1f);
-        static readonly Color ArtPackInkMuted = new Color(0.05f, 0.04f, 0.03f, 1f);
-        static readonly Color ArtPackInkInner = new Color(0.06f, 0.07f, 0.10f, 1f);
-        static readonly Color ArtPackInkSystem = new Color(0.28f, 0.12f, 0.04f, 1f);
+        // Deep brown #2A1202. Every parchment dialogue role uses this same ink.
+        static readonly Color DialogueInk = new Color(42f / 255f, 18f / 255f, 2f / 255f, 1f);
+        static readonly Color ArtPackInk = DialogueInk;
+        static readonly Color ArtPackInkMuted = DialogueInk;
+        static readonly Color ArtPackInkInner = DialogueInk;
+        static readonly Color ArtPackInkSystem = DialogueInk;
 
         // The paper window inside 自由采访/照片框, measured off the sprite (376x530):
         // x 54..336, y 65..372 top-down. Anchors are relative to the frame's own rect,
         // so they hold at any window aspect as long as the art itself doesn't change.
         static readonly Vector2 InterviewPhotoWindowMin = new Vector2(0.1436f, 0.2962f);
         static readonly Vector2 InterviewPhotoWindowMax = new Vector2(0.8963f, 0.8774f);
+
+        // Brown window inside FreeInterview/01_photo_background_lin (1086x1448),
+        // same outer-edge convention as above.
+        static readonly Vector2 LinPhotoWindowMin = new Vector2(0.110f, 0.345f);
+        static readonly Vector2 LinPhotoWindowMax = new Vector2(0.912f, 0.880f);
 
         bool artPackParchmentActive;
         bool artPackNotebookTabActive;
@@ -351,39 +358,7 @@ namespace StreetCat.UI
             SkinInterviewMeter("Focus", "自由采访/专注 图标", "自由采访/专注 字", "自由采访/专注 框",
                 new Color(0.20f, 0.55f, 0.72f, 1f));
 
-            var frameHost = interviewRoot.transform.Find("LeftColumn/PortraitPad");
-            if (frameHost != null)
-            {
-                var frame = FindImage(interviewRoot, "LeftColumn/PortraitPad/ArtFrame");
-                if (frame == null)
-                {
-                    frame = CreateImage(frameHost, "ArtFrame", Color.white);
-                    frame.raycastTarget = false;
-                }
-                if (ApplyArtPackImage(frame, "自由采访/照片框", false))
-                {
-                    StretchFull(frame.rectTransform);
-                    // A fitter (rather than preserveAspect) makes the rect match the drawn
-                    // polaroid, so the headshot can anchor to the paper window inside it.
-                    var card = frame.sprite.rect;
-                    var fitter = frame.GetComponent<AspectRatioFitter>();
-                    if (fitter == null)
-                        fitter = frame.gameObject.AddComponent<AspectRatioFitter>();
-                    fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
-                    fitter.aspectRatio = card.width / Mathf.Max(1f, card.height);
-
-                    if (interviewPortraitImage != null)
-                    {
-                        interviewPortraitImage.transform.SetParent(frame.transform, false);
-                        Stretch(interviewPortraitImage.rectTransform,
-                            InterviewPhotoWindowMin, InterviewPhotoWindowMax,
-                            Vector2.zero, Vector2.zero);
-                        interviewPortraitImage.transform.SetAsLastSibling();
-                    }
-                }
-                frame.transform.SetSiblingIndex(0);
-                HidePath(interviewRoot.transform, "LeftColumn/PortraitPad/Paper/NamePlate");
-            }
+            ApplyInterviewPhotoFrame();
 
             var inputBar = FindImage(interviewRoot, "CenterColumn/MainPaper/InputBar");
             if (inputBar != null && FreeInterviewArt.Input != null)
@@ -400,6 +375,66 @@ namespace StreetCat.UI
             if (ApplyArtPackImage(interviewSendBtnImage, "自由采访/发送键", true)
                 && interviewSendLabel != null)
                 interviewSendLabel.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Dafu uses 自由采访/照片框; Ms. Lin has her own captioned polaroid.
+        /// Runs from the interview skin pass, after InterviewController.Begin has set the subject.
+        /// </summary>
+        void ApplyInterviewPhotoFrame()
+        {
+            if (interviewRoot == null) return;
+            var frameHost = interviewRoot.transform.Find("LeftColumn/PortraitPad");
+            if (frameHost == null) return;
+
+            var frame = FindImage(interviewRoot, "LeftColumn/PortraitPad/ArtFrame");
+            if (frame == null)
+            {
+                frame = CreateImage(frameHost, "ArtFrame", Color.white);
+                frame.raycastTarget = false;
+            }
+
+            var lin = InterviewController.Instance != null
+                      && InterviewController.Instance.Subject == InterviewSubject.Lin;
+            var linPlate = lin ? FreeInterviewArt.PhotoLin : null;
+            bool applied;
+            if (linPlate != null)
+            {
+                frame.sprite = linPlate;
+                frame.type = Image.Type.Simple;
+                frame.preserveAspect = false;
+                frame.color = Color.white;
+                applied = true;
+            }
+            else
+            {
+                applied = ApplyArtPackImage(frame, "自由采访/照片框", false);
+            }
+
+            if (applied)
+            {
+                StretchFull(frame.rectTransform);
+                // A fitter (rather than preserveAspect) makes the rect match the drawn
+                // polaroid, so the headshot can anchor to the paper window inside it.
+                var card = frame.sprite.rect;
+                var fitter = frame.GetComponent<AspectRatioFitter>();
+                if (fitter == null)
+                    fitter = frame.gameObject.AddComponent<AspectRatioFitter>();
+                fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                fitter.aspectRatio = card.width / Mathf.Max(1f, card.height);
+
+                if (interviewPortraitImage != null)
+                {
+                    interviewPortraitImage.transform.SetParent(frame.transform, false);
+                    Stretch(interviewPortraitImage.rectTransform,
+                        linPlate != null ? LinPhotoWindowMin : InterviewPhotoWindowMin,
+                        linPlate != null ? LinPhotoWindowMax : InterviewPhotoWindowMax,
+                        Vector2.zero, Vector2.zero);
+                    interviewPortraitImage.transform.SetAsLastSibling();
+                }
+            }
+            frame.transform.SetSiblingIndex(0);
+            HidePath(interviewRoot.transform, "LeftColumn/PortraitPad/Paper/NamePlate");
         }
 
         void EnsureEndInterviewRibbonHit(RectTransform rightColumn)
@@ -1166,18 +1201,21 @@ namespace StreetCat.UI
             if (image == null) return;
             image.sprite = idleSpr;
             image.type = Image.Type.Simple;
-            image.preserveAspect = true;
+            image.preserveAspect = false;
             image.color = Color.white;
             var box = button.GetComponent<LayoutElement>();
             if (box != null)
                 box.ignoreLayout = true;
             var rt = button.GetComponent<RectTransform>();
+            // Fractions of the Tools rect (top-down): three equal slots under the END INTERVIEW tape.
+            float slotY;
             if (ContainsAny(label, "回看", "回放", "Backlog", "Review"))
-                PlaceInterviewTool(rt, 0.05f, 0.26f, 0.90f, 0.20f);
+                slotY = 0.36f;
             else if (ContainsAny(label, "笔记", "Notebook", "Notes"))
-                PlaceInterviewTool(rt, 0.05f, 0.48f, 0.90f, 0.20f);
+                slotY = 0.57f;
             else
-                PlaceInterviewTool(rt, 0.05f, 0.70f, 0.90f, 0.20f);
+                slotY = 0.78f;
+            PlaceInterviewToolPaint(rt, idleSpr, idle, 0.13f, slotY, 0.74f, 0.175f);
             button.transition = Selectable.Transition.SpriteSwap;
             button.spriteState = new SpriteState
             {
@@ -1188,6 +1226,49 @@ namespace StreetCat.UI
             };
             if (labelText != null)
                 labelText.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// Painted bounds (x, y from bottom, w, h) of the interview tool strips. The files carry
+        /// uneven transparent padding (notes idle has 12px), which made Notes draw smaller.
+        /// </summary>
+        static readonly Dictionary<string, RectInt> InterviewToolPaint = new Dictionary<string, RectInt>
+        {
+            { "自由采访/回放框（未选中）", new RectInt(6, 1, 236, 69) },
+            { "自由采访/回放框（选中）", new RectInt(6, 3, 236, 69) },
+            { "自由采访/目录框（未选中）", new RectInt(6, 3, 236, 69) },
+            { "自由采访/目录框（选中）", new RectInt(5, 0, 235, 66) },
+            { "自由采访/笔记框（未选中）", new RectInt(12, 5, 236, 68) },
+            { "自由采访/笔记框（选中）", new RectInt(5, 2, 236, 68) },
+        };
+
+        /// <summary>
+        /// Anchors the button so the painted part of <paramref name="sprite"/> fills the slot
+        /// (x, y top-down, w, h in parent fractions) and the transparent margin spills outside it.
+        /// </summary>
+        static void PlaceInterviewToolPaint(RectTransform rt, Sprite sprite, string path,
+            float x, float y, float w, float h)
+        {
+            if (rt == null) return;
+            if (sprite == null || !InterviewToolPaint.TryGetValue(path, out var paint)
+                || paint.width <= 0 || paint.height <= 0)
+            {
+                PlaceInterviewTool(rt, x, y, w, h);
+                return;
+            }
+            float sw = sprite.rect.width;
+            float sh = sprite.rect.height;
+            float bottom = 1f - (y + h);
+            float top = 1f - y;
+            rt.anchorMin = new Vector2(
+                x - paint.x / (float)paint.width * w,
+                bottom - paint.y / (float)paint.height * h);
+            rt.anchorMax = new Vector2(
+                x + w + (sw - paint.x - paint.width) / paint.width * w,
+                top + (sh - paint.y - paint.height) / paint.height * h);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            rt.pivot = new Vector2(0.5f, 0.5f);
         }
 
         bool ApplyTitleButtonArt(Button button, string label)

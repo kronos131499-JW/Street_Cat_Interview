@@ -473,6 +473,68 @@ namespace StreetCat.UI
 
         static TMP_FontAsset ResolveTitleFont() => TmpFontCatalog.Resolve(GameSettings.UiFontId);
 
+        /// <summary>VN dialogue face. Other screens keep <see cref="GameSettings.UiFontId"/>.</summary>
+        const string DialogueFontId = "verdana";
+        const float DialogueLetterSpacingPx = 1.14f;
+
+        TMP_FontAsset ResolveDialogueFont()
+        {
+            var face = TmpFontCatalog.Resolve(DialogueFontId);
+            return face != null ? face : font;
+        }
+
+        void ApplyDialogueFace(TextMeshProUGUI t, FontStyles extraStyle = FontStyles.Normal)
+        {
+            if (t == null) return;
+            t.font = ResolveDialogueFont();
+            t.extraPadding = true;
+            t.overflowMode = TextOverflowModes.Overflow;
+            ApplyLetterSpacing(t, DialogueLetterSpacingPx);
+            SharpenDialogueTmp(t, extraStyle);
+            // Verdana's thin joins (k, e, a) drop out on cream parchment at dialogue size.
+            // A small extra dilate keeps the glyph in one piece without changing the global weight.
+            var mat = t.fontMaterial;
+            if (mat != null && mat.HasProperty(ShaderUtilities.ID_FaceDilate))
+            {
+                mat.SetFloat(ShaderUtilities.ID_FaceDilate,
+                    mat.GetFloat(ShaderUtilities.ID_FaceDilate) + 0.08f);
+                t.UpdateMeshPadding();
+            }
+        }
+
+        bool IsDialogueCopy(TextMeshProUGUI t)
+        {
+            if (t == null) return false;
+            if (t == bodyText || t == nameText) return true;
+            return choiceRoot != null && t.transform.IsChildOf(choiceRoot.transform);
+        }
+
+        void ApplyDialogueTypography()
+        {
+            ApplyDialogueFace(bodyText);
+            ApplyDialogueFace(nameText);
+            if (bodyText != null)
+            {
+                var m = bodyText.margin;
+                if (m.x < 8f) m.x = 8f;
+                if (m.z < 8f) m.z = 8f;
+                bodyText.margin = m;
+            }
+            if (dialogueScroll != null && dialogueScroll.viewport != null)
+            {
+                var mask = dialogueScroll.viewport.GetComponent<RectMask2D>();
+                if (mask != null)
+                    mask.padding = new Vector4(-10f, -10f, -10f, -10f);
+            }
+            if (choiceRoot != null)
+            {
+                var labels = choiceRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
+                for (int i = 0; i < labels.Length; i++)
+                    ApplyDialogueFace(labels[i], FontStyles.Bold);
+            }
+            RefreshDialogueFontColors();
+        }
+
         void ApplyActiveFonts()
         {
             font = ResolveUiFont();
@@ -491,7 +553,7 @@ namespace StreetCat.UI
             for (int i = 0; i < texts.Length; i++)
             {
                 var t = texts[i];
-                if (t == null) continue;
+                if (t == null || IsDialogueCopy(t)) continue;
                 bool titleish = titleRoot != null && t.transform.IsChildOf(titleRoot.transform);
                 t.font = titleish ? titleFont : font;
                 // Letter-spacing mesh hack breaks Wrap — only apply to non-wrapping lines.
@@ -504,16 +566,14 @@ namespace StreetCat.UI
 
             if (bodyText != null)
             {
-                bodyText.font = font;
-                // VN body copy: large enough to read across the room. Weight comes from settings.
+                // Size follows the global scale. Face + tracking are dialogue-only (Verdana / 1.14).
                 bodyText.fontSize = Mathf.RoundToInt((artPackParchmentActive ? 38f : 34f) * scale);
                 bodyText.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
                 bodyText.enableWordWrapping = true;
                 bodyText.overflowMode = TextOverflowModes.Overflow;
                 bodyText.lineSpacing = artPackParchmentActive ? 16f : 18f;
                 bodyText.extraPadding = true;
-                ApplyLetterSpacing(bodyText, Mathf.Min(spacing, 1.2f) * 0.25f);
-                SharpenDialogueTmp(bodyText);
+                ApplyDialogueFace(bodyText);
                 var contentRt = bodyText.rectTransform;
                 if (dialogueScroll != null && dialogueScroll.viewport != null)
                 {
@@ -529,12 +589,10 @@ namespace StreetCat.UI
             }
             if (nameText != null)
             {
-                nameText.font = font;
                 nameText.fontSize = Mathf.RoundToInt(28f * scale);
                 nameText.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 nameText.enableWordWrapping = false;
-                ApplyLetterSpacing(nameText, Mathf.Min(spacing, 1.5f) * 0.35f);
-                SharpenDialogueTmp(nameText);
+                ApplyDialogueFace(nameText);
             }
             if (statusText != null)
             {
@@ -598,10 +656,12 @@ namespace StreetCat.UI
             int weight = GameSettings.FontWeight;
             for (int i = 0; i < styled.Length; i++)
             {
-                if (styled[i] != null)
+                if (styled[i] != null && !IsDialogueCopy(styled[i]))
                     VnText.ApplyFontWeight(styled[i], weight);
             }
             UILayoutOverrides.ReapplyTextStyles();
+            // Layout overrides must not steal dialogue off Verdana.
+            ApplyDialogueTypography();
         }
 
         public void RefreshTypography() => ApplyActiveFonts();
@@ -792,7 +852,7 @@ namespace StreetCat.UI
             nameText = CreateUiText(namePlate.transform, "Name", 20, TextAnchor.MiddleCenter,
                 VnTheme.TextPrimary, Vector2.zero, new Vector2(190, 36));
             StretchFull(nameText.GetComponent<RectTransform>());
-            nameText.text = "小凌";
+            nameText.text = ScriptLoc.MapSpeaker("小凌");
 
             // Scrollable dialogue body — prevents overflow into choices
             var bodyHost = CreateImage(dialoguePanel.transform, "BodyHost", new Color(0, 0, 0, 0.001f));
@@ -805,7 +865,10 @@ namespace StreetCat.UI
 
             var bodyViewport = CreateImage(bodyHost.transform, "Viewport", new Color(0, 0, 0, 0.01f));
             StretchFull(bodyViewport.rectTransform);
-            bodyViewport.gameObject.AddComponent<RectMask2D>();
+            var bodyMask = bodyViewport.gameObject.AddComponent<RectMask2D>();
+            // SDF extra-padding quads extend past the layout box; a tight mask chops
+            // them into leftover strokes (a broken k, a tick on the left edge).
+            bodyMask.padding = new Vector4(-10f, -10f, -10f, -10f);
 
             var bodyContent = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
             bodyContent.transform.SetParent(bodyViewport.transform, false);
@@ -1384,7 +1447,7 @@ namespace StreetCat.UI
 
             saveLoadTitle = CreateUiText(panel.transform, "Title", 26, TextAnchor.UpperLeft,
                 VnTheme.Accent, new Vector2(28, -20), new Vector2(400, 36));
-            saveLoadTitle.text = "存档";
+            saveLoadTitle.text = UiLoc.T("ui.save", "存档");
 
             var closeBtn = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
             closeBtn.transform.SetParent(panel.transform, false);
@@ -1403,7 +1466,7 @@ namespace StreetCat.UI
             ctx.fontSize = 18;
             ctx.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
             ctx.color = VnTheme.TextPrimary;
-            ctx.text = "关闭";
+            ctx.text = UiLoc.T("ui.backlog.close", "关闭");
             ctx.raycastTarget = false;
 
             var listGo = new GameObject("SlotList", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
@@ -1437,7 +1500,7 @@ namespace StreetCat.UI
 
             confirmText = CreateUiText(panel.transform, "Msg", 22, TextAnchor.UpperCenter,
                 VnTheme.TextPrimary, new Vector2(0, -36), new Vector2(460, 80));
-            confirmText.text = "覆盖该存档？";
+            confirmText.text = UiLoc.T("ui.save.confirm_overwrite", "覆盖该存档？");
             var ctr = confirmText.GetComponent<RectTransform>();
             ctr.anchorMin = ctr.anchorMax = new Vector2(0.5f, 1);
 
@@ -1464,8 +1527,8 @@ namespace StreetCat.UI
                 tx.raycastTarget = false;
             }
 
-            CBtn("确认", -90, ConfirmOverwriteYes);
-            CBtn("取消", 90, () => { confirmRoot.SetActive(false); pendingOverwriteSlot = -999; });
+            CBtn(UiLoc.T("ui.confirm", "确认"), -90, ConfirmOverwriteYes);
+            CBtn(UiLoc.T("ui.cancel", "取消"), 90, () => { confirmRoot.SetActive(false); pendingOverwriteSlot = -999; });
 
             confirmRoot.SetActive(false);
         }
@@ -1486,7 +1549,7 @@ namespace StreetCat.UI
             saveLoadIsSave = isSave;
             mode = Mode.Menu; // treat as overlay
             SetAdvanceEnabled(false);
-            saveLoadTitle.text = isSave ? "存档" : "读档";
+            saveLoadTitle.text = isSave ? UiLoc.T("ui.save", "存档") : UiLoc.T("ui.load", "读档");
             RefreshSaveLoadSlots();
             saveLoadRoot.SetActive(true);
         }
@@ -1540,7 +1603,8 @@ namespace StreetCat.UI
                 tx.overflowMode = TextOverflowModes.Truncate;
                 tx.raycastTarget = false;
                 if (info.empty)
-                    tx.text = (saveLoadIsSave ? $"存档位 {info.slot + 1}" : info.label) + "\n空";
+                    tx.text = (saveLoadIsSave ? SaveSystem.SlotName(info.slot) : info.label)
+                        + "\n" + UiLoc.T("ui.save.slot_empty", "空");
                 else
                     tx.text = info.label + "\n" + info.detail;
             }
@@ -1553,20 +1617,21 @@ namespace StreetCat.UI
                 if (!info.empty)
                 {
                     pendingOverwriteSlot = info.slot;
-                    confirmText.text = $"存档位 {info.slot + 1} 已有数据，确认覆盖？";
+                    confirmText.text = string.Format(
+                        UiLoc.T("ui.save.confirm_overwrite_slot", "存档位 {0} 已有数据，确认覆盖？"), info.slot + 1);
                     confirmRoot.SetActive(true);
                     return;
                 }
                 SyncUiModeToSave();
                 SaveSystem.SaveManual(info.slot);
-                statusText.text = $"已写入存档位 {info.slot + 1}";
+                statusText.text = string.Format(UiLoc.T("ui.save.saved_slot", "已写入存档位 {0}"), info.slot + 1);
                 RefreshSaveLoadSlots();
             }
             else
             {
                 if (info.empty)
                 {
-                    statusText.text = "该槽位为空";
+                    statusText.text = UiLoc.T("ui.save.slot_is_empty", "该槽位为空");
                     return;
                 }
                 if (saveLoadRoot) saveLoadRoot.SetActive(false);
@@ -1582,7 +1647,7 @@ namespace StreetCat.UI
             if (pendingOverwriteSlot < 0) return;
             SyncUiModeToSave();
             SaveSystem.SaveManual(pendingOverwriteSlot);
-            statusText.text = $"已覆盖存档位 {pendingOverwriteSlot + 1}";
+            statusText.text = string.Format(UiLoc.T("ui.save.overwrote_slot", "已覆盖存档位 {0}"), pendingOverwriteSlot + 1);
             pendingOverwriteSlot = -999;
             RefreshSaveLoadSlots();
         }
@@ -2823,6 +2888,7 @@ namespace StreetCat.UI
                 tx.overflowMode = TextOverflowModes.Overflow;
                 tx.margin = new Vector4(6f, 2f, 6f, 2f);
                 tx.lineSpacing = 4f;
+                ApplyDialogueFace(tx, FontStyles.Bold);
             }
             else
             {
@@ -3054,7 +3120,7 @@ namespace StreetCat.UI
             if (scene != null && !string.IsNullOrEmpty(scene.backgroundLabel))
                 label = scene.backgroundLabel;
             else if (locationText != null)
-                label = locationText.text;
+                label = LocationLookupLabel;
             BgmController.Instance.PlayForContext(mode.ToString(), label);
         }
 
@@ -3096,7 +3162,7 @@ namespace StreetCat.UI
                 if (scene != null && !string.IsNullOrEmpty(scene.backgroundLabel))
                     label = scene.backgroundLabel;
                 else if (locationText != null)
-                    label = locationText.text;
+                    label = LocationLookupLabel;
             }
 
             var key = VnArt.ResolveBackground(label);
@@ -3118,12 +3184,24 @@ namespace StreetCat.UI
                 SetPortrait(null);
         }
 
+        /// <summary>Raw background label behind <see cref="locationText"/>; art/BGM lookups need the Chinese key.</summary>
+        string locationRawLabel;
+
+        void SetLocationLabel(string label)
+        {
+            locationRawLabel = label;
+            locationText.text = ScriptLoc.MapLocation(label);
+        }
+
+        string LocationLookupLabel =>
+            !string.IsNullOrEmpty(locationRawLabel) ? locationRawLabel : locationText?.text;
+
         void SetStageBackground(string label)
         {
             if (string.IsNullOrEmpty(label)) return;
             stageBackgroundOverride = label;
             if (locationText != null && mode != Mode.Title)
-                locationText.text = label.Replace("_", "　");
+                SetLocationLabel(label);
             ApplyStageArt();
         }
 
@@ -3337,9 +3415,9 @@ namespace StreetCat.UI
                 if (locationText != null)
                 {
                     if (!string.IsNullOrEmpty(stageBackgroundOverride))
-                        locationText.text = stageBackgroundOverride.Replace("_", "　");
+                        SetLocationLabel(stageBackgroundOverride);
                     else if (scene != null && !string.IsNullOrEmpty(scene.backgroundLabel))
-                        locationText.text = scene.backgroundLabel.Replace("_", "　");
+                        SetLocationLabel(scene.backgroundLabel);
                 }
                 if (stageHint != null && scene != null && !string.IsNullOrEmpty(scene.title))
                     stageHint.text = ScriptLoc.SceneTitle(scene.id, scene.title);
@@ -3676,8 +3754,12 @@ namespace StreetCat.UI
                 return;
             }
 
+            MaintainSocialInputLayer();
+
             if (Input.GetKeyDown(KeyCode.Escape))
             {
+                if (CloseSocialZoomIfOpen())
+                    return;
                 if (settingsRoot != null && settingsRoot.activeSelf)
                 {
                     CloseSettings();
@@ -3722,7 +3804,7 @@ namespace StreetCat.UI
             if (PortraitDebugPanelOpen)
                 return;
 #endif
-            if (!inputFocused && canClickAdvance && !waitingForChoice &&
+            if (!socialZoomOpen && !inputFocused && canClickAdvance && !waitingForChoice &&
                 (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
             {
                 TryAdvanceByClick();
@@ -3730,7 +3812,7 @@ namespace StreetCat.UI
 
             // Hold Ctrl to continuously skip (classic VN) — scripted, inspect, and talk beats
             bool ctrl = Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-            bool ctrlSkipOk = !inputFocused && !waitingForChoice && ctrl && IsSkippableDialogueContext()
+            bool ctrlSkipOk = !socialZoomOpen && !inputFocused && !waitingForChoice && ctrl && IsSkippableDialogueContext()
                 && (mode != Mode.Dialogue || canClickAdvance);
             if (ctrlSkipOk)
             {
@@ -3759,6 +3841,8 @@ namespace StreetCat.UI
 
         void TryAdvanceByClick()
         {
+            if (socialZoomOpen)
+                return;
             if (investigatePictureHold)
                 return;
             if (sceneTransitioning)
@@ -4267,7 +4351,9 @@ namespace StreetCat.UI
             if (notebookRoot) notebookRoot.SetActive(false);
             backlogRoot.SetActive(true);
             var hist = DialogueHistory.Instance != null ? DialogueHistory.Instance.BuildPlainText() : "";
-            backlogText.text = string.IsNullOrEmpty(hist) ? "（还没有可回看的对话）" : hist;
+            backlogText.text = string.IsNullOrEmpty(hist)
+                ? UiLoc.T("ui.backlog.empty", "（还没有可回看的对话）")
+                : hist;
             Canvas.ForceUpdateCanvases();
             backlogScroll.verticalNormalizedPosition = 0f;
         }

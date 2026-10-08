@@ -15,35 +15,40 @@ namespace StreetCat.Core
         public readonly struct DebugJumpTarget
         {
             public readonly string Id;
-            public readonly string Label;
+            public readonly string LabelZh;
+            public readonly string LabelEn;
 
-            public DebugJumpTarget(string id, string label)
+            /// <summary>Follows the dev-tool language switch (ToolLang).</summary>
+            public string Label => ToolLang.T(LabelZh, LabelEn);
+
+            public DebugJumpTarget(string id, string labelZh, string labelEn)
             {
                 Id = id;
-                Label = label;
+                LabelZh = labelZh;
+                LabelEn = labelEn;
             }
         }
 
         /// <summary>Stable target ids for editor menus / F9 panel.</summary>
         public static readonly DebugJumpTarget[] DebugJumpTargets =
         {
-            new DebugJumpTarget("title", "标题画面"),
-            new DebugJumpTarget(SceneIds.SC01, "SC-01 周五下班前"),
-            new DebugJumpTarget(SceneIds.SC02, "SC-02 喵语翻译器"),
-            new DebugJumpTarget(SceneIds.SC03, "SC-03 保安猫大福"),
-            new DebugJumpTarget(SceneIds.SC04, "SC-04 槐安社区（剧本）"),
-            new DebugJumpTarget("investigate", "调查地图（槐安社区）"),
-            new DebugJumpTarget(SceneIds.SC05, "SC-05 保安亭（剧本）"),
-            new DebugJumpTarget("talk", "保安交谈菜单"),
-            new DebugJumpTarget(SceneIds.SC06, "SC-06 上班的大福"),
-            new DebugJumpTarget(SceneIds.SC07, "采访大福（SC-07）"),
-            new DebugJumpTarget(SceneIds.SC08, "SC-08 寻找林女士"),
-            new DebugJumpTarget(SceneIds.SC09, "SC-09 咖啡馆（见面剧本）"),
-            new DebugJumpTarget("interview_lin", "采访林女士"),
-            new DebugJumpTarget(SceneIds.SC10, "SC-10 写稿开场（剧本）"),
-            new DebugJumpTarget("writing", "写稿桌 / 素材板"),
-            new DebugJumpTarget("notebook", "记者笔记"),
-            new DebugJumpTarget("epilogue", "后日谈（SC-11）"),
+            new DebugJumpTarget("title", "标题画面", "Title screen"),
+            new DebugJumpTarget(SceneIds.SC01, "SC-01 周五下班前", "SC-01 Friday, before clocking out"),
+            new DebugJumpTarget(SceneIds.SC02, "SC-02 喵语翻译器", "SC-02 Meow Translator"),
+            new DebugJumpTarget(SceneIds.SC03, "SC-03 保安猫大福", "SC-03 Dafu, the security cat"),
+            new DebugJumpTarget(SceneIds.SC04, "SC-04 槐安社区（剧本）", "SC-04 Huai'an Community (script)"),
+            new DebugJumpTarget("investigate", "调查地图（槐安社区）", "Investigation map (Huai'an Community)"),
+            new DebugJumpTarget(SceneIds.SC05, "SC-05 保安亭（剧本）", "SC-05 Guard booth (script)"),
+            new DebugJumpTarget("talk", "保安交谈菜单", "Talk to the guard (topic menu)"),
+            new DebugJumpTarget(SceneIds.SC06, "SC-06 上班的大福", "SC-06 Dafu on duty"),
+            new DebugJumpTarget(SceneIds.SC07, "采访大福（SC-07）", "Interview Dafu (SC-07)"),
+            new DebugJumpTarget(SceneIds.SC08, "SC-08 寻找林女士", "SC-08 Looking for Ms. Lin"),
+            new DebugJumpTarget(SceneIds.SC09, "SC-09 咖啡馆（见面剧本）", "SC-09 Café (meeting script)"),
+            new DebugJumpTarget("interview_lin", "采访林女士", "Interview Ms. Lin"),
+            new DebugJumpTarget(SceneIds.SC10, "SC-10 写稿开场（剧本）", "SC-10 Writing intro (script)"),
+            new DebugJumpTarget("writing", "写稿桌 / 素材板", "Writing desk / material board"),
+            new DebugJumpTarget("notebook", "记者笔记", "Reporter's notebook"),
+            new DebugJumpTarget("epilogue", "后日谈（SC-11）", "Epilogue (SC-11)"),
         };
 
         /// <summary>

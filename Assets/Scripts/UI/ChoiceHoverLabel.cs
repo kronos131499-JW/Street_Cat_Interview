@@ -12,7 +12,7 @@ namespace StreetCat.UI
         IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         TextMeshProUGUI label;
-        Color idle = Color.black;
+        Color idle = new Color(42f / 255f, 18f / 255f, 2f / 255f, 1f);
         bool over;
         bool pressed;
 

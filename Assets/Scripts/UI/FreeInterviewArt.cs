@@ -17,6 +17,11 @@ namespace StreetCat.UI
         public static readonly Color Ink = new Color(0.294f, 0.176f, 0.106f, 1f);
 
         public static Sprite Photo => Plate("01_photo_background", 1154, 1363, 78, 73, 1122, 1333);
+        /// <summary>
+        /// Ms. Lin's polaroid, caption printed on the lower strip. Kept uncropped:
+        /// the headshot window anchors are fractions of the full 1086x1448 texture.
+        /// </summary>
+        public static Sprite PhotoLin => Plate("01_photo_background_lin", 1086, 1448, 0, 0, 1086, 1448);
         public static Sprite DialogueCream => Plate("02_dialogue_cream_blank", 2146, 733, 40, 245, 2117, 519);
         public static Sprite DialoguePeach => Plate("03_dialogue_peach_blank", 2170, 725, 56, 265, 2119, 536);
         public static Sprite NameTab => Plate("04_speaker_name_tab", 2022, 778, 158, 107, 1885, 671);

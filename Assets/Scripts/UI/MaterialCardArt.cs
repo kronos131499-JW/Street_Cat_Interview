@@ -37,6 +37,7 @@ namespace StreetCat.UI
         public static Sprite SelectionDot => Load("24_selection_dot");
         public static Sprite Underline => Load("25_green_underline");
         public static Sprite Separator => Load("26_detail_separator");
+        public static Sprite PickedMark => Load("选中素材卡icon", "");
 
         static readonly string[] CardFiles =
         {
@@ -54,14 +55,15 @@ namespace StreetCat.UI
             return Load(CardFiles[n]);
         }
 
-        static Sprite Load(string file)
+        /// <param name="subfolder">Folder under Art/UI/material_cards ("" = the folder itself).</param>
+        static Sprite Load(string file, string subfolder = "ui_backgrounds")
         {
             if (Cache.TryGetValue(file, out var cached))
                 return cached;
 
             var sprite = VnArt.GetUi("MaterialCards/" + file);
             if (sprite == null)
-                sprite = LoadLooseFile(file);
+                sprite = LoadLooseFile(file, subfolder);
             Cache[file] = sprite;
             return sprite;
         }
@@ -70,9 +72,12 @@ namespace StreetCat.UI
         /// Editor / unpacked checkout: the plates already live under Assets/Art.
         /// A player build uses the Resources copies instead.
         /// </summary>
-        static Sprite LoadLooseFile(string file)
+        static Sprite LoadLooseFile(string file, string subfolder)
         {
-            var path = Path.Combine(Application.dataPath, "Art", "UI", "material_cards", "ui_backgrounds", file + ".png");
+            var folder = Path.Combine(Application.dataPath, "Art", "UI", "material_cards");
+            if (!string.IsNullOrEmpty(subfolder))
+                folder = Path.Combine(folder, subfolder);
+            var path = Path.Combine(folder, file + ".png");
             if (!File.Exists(path))
                 return null;
 

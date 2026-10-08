@@ -23,7 +23,30 @@ namespace StreetCat.Editor
             SocialEditMode.Enabled = false;
             InvestigateHotspotEditMode.Enabled = false;
             EditorApplication.delayCall += CloseEditorWindows;
-            Debug.Log("[StreetCat] 已关闭所有编辑器，Game 视图点击恢复为正常游玩。");
+            Debug.Log(ToolLang.T("[StreetCat] 已关闭所有编辑器，Game 视图点击恢复为正常游玩。",
+                "[StreetCat] All editors turned off. Game-view clicks are back to normal play."));
+        }
+
+        const string ToolLangMenuZh = "街角专访/工具界面英文 (Tool UI in English)";
+        const string ToolLangMenuEn = "StreetCat/Tool UI in English";
+
+        [MenuItem(ToolLangMenuZh, priority = 0)]
+        [MenuItem(ToolLangMenuEn, priority = 0)]
+        static void ToggleToolLanguage()
+        {
+            ToolLang.English = !ToolLang.English;
+            Debug.Log(ToolLang.English
+                ? "[StreetCat] Dev tool UI language: English"
+                : "[StreetCat] 开发工具界面语言：中文");
+        }
+
+        [MenuItem(ToolLangMenuZh, true)]
+        [MenuItem(ToolLangMenuEn, true)]
+        static bool ToggleToolLanguageValidate()
+        {
+            Menu.SetChecked(ToolLangMenuZh, ToolLang.English);
+            Menu.SetChecked(ToolLangMenuEn, ToolLang.English);
+            return true;
         }
 
         static void CloseEditorWindows()
@@ -58,7 +81,7 @@ namespace StreetCat.Editor
             var asset = AssetDatabase.LoadAssetAtPath<UILayoutOverrideData>(UILayoutOverrides.AssetDiskPath);
             if (asset == null || asset.entries == null)
             {
-                EditorUtility.DisplayDialog("UI Layout", "找不到 " + UILayoutOverrides.AssetDiskPath, "OK");
+                EditorUtility.DisplayDialog("UI Layout", ToolLang.T("找不到 ", "Not found: ") + UILayoutOverrides.AssetDiskPath, "OK");
                 return;
             }
 
@@ -79,16 +102,18 @@ namespace StreetCat.Editor
 
             if (cleared == 0)
             {
-                EditorUtility.DisplayDialog("UI Layout", "没有被锁死的文字尺寸覆盖。", "OK");
+                EditorUtility.DisplayDialog("UI Layout", ToolLang.T("没有被锁死的文字尺寸覆盖。", "No pinned text size overrides found."), "OK");
                 return;
             }
 
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
-            Debug.Log("[UI Layout] 已清除 " + cleared + " 条文字样式锁定：\n" + report);
+            Debug.Log(ToolLang.T("[UI Layout] 已清除 " + cleared + " 条文字样式锁定：\n",
+                "[UI Layout] Cleared " + cleared + " pinned text style override(s):\n") + report);
             EditorUtility.DisplayDialog(
                 "UI Layout",
-                "已清除 " + cleared + " 条锁死的文字尺寸/字重/字间距覆盖。\n位置与大小保持不变。\n明细见 Console。",
+                ToolLang.T("已清除 " + cleared + " 条锁死的文字尺寸/字重/字间距覆盖。\n位置与大小保持不变。\n明细见 Console。",
+                    "Cleared " + cleared + " pinned text size / weight / spacing override(s).\nPositions and sizes are unchanged.\nSee the Console for details."),
                 "OK");
         }
 
@@ -120,7 +145,8 @@ namespace StreetCat.Editor
         [MenuItem("StreetCat/Portrait Debug Picker (F11)")]
         static void LogPortraitDebugPicker()
         {
-            Debug.Log("[StreetCat] 立绘调试：Play 后按 F11；点击立绘仅预览，点「确认本句立绘」才生效，且只影响当前这一句。");
+            Debug.Log(ToolLang.T("[StreetCat] 立绘调试：Play 后按 F11；点击立绘仅预览，点「确认本句立绘」才生效，且只影响当前这一句。",
+                "[StreetCat] Portrait debug: press F11 in Play Mode. Clicking a portrait only previews it; \"Confirm for this line\" applies it to the current line only."));
         }
 
         [MenuItem("StreetCat/LLM/Paste API Key From Clipboard")]

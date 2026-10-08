@@ -87,12 +87,30 @@ namespace StreetCat.UI
             return null;
         }
 
+        /// <summary>Character button text for the debug panel, following the tool language.</summary>
+        public static string DisplayLabel(Group g)
+        {
+            if (!ToolLang.English) return g.Label;
+            switch (g.Id)
+            {
+                case "xiaoling": return "Ling";
+                case "shenhe": return "Shen He";
+                case "dafu": return "Dafu";
+                case "lin": return "Ms. Lin";
+                case "guard": return "Guard";
+                case "lihua": return "Lihua";
+                default: return g.Id;
+            }
+        }
+
         public static string LabelForKey(string key)
         {
             if (string.IsNullOrEmpty(key)) return "";
-            if (key.EndsWith("_default")) return "常态";
+            if (key.EndsWith("_default")) return ToolLang.T("常态", "Default");
 
             var tail = key.Contains("_") ? key.Substring(key.LastIndexOf('_') + 1) : key;
+            if (ToolLang.English && tail.Length > 0)
+                return char.ToUpperInvariant(tail[0]) + tail.Substring(1);
             switch (tail)
             {
                 case "surprised": return "惊讶";

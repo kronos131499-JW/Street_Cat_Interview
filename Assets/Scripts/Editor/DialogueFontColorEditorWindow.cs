@@ -11,7 +11,7 @@ namespace StreetCat.Editor
         public static void Open()
         {
             var window = GetWindow<DialogueFontColorEditorWindow>("对话字体颜色");
-            window.minSize = new Vector2(380f, 430f);
+            window.minSize = new Vector2(520f, 520f);
             window.Show();
         }
 
@@ -30,15 +30,19 @@ namespace StreetCat.Editor
             }
 
             EditorGUILayout.Space(6f);
+            EditorGUILayout.HelpBox(
+                "右侧色板是羊皮纸上比较耐看的墨色。点一下填入这一行，再自己微调。透明度会保留。\n" +
+                "当前用羊皮纸对话框时，改单段文字请用「文本样式编辑器」的自定义颜色。",
+                MessageType.None);
             EditorGUI.BeginChangeCheck();
-            var speakerName = EditorGUILayout.ColorField(new GUIContent("角色姓名"), data.speakerName, true, true, true);
-            var dialogue = EditorGUILayout.ColorField(new GUIContent("普通对话正文"), data.dialogue, true, true, true);
-            var narration = EditorGUILayout.ColorField(new GUIContent("旁白正文"), data.narration, true, true, true);
-            var inner = EditorGUILayout.ColorField(new GUIContent("内心独白"), data.inner, true, true, true);
-            var system = EditorGUILayout.ColorField(new GUIContent("系统文字"), data.system, true, true, true);
-            var status = EditorGUILayout.ColorField(new GUIContent("状态提示"), data.status, true, true, true);
-            var clickHint = EditorGUILayout.ColorField(new GUIContent("继续提示"), data.clickHint, true, true, true);
-            var choice = EditorGUILayout.ColorField(new GUIContent("选项文字"), data.choice, true, true, true);
+            var speakerName = ColorWithSwatches("角色姓名", data.speakerName);
+            var dialogue = ColorWithSwatches("普通对话正文", data.dialogue);
+            var narration = ColorWithSwatches("旁白正文", data.narration);
+            var inner = ColorWithSwatches("内心独白", data.inner);
+            var system = ColorWithSwatches("系统文字", data.system);
+            var status = ColorWithSwatches("状态提示", data.status);
+            var clickHint = ColorWithSwatches("继续提示", data.clickHint);
+            var choice = ColorWithSwatches("选项文字", data.choice);
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(data, "Change Dialogue Font Colors");
@@ -73,11 +77,21 @@ namespace StreetCat.Editor
                 : "进入 Play Mode 并打开对话界面可查看即时效果。", MessageType.None);
         }
 
+        static Color ColorWithSwatches(string label, Color value)
+        {
+            EditorGUILayout.BeginHorizontal();
+            var next = EditorGUILayout.ColorField(new GUIContent(label), value, true, true, true,
+                GUILayout.MinWidth(180f));
+            InkSwatches.DrawMini(ref next);
+            EditorGUILayout.EndHorizontal();
+            return next;
+        }
+
         static void DrawPreview(DialogueFontColorData data)
         {
             EditorGUILayout.LabelField("颜色预览", EditorStyles.boldLabel);
             var rect = GUILayoutUtility.GetRect(100f, 112f, GUILayout.ExpandWidth(true));
-            EditorGUI.DrawRect(rect, new Color(0.045f, 0.05f, 0.065f, 1f));
+            EditorGUI.DrawRect(rect, new Color(0.93f, 0.88f, 0.78f, 1f));
             DrawText(rect, 8f, 6f, "角色姓名", data.speakerName);
             DrawText(rect, 8f, 28f, "这是一段普通对话文字。", data.dialogue);
             DrawText(rect, 8f, 50f, "这是一段旁白文字。", data.narration);

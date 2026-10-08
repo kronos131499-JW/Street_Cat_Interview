@@ -73,6 +73,13 @@ namespace StreetCat.Editor
             data.anchorX = EditorGUILayout.Slider("水平位置", data.anchorX, 0.15f, 0.85f);
             data.anchorY = EditorGUILayout.Slider("垂直位置", data.anchorY, 0.25f, 0.95f);
             data.detailScale = EditorGUILayout.Slider("详情放大", data.detailScale, 0.85f, 1.4f);
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("点击放大后的尺寸", EditorStyles.boldLabel);
+            data.EnsureZoomDefaults();
+            data.zoomWidth = EditorGUILayout.Slider("放大宽度", data.zoomWidth, 220f, 1600f);
+            data.zoomHeight = EditorGUILayout.Slider("放大高度", data.zoomHeight, 360f, 2000f);
+            data.zoomAnchorX = EditorGUILayout.Slider("放大水平", data.zoomAnchorX, 0.15f, 0.85f);
+            data.zoomAnchorY = EditorGUILayout.Slider("放大垂直", data.zoomAnchorY, 0.15f, 0.95f);
             if (EditorGUI.EndChangeCheck())
             {
                 data.Clamp();

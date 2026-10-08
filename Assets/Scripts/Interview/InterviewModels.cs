@@ -22,6 +22,8 @@ namespace StreetCat.Interview
         public bool cognitiveBoundary;
         public bool isRepeat;
         public string systemHint;
+        /// <summary>Canon lines before a repeat swap. Used when the model returns nothing.</summary>
+        public List<string> scriptLines;
     }
 
     [Serializable]
@@ -123,6 +125,8 @@ namespace StreetCat.Interview
             var reply = BuildReply(input, intent);
             // BuildReply may remap followup → concrete topic (Lin); use final intent for stickiness.
             var finalIntent = reply.intent ?? intent;
+            if (reply.replyLines != null && reply.replyLines.Count > 0)
+                reply.scriptLines = new List<string>(reply.replyLines);
 
             var normQ = NormalizeQuestion(input);
             if (!string.IsNullOrEmpty(normQ))
@@ -181,7 +185,23 @@ namespace StreetCat.Interview
 
         protected bool IsHostile(string input)
         {
-            return ContainsAny(input, "去死", "混蛋", "垃圾", "蠢", "滚", "打死", "扔掉你");
+            if (string.IsNullOrEmpty(input)) return false;
+            if (ContainsAny(input, "去死", "混蛋", "垃圾", "蠢", "滚", "打死", "扔掉你", "去死吧"))
+                return true;
+            var lower = input.ToLowerInvariant();
+            return ContainsAny(lower,
+                "hate you", "i hate", "kill you", "fuck you", "shut up", "go to hell",
+                "asshole", "bastard", "idiot", "stupid", "dumbass", "you suck",
+                "kill yourself", "go away");
+        }
+
+        /// <summary>Intents where LLM polish invents plot; show localized rule lines instead.</summary>
+        public static bool IsLlmUnsafeIntent(string intent)
+        {
+            return intent == "hostile"
+                   || intent == "generic"
+                   || intent == "oob"
+                   || intent == "privacy";
         }
 
         public static string NormalizeQuestion(string q)

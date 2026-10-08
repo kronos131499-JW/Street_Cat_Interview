@@ -838,9 +838,11 @@ namespace StreetCat.UI
         static void AppendQaAnswerLines(StringBuilder sb, string speaker, string answer, string indent = "")
         {
             if (sb == null) return;
+            var label = (ScriptLoc.MapSpeaker(speaker) ?? "") + (GameSettings.IsEnglish ? ": " : "：");
+            var silence = GameSettings.IsEnglish ? "..." : "……";
             if (string.IsNullOrEmpty(answer))
             {
-                sb.AppendLine(indent + (speaker ?? "") + "：……");
+                sb.AppendLine(indent + label + silence);
                 return;
             }
 
@@ -851,7 +853,7 @@ namespace StreetCat.UI
                 if (string.IsNullOrWhiteSpace(part)) continue;
                 if (first)
                 {
-                    sb.AppendLine(indent + (speaker ?? "") + "：" + part.Trim());
+                    sb.AppendLine(indent + label + part.Trim());
                     first = false;
                 }
                 else
@@ -860,7 +862,7 @@ namespace StreetCat.UI
                 }
             }
             if (first)
-                sb.AppendLine(indent + (speaker ?? "") + "：……");
+                sb.AppendLine(indent + label + silence);
         }
 
         void SetNotebookPageContent(string title, string status, string body, string source)
