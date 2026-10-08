@@ -632,7 +632,8 @@ namespace StreetCat.UI
             var tx = CreateUiText(go.transform, "T", 15, TextAnchor.MiddleCenter,
                 Color.white, Vector2.zero, Vector2.zero);
             StretchFull(tx.rectTransform);
-            tx.fontStyle = FontStyles.Bold;
+            tx.fontStyle = FontStyles.Normal;
+            tx.extraPadding = true;
             tx.text = UiLoc.T(locKey, fallback);
             tx.raycastTarget = false;
             TagLoc(tx, locKey);

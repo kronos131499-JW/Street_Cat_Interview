@@ -108,13 +108,15 @@ namespace StreetCat.UI
             if (Input.GetKeyDown(KeyCode.F7))
                 _panelVisible = !_panelVisible;
 
-            // L = toggle selection lock (ignore when Ctrl/Alt held to avoid OS shortcuts).
+            // L toggles the pin. Locked still moves the current widget; other clicks won't steal it.
             if (Input.GetKeyDown(KeyCode.L) &&
                 !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl) &&
                 !Input.GetKey(KeyCode.LeftAlt) && !Input.GetKey(KeyCode.RightAlt))
             {
-                UILayoutEditMode.LockSelection = false;
-                SetStatus(true, "已解锁 / Unlocked — 可以拖动，再选别的会重新锁定");
+                UILayoutEditMode.LockSelection = !UILayoutEditMode.LockSelection;
+                SetStatus(true, UILayoutEditMode.LockSelection
+                    ? "已锁定当前组件 — 可以拖动它，点别的不会切换"
+                    : "已解锁 — 点哪个就改哪个");
             }
 
             if (Time.unscaledTime >= _nextRefresh)
@@ -129,7 +131,6 @@ namespace StreetCat.UI
                 RequestDeleteSelection();
                 return;
             }
-            if (UILayoutEditMode.LockSelection) return;
             var step = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? 10f : 1f;
             var delta = Vector2.zero;
             if (Input.GetKeyDown(KeyCode.LeftArrow)) delta.x -= step;
@@ -247,15 +248,15 @@ namespace StreetCat.UI
         {
             if (!UILayoutEditMode.Enabled) return;
 
-            // Selection lock keeps the current layout target. Text mode must still
-            // be able to pick a different label, or every click looks dead.
+            // Pin keeps this widget editable and ignores clicks on everything else.
+            // Text mode still has to pick a different label.
             if (UILayoutEditMode.LockSelection && _selected != null && !UILayoutEditMode.TextFocus)
             {
                 if (ContainsScreenPoint(_selected, eventData.position))
-                {
-                    _dragMode = 0;
-                    return;
-                }
+                    BeginDragOnSelected(eventData);
+                else
+                    SetStatus(true, "已锁定当前组件 — 只能改它。按 L 解锁后再选别的。");
+                return;
             }
 
             var canvas = FindBestCanvas(eventData.position);
@@ -294,14 +295,7 @@ namespace StreetCat.UI
             if (newlySelected)
             {
                 UILayoutEditMode.LockSelection = true;
-                _dragMode = 0;
-                SetStatus(true, "已锁定 / Locked — 按 L 解锁后才能拖动");
-                return;
-            }
-            if (UILayoutEditMode.LockSelection)
-            {
-                _dragMode = 0;
-                return;
+                SetStatus(true, "已锁定当前组件 — 可以拖动它，点别的不会切换。按 L 解锁后再选别的。");
             }
             BeginDragOnSelected(eventData);
         }
@@ -1099,11 +1093,11 @@ namespace StreetCat.UI
                     : "点击选择 · 拖动移动 · 四角缩放 · Alt 选父级");
                 GUI.Label(new Rect(22f, 54f, 360f, 20f), textMode
                     ? "改完立刻保存 · 未单独设置的文字仍跟随全局字体"
-                    : "选中即锁定 · 按 L 解锁后拖动 · Delete 删除");
+                    : "锁定后只改当前这个 · 按 L 解除后再选别的 · Delete 删除");
 
                 var y = 76f;
                 var lockNext = GUI.Toggle(new Rect(22f, y, 360f, 20f), locked,
-                    locked ? "已锁定 (按 L 解锁后才能拖动)" : "已解锁 (可以拖动)");
+                    locked ? "已锁定当前组件 (可以拖它，点别的不会切换)" : "未锁定 (点哪个就改哪个)");
                 if (lockNext != locked)
                     UILayoutEditMode.LockSelection = lockNext;
                 y += 22f;

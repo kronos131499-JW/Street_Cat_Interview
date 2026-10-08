@@ -512,7 +512,12 @@ namespace StreetCat.UI
                 {
                     var label = btn != null ? btn.GetComponentInChildren<TextMeshProUGUI>(true) : null;
                     if (label != null && label.name == "T")
-                        Chrome(label, writingDeskArtOn ? 16 : 15, true);
+                    {
+                        Chrome(label, writingDeskArtOn ? 16 : 15, false);
+                        label.fontStyle = FontStyles.Normal;
+                        label.extraPadding = true;
+                        VnText.ApplyFontWeight(label, GameSettings.FontWeight);
+                    }
                 }
             }
 

@@ -261,11 +261,29 @@ namespace StreetCat.UI
             {
                 label.gameObject.SetActive(true);
                 label.color = labelColor;
-                label.fontStyle = FontStyles.Bold;
+                label.fontStyle = FontStyles.Normal;
+                label.extraPadding = true;
+                label.alignment = VnText.ToAlignment(TextAnchor.MiddleCenter);
                 label.enableWordWrapping = true;
                 label.overflowMode = TextOverflowModes.Overflow;
+                label.maxVisibleLines = 2;
+                label.lineSpacing = 0f;
+                VnText.ApplyFontWeight(label, GameSettings.FontWeight);
+                ApplyLetterSpacing(label, 0f);
                 Stretch(label.rectTransform, Vector2.zero, Vector2.one,
-                    new Vector2(iconPad, 6f), new Vector2(-12f, -6f));
+                    new Vector2(iconPad, 8f), new Vector2(-14f, -8f));
+            }
+            var button = t.GetComponent<Button>();
+            if (button != null)
+            {
+                button.transition = Selectable.Transition.ColorTint;
+                var colors = button.colors;
+                colors.normalColor = Color.white;
+                colors.highlightedColor = new Color(1f, 0.97f, 0.92f, 1f);
+                colors.pressedColor = new Color(0.92f, 0.86f, 0.78f, 1f);
+                colors.selectedColor = colors.highlightedColor;
+                colors.disabledColor = new Color(1f, 1f, 1f, 0.55f);
+                button.colors = colors;
             }
             t.gameObject.SetActive(true);
         }

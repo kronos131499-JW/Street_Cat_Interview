@@ -97,8 +97,8 @@ namespace StreetCat.Editor
             var lockSel = UILayoutEditMode.LockSelection;
             var lockNext = EditorGUILayout.ToggleLeft(
                 lockSel
-                    ? "已锁定 / Locked  (按 L 解锁后才能拖动)"
-                    : "已解锁 / Unlocked  (可以拖动)",
+                    ? "已锁定当前组件 / Locked  (可以拖它，点别的不会切换)"
+                    : "未锁定 / Unlocked  (点哪个就改哪个)",
                 lockSel);
             if (lockNext != lockSel)
                 UILayoutEditMode.LockSelection = lockNext;
@@ -119,7 +119,7 @@ namespace StreetCat.Editor
                 EditorGUILayout.HelpBox(
                     UILayoutEditMode.Enabled
                         ? (UILayoutEditMode.LockSelection
-                            ? "Play · 编辑开启 · 选中已锁定 — 仅可拖当前组件。"
+                            ? "Play · 编辑开启 · 已锁定当前组件，可以拖动它，点别的不会切换。"
                             : "Play · 编辑已开启。请直接操作 Game 视图。")
                         : "Play · 开启编辑模式后即可直接拖动。",
                     MessageType.None);
