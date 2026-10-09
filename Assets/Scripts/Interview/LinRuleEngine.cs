@@ -50,8 +50,16 @@ namespace StreetCat.Interview
                     "喂养", "为什么喂", "喂了几天", "怎么喂", "连续喂"))
                 return "feeding";
             if (ContainsAny(input, "发现", "第一次", "怎么遇到", "垃圾桶", "开始", "怎么认识",
-                    "注意到", "留意", "怎么发现", "如何发现"))
+                    "注意到", "留意", "怎么发现", "如何发现", "烧鸡", "废品", "大叔"))
                 return "discovery";
+            if (ContainsAny(input, "怕人", "退开", "退后", "敲罐头", "不敢靠近"))
+                return "feeding";
+            if (ContainsAny(input, "谁帮", "一起抓", "救援", "志愿者", "航空箱"))
+                return "capture";
+            if (ContainsAny(input, "女儿", "家里人", "缅因", "田园猫"))
+                return "release";
+            if (ContainsAny(input, "名字", "谁起的", "叫大福", "怎么称呼"))
+                return "community";
             // 「然后/后来/接着」 alone count as follow-up (not only 「然后呢」).
             if (ContainsAny(input, "后来呢", "然后呢", "继续", "然后", "后来", "接着", "再然后", "之后呢"))
                 return "followup";
@@ -92,8 +100,17 @@ namespace StreetCat.Interview
                 return "hospital";
             if (ContainsAny(input, "several days", "bring food", "feeding", "fed him", "why feed", "cans"))
                 return "feeding";
-            if (ContainsAny(input, "first notice", "first time", "how did you first", "dumpster", "notice him", "noticed"))
+            if (ContainsAny(input, "first notice", "first time", "how did you first", "dumpster", "notice him", "noticed",
+                    "trash", "scavenger", "roast chicken", "how did you meet"))
                 return "discovery";
+            if (ContainsAny(input, "step back", "stepped back", "afraid of you", "scared of people", "wouldn't let you"))
+                return "feeding";
+            if (ContainsAny(input, "who helped", "help you catch", "rescue group", "volunteer", "carrier"))
+                return "capture";
+            if (ContainsAny(input, "daughter", "maine coon", "other cats at home", "cats you have"))
+                return "release";
+            if (ContainsAny(input, "his name", "what's he called", "what is he called", "who named", "call him dafu"))
+                return "community";
             if (ContainsAny(input, "and then", "what next", "what happened next", "go on"))
                 return "followup";
             if (ContainsAny(input, "who tied", "who did that", "on purpose", "how did the rope", "can't be sure"))

@@ -238,7 +238,7 @@ namespace StreetCat.UI
             if (entry.fontSize > 1f)
             {
                 text.enableAutoSizing = false;
-                text.fontSize = entry.fontSize;
+                text.fontSize = Mathf.Round(entry.fontSize);
             }
             if (entry.overrideLetterSpacing)
                 VnText.ApplyLetterSpacing(text, entry.letterSpacing);

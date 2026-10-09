@@ -149,6 +149,8 @@
     { "key": "ui.writing.review_panel_title", "value": "沈禾审核" },
     { "key": "ui.writing.review_status_pass", "value": "审核通过" },
     { "key": "ui.writing.review_status_fail", "value": "审核退回" },
+    { "key": "ui.writing.review_pill_pass", "value": "已通过" },
+    { "key": "ui.writing.review_pill_fail", "value": "未通过" },
     { "key": "ui.writing.review_branch_pill", "value": "退回分支 {0}" },
     { "key": "ui.writing.review_score_pill", "value": "评分 {0}" },
     { "key": "ui.writing.confirm_publish_sub", "value": "可以见报" },

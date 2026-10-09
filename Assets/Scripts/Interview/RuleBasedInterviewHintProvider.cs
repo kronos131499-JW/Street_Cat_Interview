@@ -99,11 +99,9 @@ namespace StreetCat.Interview
             }
             if (best == null) return null;
 
-            string title = best.title ?? best.id;
             if (best.status == TopicStatus.Open)
-                return string.Format(
-                    T("ui.interview.hint.topic_open", "笔记「{0}」还有疑问——下方芯片是可追问的方向。"),
-                    title);
+                return "";
+            string title = best.title ?? best.id;
             return string.Format(
                 T("ui.interview.hint.topic_new", "新线索「{0}」还没问透。点选芯片填入后再改写发送。"),
                 title);

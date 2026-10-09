@@ -867,7 +867,12 @@ namespace StreetCat.UI
 
             var reply = ic.Ask(q, deferSpeakerLines: llmReady);
 
+            // Hostile / off-topic / privacy stay on the short rule line.
+            // Lin's "generic" bucket is every free question that missed a keyword —
+            // those must still be answered by the model, not the canned redirect.
             bool skipLlm = reply != null && InterviewRuleEngine.IsLlmUnsafeIntent(reply.intent);
+            if (skipLlm && ic.Subject == InterviewSubject.Lin && reply.intent == "generic")
+                skipLlm = false;
 
             if (llmReady && reply != null
                 && !skipLlm
@@ -932,11 +937,19 @@ namespace StreetCat.UI
             }
 
             bool omitRuleFacts = reply.isRepeat
-                                 || LooksLikeStaleRepeatRule(ruleLines);
+                                 || LooksLikeStaleRepeatRule(ruleLines)
+                                 || (ic.Subject == InterviewSubject.Lin && reply.intent == "generic");
             string facts = "";
             if (!omitRuleFacts)
             {
-                facts = string.Join("\n", ruleLines);
+                var factLines = ruleLines;
+                if (GameSettings.IsEnglish)
+                {
+                    factLines = new List<string>(ruleLines.Count);
+                    for (int i = 0; i < ruleLines.Count; i++)
+                        factLines.Add(InterviewLoc.LocalizeReplyLine(ruleLines[i]));
+                }
+                facts = string.Join("\n", factLines);
                 if (!string.IsNullOrEmpty(reply.behavior))
                     facts = StreetCat.Interview.InterviewLoc.FactsBlockLabel(reply.behavior, facts);
             }
@@ -1953,6 +1966,7 @@ namespace StreetCat.UI
                     ApplyLetterSpacing(ph, 0f);
                 }
             }
+            UILayoutOverrides.ReapplyTextStyles();
         }
 
         void ApplyMeterLabelFont(TextMeshProUGUI tx, float scale)

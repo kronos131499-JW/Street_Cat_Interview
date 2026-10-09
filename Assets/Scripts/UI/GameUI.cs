@@ -473,9 +473,10 @@ namespace StreetCat.UI
 
         static TMP_FontAsset ResolveTitleFont() => TmpFontCatalog.Resolve(GameSettings.UiFontId);
 
-        /// <summary>VN dialogue face. Other screens keep <see cref="GameSettings.UiFontId"/>.</summary>
+        /// <summary>VN dialogue face. Regular Verdana only — never synthesized Bold.</summary>
         const string DialogueFontId = "verdana";
         const float DialogueLetterSpacingPx = 1.14f;
+        const float DialogueFaceDilate = 0f;
 
         TMP_FontAsset ResolveDialogueFont()
         {
@@ -489,17 +490,16 @@ namespace StreetCat.UI
             t.font = ResolveDialogueFont();
             t.extraPadding = true;
             t.overflowMode = TextOverflowModes.Overflow;
+            t.enableAutoSizing = false;
             ApplyLetterSpacing(t, DialogueLetterSpacingPx);
-            SharpenDialogueTmp(t, extraStyle);
-            // Verdana's thin joins (k, e, a) drop out on cream parchment at dialogue size.
-            // A small extra dilate keeps the glyph in one piece without changing the global weight.
+            // Keep Regular. TMP Bold on a single cut offsets a second glyph → gray double edge.
+            t.fontStyle = extraStyle & ~FontStyles.Bold;
             var mat = t.fontMaterial;
-            if (mat != null && mat.HasProperty(ShaderUtilities.ID_FaceDilate))
-            {
-                mat.SetFloat(ShaderUtilities.ID_FaceDilate,
-                    mat.GetFloat(ShaderUtilities.ID_FaceDilate) + 0.08f);
-                t.UpdateMeshPadding();
-            }
+            if (mat == null) return;
+            TmpFontCatalog.ApplyCrisp(mat);
+            if (mat.HasProperty(ShaderUtilities.ID_FaceDilate))
+                mat.SetFloat(ShaderUtilities.ID_FaceDilate, DialogueFaceDilate);
+            t.UpdateMeshPadding();
         }
 
         bool IsDialogueCopy(TextMeshProUGUI t)
@@ -511,6 +511,11 @@ namespace StreetCat.UI
 
         void ApplyDialogueTypography()
         {
+            float scale = GameSettings.FontSizeScale;
+            if (bodyText != null)
+                bodyText.fontSize = Mathf.RoundToInt((artPackParchmentActive ? 38f : 34f) * scale);
+            if (nameText != null)
+                nameText.fontSize = Mathf.RoundToInt(28f * scale);
             ApplyDialogueFace(bodyText);
             ApplyDialogueFace(nameText);
             if (bodyText != null)
@@ -525,12 +530,6 @@ namespace StreetCat.UI
                 var mask = dialogueScroll.viewport.GetComponent<RectMask2D>();
                 if (mask != null)
                     mask.padding = new Vector4(-10f, -10f, -10f, -10f);
-            }
-            if (choiceRoot != null)
-            {
-                var labels = choiceRoot.GetComponentsInChildren<TextMeshProUGUI>(true);
-                for (int i = 0; i < labels.Length; i++)
-                    ApplyDialogueFace(labels[i], FontStyles.Bold);
             }
             RefreshDialogueFontColors();
         }
@@ -2888,7 +2887,6 @@ namespace StreetCat.UI
                 tx.overflowMode = TextOverflowModes.Overflow;
                 tx.margin = new Vector4(6f, 2f, 6f, 2f);
                 tx.lineSpacing = 4f;
-                ApplyDialogueFace(tx, FontStyles.Bold);
             }
             else
             {
@@ -3291,6 +3289,12 @@ namespace StreetCat.UI
                 return;
             }
 
+            if (writingReviewRoot != null && writingReviewRoot.activeInHierarchy)
+            {
+                LayoutReviewPortrait(sprite);
+                return;
+            }
+
             // Upper-right standing slot. Bottom may overlap the dialogue panel
             // (see PortraitLayout.asset or VnTheme defaults).
             float slotLeft = PortraitLayout.SlotLeft;
@@ -3360,6 +3364,43 @@ namespace StreetCat.UI
                 Vector2.zero, Vector2.zero);
             portraitImage.preserveAspect = true;
             // Never SetNativeSize — pixel dimensions vary and would jitter layout.
+        }
+
+        /// <summary>
+        /// Shen He's review uses the Portrait rect saved from the layout tool.
+        /// Dialogue still ignores that entry, so a review drag cannot pull every
+        /// stage figure down. Without this, the review slot was hardcoded and
+        /// the saved drag never came back.
+        /// </summary>
+        void LayoutReviewPortrait(Sprite sprite)
+        {
+            if (portraitImage == null) return;
+            var data = UILayoutOverrides.Asset;
+            var saved = data != null ? data.Find("VnCanvas/Portrait#0") : null;
+            if (saved != null && !saved.deleted && !saved.textOnly)
+            {
+                UILayoutOverrides.Apply(portraitImage.rectTransform, saved);
+                portraitImage.preserveAspect = true;
+                return;
+            }
+
+            float aspect = 0.45f;
+            if (sprite != null)
+                aspect = sprite.rect.width / Mathf.Max(1f, sprite.rect.height);
+            float heightNorm = 0.54f;
+            float widthNorm = heightNorm * aspect;
+            const float maxW = 0.36f;
+            if (widthNorm > maxW)
+            {
+                widthNorm = maxW;
+                heightNorm = widthNorm / aspect;
+            }
+            float right = 0.995f;
+            float left = Mathf.Max(0.635f, right - widthNorm);
+            Stretch(portraitImage.rectTransform,
+                new Vector2(left, 0f), new Vector2(right, heightNorm),
+                Vector2.zero, Vector2.zero);
+            portraitImage.preserveAspect = true;
         }
 
         IEnumerator FadePortraitIn()

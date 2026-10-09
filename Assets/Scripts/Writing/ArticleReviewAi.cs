@@ -104,7 +104,7 @@ namespace StreetCat.Writing
                     ? (pass
                         ? passMark + "\n\n" + UiLoc.T("ui.writing.review.pass_1", "沈禾：看完了。可以发。")
                         : failMark + "\n\n" + UiLoc.T("ui.writing.review.fail_short", "沈禾：这稿还得改。"))
-                    : dto.review.Trim().Replace("\\n", "\n");
+                    : AddressReporter(dto.review.Trim().Replace("\\n", "\n"));
 
                 if (pass && review.IndexOf(passMark, StringComparison.Ordinal) < 0
                     && review.IndexOf("通过", StringComparison.Ordinal) < 0)
@@ -121,6 +121,8 @@ namespace StreetCat.Writing
 
         static string ReviewStyleEn() =>
             "You are Shen He, editor-in-chief of Here & Now, and a strict reviewer. "
+            + "You are speaking to your reporter, Ling. Address her as Ling. "
+            + "Ms. Lin is the resident in the story who rescued the cat, not the person you are reviewing. Never call Ling Ms. Lin. "
             + "Review the reporter's article against its angle and the selected materials. "
             + "Judge only the given text and materials; never add new facts. "
             + "You must reject (pass=false) in cases including: "
@@ -138,6 +140,7 @@ namespace StreetCat.Writing
 
         static string ReviewStyleZh() =>
                 "你是《街角专访》的主编沈禾，审核标准严格。"
+                + "你在对记者小凌说话，称呼她小凌。林女士是稿件里的救助者，不是你面前的记者，不要把小凌叫成林女士。"
                 + "根据记者成稿、写作立意与已选素材给出审核。"
                 + "只根据给定正文与素材评价，禁止新增新闻事实。"
                 + "必须打回（pass=false）的情况包括但不限于："
@@ -152,6 +155,20 @@ namespace StreetCat.Writing
                 + "只输出一行 JSON（不要 markdown 代码块），字段："
                 + "{\"pass\":bool,\"score\":0-100整数,\"branch\":\"A|B|C|D\",\"review\":\"沈禾口吻评语，多行用\\n\"}。"
                 + "branch：A=通过；B=立意/选材不匹配；C=逻辑差/写太差/篇幅不足；D=把推测当事实。";
+
+        /// <summary>
+        /// Models sometimes open the note by addressing Ling as Ms. Lin.
+        /// Only the direct address is rewritten; mentions of Ms. Lin in the story stay.
+        /// </summary>
+        static string AddressReporter(string review)
+        {
+            if (string.IsNullOrEmpty(review)) return review;
+            review = System.Text.RegularExpressions.Regex.Replace(
+                review, @"(?m)(^|\n)(\s*)Ms\.?\s+Lin(\s*[,:])", "$1$2Ling$3");
+            review = System.Text.RegularExpressions.Regex.Replace(
+                review, @"(?m)(^|\n)(\s*)林女士(\s*[，,：:])", "$1$2小凌$3");
+            return review;
+        }
 
         static bool TryParseReview(string raw, out ReviewDto dto)
         {

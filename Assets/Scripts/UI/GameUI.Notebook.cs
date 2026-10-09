@@ -193,21 +193,26 @@ namespace StreetCat.UI
             detailHost.GetComponent<Image>().color = new Color(1, 1, 1, 0.001f);
             notebookDetailScroll = detailHost.GetComponent<ScrollRect>();
             notebookDetailScroll.horizontal = false;
+            notebookDetailScroll.vertical = true;
             notebookDetailScroll.movementType = ScrollRect.MovementType.Clamped;
             notebookDetailScroll.scrollSensitivity = 28f;
+            notebookDetailScroll.inertia = true;
 
             var dVp = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
             dVp.transform.SetParent(detailHost.transform, false);
             StretchFull(dVp.GetComponent<RectTransform>());
             dVp.GetComponent<Image>().color = new Color(1, 1, 1, 0.01f);
+            // SDF padding extends past the layout box; a tight mask chops glyph edges.
+            dVp.GetComponent<RectMask2D>().padding = new Vector4(-8f, -8f, -8f, -8f);
 
-            var dContent = new GameObject("Content", typeof(RectTransform));
+            var dContent = new GameObject("Content", typeof(RectTransform), typeof(ContentSizeFitter));
             dContent.transform.SetParent(dVp.transform, false);
             var dcrt = dContent.GetComponent<RectTransform>();
             dcrt.anchorMin = new Vector2(0, 1);
             dcrt.anchorMax = new Vector2(1, 1);
             dcrt.pivot = new Vector2(0.5f, 1);
-            dcrt.sizeDelta = new Vector2(0f, 360f);
+            dcrt.sizeDelta = Vector2.zero;
+            dContent.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             notebookDetailBodyText = dContent.AddComponent<TextMeshProUGUI>();
             notebookDetailBodyText.font = font;
             notebookDetailBodyText.fontSize = 28;
@@ -220,6 +225,46 @@ namespace StreetCat.UI
             notebookDetailBodyText.raycastTarget = false;
             notebookDetailScroll.viewport = dVp.GetComponent<RectTransform>();
             notebookDetailScroll.content = dcrt;
+
+            // Track hangs in the page margin, to the right of the text column.
+            // The bar shows only when notes are taller than the page.
+            const float notebookScrollbarW = 12f;
+            const float notebookTextRightInset = 16f;
+            const float notebookScrollbarGap = 14f;
+            dVp.GetComponent<RectTransform>().offsetMax = new Vector2(-notebookTextRightInset, 0f);
+            var bodyMargin = notebookDetailBodyText.margin;
+            bodyMargin.z = 8f;
+            notebookDetailBodyText.margin = bodyMargin;
+            var sbGo = new GameObject("DetailScrollbar", typeof(RectTransform), typeof(Image), typeof(Scrollbar));
+            sbGo.transform.SetParent(detailHost.transform, false);
+            var sbrt = sbGo.GetComponent<RectTransform>();
+            sbrt.anchorMin = new Vector2(1f, 0f);
+            sbrt.anchorMax = new Vector2(1f, 1f);
+            sbrt.pivot = new Vector2(0f, 0.5f);
+            sbrt.sizeDelta = new Vector2(notebookScrollbarW, 0f);
+            sbrt.anchoredPosition = new Vector2(notebookScrollbarGap, 0f);
+            var trackImg = sbGo.GetComponent<Image>();
+            trackImg.color = new Color(0.28f, 0.22f, 0.16f, 0.28f);
+            trackImg.raycastTarget = true;
+
+            var sliding = new GameObject("Sliding Area", typeof(RectTransform));
+            sliding.transform.SetParent(sbGo.transform, false);
+            Stretch(sliding.GetComponent<RectTransform>(), Vector2.zero, Vector2.one,
+                new Vector2(1f, 3f), new Vector2(-1f, -3f));
+
+            var handleGo = new GameObject("Handle", typeof(RectTransform), typeof(Image));
+            handleGo.transform.SetParent(sliding.transform, false);
+            StretchFull(handleGo.GetComponent<RectTransform>());
+            var handleImg = handleGo.GetComponent<Image>();
+            handleImg.color = new Color(0.22f, 0.16f, 0.12f, 0.88f);
+            handleImg.raycastTarget = true;
+
+            var scrollbar = sbGo.GetComponent<Scrollbar>();
+            scrollbar.handleRect = handleGo.GetComponent<RectTransform>();
+            scrollbar.targetGraphic = handleImg;
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            notebookDetailScroll.verticalScrollbar = scrollbar;
+            notebookDetailScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHide;
 
             notebookSourceText = CreateUiText(notebookPageImage.transform, "Source", 16, TextAnchor.MiddleLeft,
                 NbInkMuted, Vector2.zero, Vector2.zero);
@@ -459,7 +504,12 @@ namespace StreetCat.UI
                 notebookDetailBodyText.enableAutoSizing = false;
                 ApplyLetterSpacing(notebookDetailBodyText, 0f);
                 SharpenDialogueTmp(notebookDetailBodyText);
+                if (notebookRoot != null && notebookRoot.activeSelf)
+                    FitNotebookDetailContent();
             }
+            UILayoutOverrides.ReapplyTextStyles();
+            if (notebookRoot != null && notebookRoot.activeSelf)
+                FitNotebookDetailContent();
         }
 
         void RefreshNotebookLocalizedChrome()
@@ -573,6 +623,7 @@ namespace StreetCat.UI
                     UiLoc.T("ui.notebook.not_ready", "记者笔记尚未初始化。"),
                     "");
                 SetNotebookInspiration(UiLoc.T("ui.notebook.inspire_none", "暂无提问灵感"), false);
+                UILayoutOverrides.ReapplyTextStyles();
                 return;
             }
 
@@ -657,8 +708,32 @@ namespace StreetCat.UI
             }
 
             Canvas.ForceUpdateCanvases();
+            FitNotebookDetailContent();
+            UILayoutOverrides.ReapplyTextStyles();
+            FitNotebookDetailContent();
             if (notebookDetailScroll != null)
                 notebookDetailScroll.verticalNormalizedPosition = 1f;
+        }
+
+        /// <summary>
+        /// Grow the note body to the measured text height so the scrollbar can reach clipped lines.
+        /// The fitter is turned off after measure, same as dialogue, so it does not snap the content
+        /// back to the viewport height.
+        /// </summary>
+        void FitNotebookDetailContent()
+        {
+            if (notebookDetailBodyText == null || notebookDetailScroll == null || notebookDetailScroll.viewport == null)
+                return;
+            var content = notebookDetailBodyText.rectTransform;
+            var fitter = content.GetComponent<ContentSizeFitter>();
+            if (fitter != null) fitter.enabled = false;
+            float w = notebookDetailScroll.viewport.rect.width;
+            if (w > 1f)
+                content.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, w);
+            notebookDetailBodyText.ForceMeshUpdate();
+            float h = Mathf.Max(8f, notebookDetailBodyText.preferredHeight + 12f);
+            content.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, h);
+            Canvas.ForceUpdateCanvases();
         }
 
         void SpawnNotebookSticky(NotebookTopic topic)
@@ -877,6 +952,7 @@ namespace StreetCat.UI
                 notebookDetailBodyText.text = body ?? "";
             if (notebookSourceText != null)
                 notebookSourceText.text = source ?? "";
+            FitNotebookDetailContent();
         }
 
         void SetNotebookInspiration(string body, bool clickable)

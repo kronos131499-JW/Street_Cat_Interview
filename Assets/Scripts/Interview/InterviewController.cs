@@ -240,7 +240,7 @@ namespace StreetCat.Interview
                 sb.AppendLine("1. 态度：救助≠必须收养；放归是容量限制下的选择。");
                 sb.AppendLine("2. 对指责可防备，但不攻击记者；不说教、不写成鸡汤演讲。");
                 sb.AppendLine("3. 不要编造与主线冲突的新反转；不确定时可以说「记不清了」或「当时顾不上」。");
-                sb.AppendLine("3b. 若参考意图是 generic：必须反问想了解哪一段（发现 / 投喂 / 送医 / 为什么送回来），禁止编造自己几点路过社区。");
+                sb.AppendLine("3b. 若参考意图是 generic：问题没对上固定主题。能从硬事实回答就直接答；确实无关再说和大福的采访没关系。禁止编造自己几点路过、家猫的新名字、或与硬事实冲突的日程。");
                 sb.AppendLine("4. 每行一句，通常 1～4 句；只输出林女士台词，不要旁白或角色名前缀。");
                 if (reply != null && reply.isRepeat)
                     sb.AppendLine("5. 本题不宜复读旧说明：可简短接话或请对方换个问法，勿堆砌重复事实清单。");
@@ -295,7 +295,7 @@ namespace StreetCat.Interview
             if (reply != null && InterviewRuleEngine.IsLlmUnsafeIntent(reply.intent))
             {
                 sb.AppendLine(subject == InterviewSubject.Lin
-                    ? "【锁定】generic：只能反问想了解哪一段，禁止编造自己几点来社区。"
+                    ? "【锁定】generic：按硬事实直接回答；无关再说明和采访没关系。禁止编造路过时间或家猫新名字。"
                     : "【锁定】generic：只能表示没听懂或请换个问法，禁止补新情节。");
             }
             sb.AppendLine("【输出】只输出角色回答，每行一句。");

@@ -1,5 +1,9 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 using StreetCat.Core;
+using StreetCat.Data;
+using StreetCat.Loc;
+using StreetCat.Narrative;
+using StreetCat.Writing;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -198,6 +202,51 @@ namespace StreetCat.UI
         public void DebugOpenNotebook()
         {
             OpenNotebook();
+        }
+
+        public void DebugOpenWritingDesk()
+        {
+            SeedDebugWritingDraft();
+            SetStageBackground("编辑部工位_上午");
+            stageHint.text = UiLoc.T("ui.writing.stage_hint", "写稿");
+            ShowWritingDesk();
+        }
+
+        public void DebugOpenWritingReview()
+        {
+            SeedDebugWritingDraft();
+            assembler.ApplyReview(82, "A",
+                StreetCat.Loc.GameSettings.IsEnglish
+                    ? "Review — approved\n\nLing, I've read it. The structure holds, and the facts stay inside what you actually have. Send it."
+                    : "审核结果——通过\n\n小凌，看完了。结构站住了，事实也没有写出你没有的东西。可以发。");
+            SetStageBackground("沈禾办公室_上午");
+            SetSpeaker("沈禾", LineSpeaker.Character, "淡淡认可");
+            SetBody(UiLoc.T("ui.writing.review_spoken_pass", "看完了。意见写在这张纸上。"));
+            statusText.text = string.Format(UiLoc.T("ui.writing.pass_fmt", "审核通过　{0}"), assembler.Score);
+            ShowWritingReviewPanel();
+        }
+
+        void SeedDebugWritingDraft()
+        {
+            mode = Mode.Writing;
+            if (GameState.Instance != null)
+                GameState.Instance.Data.uiMode = "writing";
+            SetAdvanceEnabled(false);
+            SetInvestigateChrome(false);
+            SetInterviewChrome(false);
+            if (inputField) inputField.gameObject.SetActive(false);
+            HideWritingMaterialsBoard();
+            HideWritingReviewPanel();
+            writingMatsActive = false;
+            pendingDir = WritingDirection.GuardCatToday;
+            selectedMats.Clear();
+            selectedMats.Add(MaterialIds.M01);
+            selectedMats.Add(MaterialIds.M14);
+            selectedMats.Add(MaterialIds.M02);
+            selectedMats.Add(MaterialIds.M06);
+            selectedMats.Add(MaterialIds.M12);
+            EnsureCoreMaterials();
+            assembler.Assemble(pendingDir, selectedMats);
         }
     }
 }

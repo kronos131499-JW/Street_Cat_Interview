@@ -313,7 +313,7 @@ namespace StreetCat.Interview
                 sb.AppendLine("1. Helping ≠ must adopt; release was a capacity choice.");
                 sb.AppendLine("2. You may be guarded if accused, but don't attack the reporter; no sermon or inspirational speech.");
                 sb.AppendLine("3. No new plot twists that contradict canon; say \"I don't quite remember\" when unsure.");
-                sb.AppendLine("3b. If reference intent is generic: you MUST ask which part they want (found him / feeding / hospital / why he came back). Do NOT invent your own visiting hours.");
+                sb.AppendLine("3b. If reference intent is generic: the question missed a fixed topic. Answer from the hard facts when you can; if it is truly unrelated, say so. Do NOT invent your visiting hours, new names for the cats at home, or a schedule.");
                 sb.AppendLine("4. One sentence per line, usually 1–4; Ms. Lin's lines only—no narration or name prefix.");
                 sb.AppendLine("5. Always refer to Dafu as he/him/his, never it.");
                 sb.AppendLine("6. Respond in natural English only.");
@@ -381,7 +381,7 @@ namespace StreetCat.Interview
             if (reply != null && InterviewRuleEngine.IsLlmUnsafeIntent(reply.intent))
             {
                 sb.AppendLine(subject == InterviewSubject.Lin
-                    ? "[Lock] generic: only redirect to which part of Dafu's story. No personal schedule."
+                    ? "[Lock] generic: answer from the hard facts. If it is unrelated, say so. No invented visiting hours or new pet names."
                     : "[Lock] generic: only confusion / ask to rephrase. No new scenes or relationships.");
             }
             sb.AppendLine("[Output] English character answer only, one sentence per line.");
@@ -428,7 +428,10 @@ namespace StreetCat.Interview
             return false;
         }
 
-        /// <summary>Lin generic replies must stay a topic redirect, not a made-up personal timetable.</summary>
+        /// <summary>
+        /// Lin's unmatched questions are answered by the model. Only block invented schedules;
+        /// a natural reply does not have to be the canned "which part?" redirect.
+        /// </summary>
         public static bool AcceptLinGenericRedirect(string joined, out string rejectReason)
         {
             rejectReason = null;
@@ -441,22 +444,15 @@ namespace StreetCat.Interview
             var lower = joined.ToLowerInvariant();
             if (lower.Contains("i usually come") || lower.Contains("i usually show")
                 || lower.Contains("late afternoon") || lower.Contains("on my way home")
-                || (lower.Contains("after work") && !lower.Contains("dumpster") && !lower.Contains("bin")))
+                || (lower.Contains("after work") && !lower.Contains("dumpster") && !lower.Contains("bin")
+                    && !lower.Contains("trash")))
             {
                 rejectReason = "lin_generic_schedule";
                 return false;
             }
-
-            bool redirectZh = joined.Contains("哪一段")
-                              || (joined.Contains("发现") && joined.Contains("投喂"));
-            bool redirectEn = (lower.Contains("which part") || lower.Contains("which bit")
-                               || lower.Contains("what part"))
-                              && (lower.Contains("found") || lower.Contains("feed")
-                                  || lower.Contains("hospital") || lower.Contains("brought")
-                                  || lower.Contains("came back"));
-            if (!redirectZh && !redirectEn)
+            if (joined.Contains("一般下午") || (joined.Contains("下班路过") && joined.Contains("点")))
             {
-                rejectReason = "lin_generic_no_redirect";
+                rejectReason = "lin_generic_schedule";
                 return false;
             }
             return true;

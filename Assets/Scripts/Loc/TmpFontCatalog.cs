@@ -125,6 +125,7 @@ namespace StreetCat.Loc
             if (baked == null) return null;
 
             baked.isMultiAtlasTexturesEnabled = true;
+            EnsureLookup(baked);
             // A stale bake still renders, just with less headroom before large text softens.
             // Rebuilding needs the Editor baker, so say so rather than cap quality in silence.
             if (baked.faceInfo.pointSize < SamplingPointSize)
@@ -277,11 +278,29 @@ namespace StreetCat.Loc
             }
         }
 
+        static void EnsureLookup(TMP_FontAsset asset)
+        {
+            if (asset == null) return;
+            try
+            {
+                // Resources.Load can hand back a font whose character table is serialized
+                // but whose lookup dictionaries are still empty. HasCharacters is then false
+                // even for glyphs that were baked (街角 / Aa1).
+                asset.ReadFontAssetDefinition();
+            }
+            catch (System.Exception)
+            {
+                // Older TMP builds throw if the atlas is not ready yet. The probe below still runs.
+            }
+        }
+
         static bool ValidateGlyphs(TMP_FontAsset asset, bool needCjk)
         {
             if (asset == null) return false;
             if (asset.material == null || asset.material.shader == null)
                 return false;
+
+            EnsureLookup(asset);
 
             // With fallbacks attached, primary Latin fonts may lack CJK locally — that is OK.
             string probe = needCjk ? ProbeCjk + ProbeLatin : ProbeLatin;
@@ -290,9 +309,7 @@ namespace StreetCat.Loc
                 asset.TryAddCharacters(probe, out string missing);
                 if (needCjk && !string.IsNullOrEmpty(missing) && ContainsCjk(missing))
                 {
-                    // Still OK if a CJK fallback can provide them.
-                    var cjk = cjkFallbackAsset;
-                    if (cjk == null || cjk == asset || !cjk.HasCharacters(ProbeCjk))
+                    if (!FallbackHasCjk(asset))
                         return false;
                 }
             }
@@ -306,25 +323,24 @@ namespace StreetCat.Loc
                     return false;
             }
 
-            if (needCjk)
-            {
-                bool ok = asset.HasCharacters(ProbeCjk);
-                if (!ok && asset.fallbackFontAssetTable != null)
-                {
-                    for (int i = 0; i < asset.fallbackFontAssetTable.Count; i++)
-                    {
-                        var fb = asset.fallbackFontAssetTable[i];
-                        if (fb != null && fb.HasCharacters(ProbeCjk))
-                        {
-                            ok = true;
-                            break;
-                        }
-                    }
-                }
-                if (!ok) return false;
-            }
+            if (needCjk && !asset.HasCharacters(ProbeCjk) && !FallbackHasCjk(asset))
+                return false;
 
             return true;
+        }
+
+        static bool FallbackHasCjk(TMP_FontAsset asset)
+        {
+            if (cjkFallbackAsset != null && cjkFallbackAsset != asset && cjkFallbackAsset.HasCharacters(ProbeCjk))
+                return true;
+            if (asset == null || asset.fallbackFontAssetTable == null) return false;
+            for (int i = 0; i < asset.fallbackFontAssetTable.Count; i++)
+            {
+                var fb = asset.fallbackFontAssetTable[i];
+                if (fb != null && fb != asset && fb.HasCharacters(ProbeCjk))
+                    return true;
+            }
+            return false;
         }
 
         static bool ContainsCjk(string s)
@@ -471,6 +487,7 @@ namespace StreetCat.Loc
                 {
                     baked.isMultiAtlasTexturesEnabled = true;
                     EnsureMaterial(baked);
+                    EnsureLookup(baked);
                     if (baked.atlasPopulationMode == AtlasPopulationMode.Dynamic)
                         baked.TryAddCharacters(ProbeCjk + ProbeLatin);
                     if (baked.HasCharacters(ProbeCjk))

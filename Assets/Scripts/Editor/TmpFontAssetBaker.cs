@@ -50,7 +50,7 @@ namespace StreetCat.Editor
                 }
 
                 string outPath = OutputDir + "/" + resourcesName + ".asset";
-                if (BakeOne(source, resourcesName, outPath, !opt.LatinOnly))
+                if (BakeOne(source, resourcesName, outPath, !opt.LatinOnly, GlyphRenderMode.SDFAA, Probe))
                     ok++;
                 else
                     fail++;
@@ -97,6 +97,68 @@ namespace StreetCat.Editor
                 "OK");
         }
 
+        const string LatinDialogue =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
+            "0123456789" +
+            " .,;:'\"!?-—–…()[]{}/\\@#$%&*+=<>“”‘’—–·•~^`|" +
+            "áéíóúàèìòùäëïöüñçÁÉÍÓÚÄËÏÖÜÑÇ";
+
+        /// <summary>
+        /// Dialogue Verdana: SDF16 + full Latin packed once in the Editor.
+        /// SDFAA 8-bit interiors speckle on parchment; runtime SDF32 hitch froze Play Mode.
+        /// </summary>
+        [MenuItem("StreetCat/Fonts/Bake Verdana Dialogue (SDF16)")]
+        public static void BakeVerdanaDialogue()
+        {
+            bool ok = BakeVerdanaDialogueInternal();
+            EditorUtility.DisplayDialog(
+                "TMP Font Baker",
+                ok ? "Verdana SDF16 dialogue atlas baked." : "Bake failed — see Console.",
+                "OK");
+        }
+
+        /// <summary>Batchmode: Unity.exe -executeMethod StreetCat.Editor.TmpFontAssetBaker.BakeVerdanaDialogueCli</summary>
+        public static void BakeVerdanaDialogueCli()
+        {
+            bool ok = BakeVerdanaDialogueInternal();
+            if (!ok)
+                EditorApplication.Exit(1);
+        }
+
+        static bool BakeVerdanaDialogueInternal()
+        {
+            Directory.CreateDirectory(OutputDir.Replace('\\', '/'));
+            const string dest = "Assets/Resources/Fonts/Verdana.ttf";
+            const string windowsVerdana = @"C:\Windows\Fonts\verdana.ttf";
+            // Project copy is a smaller/webfont cut; MS Verdana's outlines fill cleanly on parchment.
+            if (File.Exists(windowsVerdana))
+            {
+                Directory.CreateDirectory("Assets/Resources/Fonts");
+                File.Copy(windowsVerdana, dest, overwrite: true);
+                AssetDatabase.ImportAsset(dest, ImportAssetOptions.ForceUpdate);
+                var importer = AssetImporter.GetAtPath(dest) as TrueTypeFontImporter;
+                if (importer != null)
+                {
+                    importer.includeFontData = true;
+                    importer.SaveAndReimport();
+                }
+            }
+
+            string fontPath = FindFontAssetPath("Verdana");
+            if (string.IsNullOrEmpty(fontPath))
+            {
+                Debug.LogError("[TmpFontAssetBaker] Verdana.ttf not found under Assets/Resources/Fonts.");
+                return false;
+            }
+
+            var source = AssetDatabase.LoadAssetAtPath<Font>(fontPath);
+            bool ok = BakeOne(source, "Verdana", OutputDir + "/Verdana.asset", needCjk: false,
+                GlyphRenderMode.SDF16, LatinDialogue);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return ok;
+        }
+
         [MenuItem("StreetCat/Fonts/Bake SiYuan TMP Only")]
         public static void BakeSiYuanOnly()
         {
@@ -109,7 +171,8 @@ namespace StreetCat.Editor
             }
 
             var source = AssetDatabase.LoadAssetAtPath<Font>(fontPath);
-            bool ok = BakeOne(source, "SiYuanHeiTi", OutputDir + "/SiYuanHeiTi.asset", needCjk: true);
+            bool ok = BakeOne(source, "SiYuanHeiTi", OutputDir + "/SiYuanHeiTi.asset", needCjk: true,
+                GlyphRenderMode.SDFAA, Probe);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             EditorUtility.DisplayDialog(
@@ -118,7 +181,8 @@ namespace StreetCat.Editor
                 "OK");
         }
 
-        static bool BakeOne(Font source, string name, string outPath, bool needCjk)
+        static bool BakeOne(Font source, string name, string outPath, bool needCjk,
+            GlyphRenderMode renderMode, string characters)
         {
             if (source == null) return false;
 
@@ -135,7 +199,7 @@ namespace StreetCat.Editor
                     source,
                     TmpFontCatalog.SamplingPointSize,
                     TmpFontCatalog.AtlasPadding,
-                    GlyphRenderMode.SDFAA,
+                    renderMode,
                     TmpFontCatalog.AtlasWidth,
                     TmpFontCatalog.AtlasHeight,
                     AtlasPopulationMode.Dynamic,
@@ -157,7 +221,7 @@ namespace StreetCat.Editor
             asset.name = name;
             asset.isMultiAtlasTexturesEnabled = true;
             TmpFontCatalog.TuneSdfMaterial(asset);
-            asset.TryAddCharacters(Probe, out var missing);
+            asset.TryAddCharacters(characters ?? Probe, out var missing);
             if (needCjk && !string.IsNullOrEmpty(missing) && missing.IndexOf('街') >= 0)
             {
                 Debug.LogError("[TmpFontAssetBaker] CJK probe failed for " + name + ". missing='" + missing +

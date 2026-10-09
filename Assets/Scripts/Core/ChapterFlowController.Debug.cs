@@ -47,6 +47,8 @@ namespace StreetCat.Core
             new DebugJumpTarget("interview_lin", "采访林女士", "Interview Ms. Lin"),
             new DebugJumpTarget(SceneIds.SC10, "SC-10 写稿开场（剧本）", "SC-10 Writing intro (script)"),
             new DebugJumpTarget("writing", "写稿桌 / 素材板", "Writing desk / material board"),
+            new DebugJumpTarget("writing_desk", "写稿界面", "Writing desk"),
+            new DebugJumpTarget("writing_review", "审核界面", "Editor review"),
             new DebugJumpTarget("notebook", "记者笔记", "Reporter's notebook"),
             new DebugJumpTarget("epilogue", "后日谈（SC-11）", "Epilogue (SC-11)"),
         };
@@ -123,6 +125,20 @@ namespace StreetCat.Core
                 case "writing":
                     SeedThroughWriting();
                     OpenWritingDeskFromScript();
+                    return;
+
+                case "writing_desk":
+                    SeedThroughWriting();
+                    GameState.Instance.SetScene(SceneIds.SC10);
+                    GameState.Instance.Data.uiMode = "writing";
+                    gameUi.DebugOpenWritingDesk();
+                    return;
+
+                case "writing_review":
+                    SeedThroughWriting();
+                    GameState.Instance.SetScene(SceneIds.SC10);
+                    GameState.Instance.Data.uiMode = "writing";
+                    gameUi.DebugOpenWritingReview();
                     return;
 
                 case "notebook":

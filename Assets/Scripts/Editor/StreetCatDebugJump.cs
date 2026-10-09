@@ -56,6 +56,12 @@ namespace StreetCat.Editor
         [MenuItem(MenuRoot + "写稿桌 / 素材板", false, 141)]
         static void JumpWriting() => Jump("writing");
 
+        [MenuItem(MenuRoot + "写稿界面", false, 142)]
+        static void JumpWritingDesk() => Jump("writing_desk");
+
+        [MenuItem(MenuRoot + "审核界面", false, 143)]
+        static void JumpWritingReview() => Jump("writing_review");
+
         [MenuItem(MenuRoot + "解锁全部素材", false, 142)]
         [MenuItem("StreetCat/Unlock All Materials", false, 142)]
         static void UnlockAllMaterials()
@@ -94,6 +100,8 @@ namespace StreetCat.Editor
         [MenuItem(MenuRoot + "采访林女士", true)]
         [MenuItem(MenuRoot + "SC-10 写稿开场（剧本）", true)]
         [MenuItem(MenuRoot + "写稿桌 / 素材板", true)]
+        [MenuItem(MenuRoot + "写稿界面", true)]
+        [MenuItem(MenuRoot + "审核界面", true)]
         [MenuItem(MenuRoot + "解锁全部素材", true)]
         [MenuItem("StreetCat/Unlock All Materials", true)]
         [MenuItem(MenuRoot + "记者笔记", true)]

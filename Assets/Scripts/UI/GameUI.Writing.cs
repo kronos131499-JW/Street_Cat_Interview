@@ -432,27 +432,32 @@ namespace StreetCat.UI
             if (writingReviewTitle != null)
             {
                 writingReviewTitle.font = font;
-                writingReviewTitle.fontSize = Mathf.RoundToInt(34f * scale);
-                writingReviewTitle.fontStyle = FontStyles.Bold;
+                writingReviewTitle.fontSize = Mathf.RoundToInt(40f * scale);
+                writingReviewTitle.fontStyle = FontStyles.Normal;
                 ApplyLetterSpacing(writingReviewTitle, 0f);
             }
             if (writingReviewStatus != null)
             {
                 writingReviewStatus.font = font;
-                writingReviewStatus.fontSize = Mathf.RoundToInt(16f * scale);
+                writingReviewStatus.fontSize = Mathf.RoundToInt(20f * scale);
+                writingReviewStatus.enableWordWrapping = false;
+                writingReviewStatus.overflowMode = TextOverflowModes.Truncate;
                 ApplyLetterSpacing(writingReviewStatus, 0f);
             }
             if (writingReviewScore != null)
             {
                 writingReviewScore.font = font;
-                writingReviewScore.fontSize = Mathf.RoundToInt(15f * scale);
+                writingReviewScore.fontSize = Mathf.RoundToInt(22f * scale);
+                writingReviewScore.fontStyle = FontStyles.Normal;
+                writingReviewScore.enableWordWrapping = false;
+                writingReviewScore.overflowMode = TextOverflowModes.Truncate;
                 ApplyLetterSpacing(writingReviewScore, 0f);
             }
             if (writingReviewBody != null)
             {
                 writingReviewBody.font = font;
-                writingReviewBody.fontSize = Mathf.RoundToInt(18f * scale);
-                writingReviewBody.lineSpacing = 12f;
+                writingReviewBody.fontSize = Mathf.RoundToInt(24f * scale);
+                writingReviewBody.lineSpacing = 18f;
                 writingReviewBody.enableWordWrapping = true;
                 writingReviewBody.overflowMode = TextOverflowModes.Overflow;
                 ApplyLetterSpacing(writingReviewBody, 0f);
@@ -559,6 +564,8 @@ namespace StreetCat.UI
                 RefreshWritingMaterialsBoard();
             if (writingDeskActive)
                 RefreshWritingDesk();
+            // Opening the desk stamps the global face over per-text styles. Put those back.
+            UILayoutOverrides.ReapplyTextStyles();
         }
 
         void BuildWritingPreviewPanel(Transform cork)
@@ -638,12 +645,12 @@ namespace StreetCat.UI
             writingReviewRoot.transform.SetParent(canvasRt, false);
             StretchFull(writingReviewRoot.GetComponent<RectTransform>());
 
-            var dim = CreateImage(writingReviewRoot.transform, "Dim", new Color(0f, 0f, 0f, 0.001f));
+            var dim = CreateImage(writingReviewRoot.transform, "Dim", new Color(0f, 0f, 0f, 0.40f));
             StretchFull(dim.rectTransform);
             dim.raycastTarget = true;
 
             var sheet = CreateImage(writingReviewRoot.transform, "Sheet", Color.white);
-            Stretch(sheet.rectTransform, new Vector2(0.02f, 0.255f), new Vector2(0.74f, 0.99f),
+            Stretch(sheet.rectTransform, new Vector2(0f, 0f), new Vector2(0.90f, 1f),
                 Vector2.zero, Vector2.zero);
             var plate = LoadWritingSectionSprite("editor_review/panel");
             if (plate != null)
@@ -662,27 +669,25 @@ namespace StreetCat.UI
             }
             sheet.raycastTarget = true;
 
-            writingReviewTitle = CreateUiText(sheet.transform, "Title", 34, TextAnchor.MiddleCenter,
+            writingReviewTitle = CreateUiText(sheet.transform, "Title", 40, TextAnchor.MiddleCenter,
                 WmInk, Vector2.zero, Vector2.zero);
-            Stretch(writingReviewTitle.rectTransform, new Vector2(0.16f, 0.825f), new Vector2(0.84f, 0.905f),
-                Vector2.zero, Vector2.zero);
-            writingReviewTitle.fontStyle = FontStyles.Bold;
+            writingReviewTitle.fontStyle = FontStyles.Normal;
             writingReviewTitle.text = UiLoc.T("ui.writing.review_panel_title", "沈禾审核");
 
-            writingReviewStatus = CreateUiText(sheet.transform, "Status", 16, TextAnchor.MiddleLeft,
+            writingReviewStatus = CreateUiText(sheet.transform, "Status", 20, TextAnchor.MiddleLeft,
                 new Color(0.42f, 0.28f, 0.20f, 1f), Vector2.zero, Vector2.zero);
-            Stretch(writingReviewStatus.rectTransform, new Vector2(0.16f, 0.732f), new Vector2(0.40f, 0.775f),
-                Vector2.zero, Vector2.zero);
+            writingReviewStatus.enableWordWrapping = false;
+            writingReviewStatus.overflowMode = TextOverflowModes.Truncate;
 
-            writingReviewScore = CreateUiText(sheet.transform, "Score", 15, TextAnchor.MiddleCenter,
+            writingReviewScore = CreateUiText(sheet.transform, "Score", 20, TextAnchor.MiddleCenter,
                 new Color(0.48f, 0.22f, 0.20f, 1f), Vector2.zero, Vector2.zero);
-            Stretch(writingReviewScore.rectTransform, new Vector2(0.33f, 0.728f), new Vector2(0.67f, 0.770f),
-                Vector2.zero, Vector2.zero);
-            writingReviewScore.fontStyle = FontStyles.Bold;
+            writingReviewScore.fontStyle = FontStyles.Normal;
+            writingReviewScore.enableWordWrapping = false;
+            writingReviewScore.overflowMode = TextOverflowModes.Truncate;
 
             var host = new GameObject("BodyHost", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             host.transform.SetParent(sheet.transform, false);
-            Stretch(host.GetComponent<RectTransform>(), new Vector2(0.16f, 0.175f), new Vector2(0.84f, 0.715f),
+            Stretch(host.GetComponent<RectTransform>(), new Vector2(0.10f, 0.175f), new Vector2(0.90f, 0.745f),
                 Vector2.zero, Vector2.zero);
             host.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.001f);
             var scroll = host.GetComponent<ScrollRect>();
@@ -705,43 +710,158 @@ namespace StreetCat.UI
             content.GetComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             writingReviewBody = content.AddComponent<TextMeshProUGUI>();
             writingReviewBody.font = font;
-            writingReviewBody.fontSize = 18;
+            writingReviewBody.fontSize = 24;
             writingReviewBody.color = WmInk;
             writingReviewBody.alignment = VnText.ToAlignment(TextAnchor.UpperLeft);
             writingReviewBody.enableWordWrapping = true;
             writingReviewBody.overflowMode = TextOverflowModes.Overflow;
-            writingReviewBody.lineSpacing = 12f;
+            writingReviewBody.lineSpacing = 18f;
             writingReviewBody.raycastTarget = false;
             scroll.viewport = vp.GetComponent<RectTransform>();
             scroll.content = crt;
 
-            var actions = new GameObject("Actions", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            var actions = new GameObject("Actions", typeof(RectTransform));
             actions.transform.SetParent(sheet.transform, false);
-            Stretch(actions.GetComponent<RectTransform>(), new Vector2(0.14f, 0.055f), new Vector2(0.86f, 0.165f),
-                Vector2.zero, Vector2.zero);
-            var row = actions.GetComponent<HorizontalLayoutGroup>();
-            row.spacing = 10f;
-            row.childAlignment = TextAnchor.MiddleCenter;
-            row.childForceExpandHeight = true;
-            row.childForceExpandWidth = true;
-            row.childControlWidth = true;
-            row.childControlHeight = true;
-            row.padding = new RectOffset(4, 4, 0, 0);
             writingReviewActions = actions.transform;
 
+            LayoutWritingReviewChrome();
             writingReviewRoot.SetActive(false);
+        }
+
+        void LayoutWritingReviewChrome()
+        {
+            if (writingReviewTitle != null)
+                Stretch(writingReviewTitle.rectTransform, new Vector2(0.14f, 0.858f), new Vector2(0.86f, 0.945f),
+                    Vector2.zero, Vector2.zero);
+            if (writingReviewStatus != null)
+                writingReviewStatus.gameObject.SetActive(false);
+            if (writingReviewScore != null)
+                Stretch(writingReviewScore.rectTransform, new Vector2(0.22f, 0.768f), new Vector2(0.78f, 0.812f),
+                    Vector2.zero, Vector2.zero);
+            if (writingReviewBody != null && writingReviewBody.transform.parent != null)
+            {
+                var host = writingReviewBody.transform.parent.parent as RectTransform;
+                if (host != null)
+                    Stretch(host, new Vector2(0.10f, 0.175f), new Vector2(0.90f, 0.745f),
+                        Vector2.zero, Vector2.zero);
+            }
+            if (writingReviewActions != null)
+                FitReviewActionButtons();
+        }
+
+        /// <summary>
+        /// Plaques are 3:1. Place them with anchors on the sheet so they scale with the paper.
+        /// Pixel sizes measured before the aspect fitter ran were left behind as tiny strips.
+        /// </summary>
+        void FitReviewActionButtons()
+        {
+            if (writingReviewActions == null) return;
+            int n = writingReviewActions.childCount;
+            if (n < 1) return;
+
+            var hlg = writingReviewActions.GetComponent<HorizontalLayoutGroup>();
+            if (hlg != null) hlg.enabled = false;
+
+            float sheetAspect = 1448f / 1086f;
+            var sheetImg = writingReviewActions.parent != null
+                ? writingReviewActions.parent.GetComponent<Image>() : null;
+            if (sheetImg != null && sheetImg.sprite != null)
+                sheetAspect = sheetImg.sprite.rect.width / Mathf.Max(1f, sheetImg.sprite.rect.height);
+            // Shared plaque box. The PNGs share a canvas, but the painted buttons do not.
+            const float btnAspect = 3.22f;
+            const int slots = 4;
+            const float inner = 0.92f;
+            const float gap = 0.012f;
+            float btnW = (inner - gap * (slots - 1)) / slots;
+            float btnH = btnW * sheetAspect / btnAspect;
+            float rowW = btnW * n + gap * Mathf.Max(0, n - 1);
+            float x0 = (1f - rowW) * 0.5f;
+            const float y0 = 0.042f;
+
+            var rowRt = writingReviewActions.GetComponent<RectTransform>();
+            rowRt.anchorMin = new Vector2(x0, y0);
+            rowRt.anchorMax = new Vector2(x0 + rowW, y0 + btnH);
+            rowRt.offsetMin = Vector2.zero;
+            rowRt.offsetMax = Vector2.zero;
+            rowRt.pivot = new Vector2(0.5f, 0.5f);
+
+            for (int i = 0; i < n; i++)
+            {
+                float slotW = btnW / rowW;
+                float slotLeft = (btnW + gap) * i / rowW;
+                float slotCx = slotLeft + slotW * 0.5f;
+                var child = writingReviewActions.GetChild(i) as RectTransform;
+                if (child == null) continue;
+                var img = child.GetComponent<Image>();
+                ReviewButtonOpaqueUv(img != null ? img.sprite : null,
+                    out float u0, out float v0, out float u1, out float v1);
+                float contentW = Mathf.Max(0.01f, u1 - u0);
+                float contentH = Mathf.Max(0.01f, v1 - v0);
+                float cx = (u0 + u1) * 0.5f;
+                float cy = (v0 + v1) * 0.5f;
+                float childW = slotW / contentW;
+                float childH = 1f / contentH;
+                float childLeft = slotCx - cx * childW;
+                float childBottom = 0.5f - cy * childH;
+                child.anchorMin = new Vector2(childLeft, childBottom);
+                child.anchorMax = new Vector2(childLeft + childW, childBottom + childH);
+                child.offsetMin = Vector2.zero;
+                child.offsetMax = Vector2.zero;
+                child.pivot = new Vector2(0.5f, 0.5f);
+                if (img != null)
+                    img.preserveAspect = false;
+            }
+        }
+
+        /// <summary>
+        /// Opaque plaque inside each 2172×724 canvas, UV origin bottom-left.
+        /// Padding differs per file, so stretching the canvas makes the buttons look uneven.
+        /// </summary>
+        static void ReviewButtonOpaqueUv(Sprite sprite,
+            out float u0, out float v0, out float u1, out float v1)
+        {
+            u0 = 0f;
+            v0 = 0f;
+            u1 = 1f;
+            v1 = 1f;
+            if (sprite == null) return;
+            switch (sprite.name)
+            {
+                case "back_to_writing":
+                    u0 = 36f / 2172f; u1 = 2132f / 2172f;
+                    v0 = 56f / 724f; v1 = 694f / 724f;
+                    break;
+                case "open_notebook":
+                    u0 = 180f / 2172f; u1 = 1992f / 2172f;
+                    v0 = 86f / 724f; v1 = 660f / 724f;
+                    break;
+                case "re_interview":
+                    u0 = 276f / 2172f; u1 = 1900f / 2172f;
+                    v0 = 112f / 724f; v1 = 630f / 724f;
+                    break;
+                case "reselect":
+                    u0 = 56f / 2172f; u1 = 2116f / 2172f;
+                    v0 = 72f / 724f; v1 = 692f / 724f;
+                    break;
+                case "continue":
+                    u0 = 100f / 2146f; u1 = 2048f / 2146f;
+                    v0 = 97f / 733f; v1 = 657f / 733f;
+                    break;
+            }
         }
 
         void HideWritingReviewPanel()
         {
             if (writingReviewRoot != null)
                 writingReviewRoot.SetActive(false);
+            if (portraitImage != null && portraitImage.sprite != null && portraitImage.enabled)
+                LayoutPortraitRect(portraitImage.sprite);
         }
 
         Button SpawnReviewPanelButton(string name, string label, string subtitle, string spritePath,
             Color fallback, UnityEngine.Events.UnityAction onClick)
         {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
             go.transform.SetParent(writingReviewActions, false);
             var img = go.GetComponent<Image>();
             var spr = LoadWritingSectionSprite(spritePath);
@@ -754,10 +874,6 @@ namespace StreetCat.UI
             }
             else
                 img.color = fallback;
-            var le = go.GetComponent<LayoutElement>();
-            le.preferredHeight = 72f;
-            le.flexibleWidth = 1f;
-            le.minWidth = 90f;
             var btn = go.GetComponent<Button>();
             btn.targetGraphic = img;
             btn.onClick.AddListener(() =>
@@ -765,29 +881,8 @@ namespace StreetCat.UI
                 SfxController.Instance?.PlayUi();
                 onClick?.Invoke();
             });
-            float scale = GameSettings.FontSizeScale;
-            var cream = new Color(0.98f, 0.94f, 0.86f, 1f);
-            var muted = new Color(0.86f, 0.76f, 0.64f, 1f);
-            var title = CreateUiText(go.transform, "Label", Mathf.RoundToInt(15f * scale),
-                TextAnchor.MiddleCenter, cream, Vector2.zero, Vector2.zero);
-            Stretch(title.rectTransform, new Vector2(0.08f, 0.46f), new Vector2(0.92f, 0.88f),
-                Vector2.zero, Vector2.zero);
-            title.fontStyle = FontStyles.Bold;
-            title.enableWordWrapping = true;
-            title.overflowMode = TextOverflowModes.Truncate;
-            title.text = label;
-            title.raycastTarget = false;
-            var sub = CreateUiText(go.transform, "Sub", Mathf.RoundToInt(11f * scale),
-                TextAnchor.MiddleCenter, muted, Vector2.zero, Vector2.zero);
-            Stretch(sub.rectTransform, new Vector2(0.08f, 0.12f), new Vector2(0.92f, 0.48f),
-                Vector2.zero, Vector2.zero);
-            sub.fontStyle = FontStyles.Normal;
-            sub.enableWordWrapping = false;
-            sub.overflowMode = TextOverflowModes.Truncate;
-            sub.characterSpacing = 1.2f;
-            sub.text = subtitle ?? "";
-            sub.raycastTarget = false;
-            sub.gameObject.SetActive(!string.IsNullOrEmpty(subtitle));
+
+            // Plaques already bake the English label and icon. A second TMP doubles the words.
             return btn;
         }
 
@@ -796,21 +891,18 @@ namespace StreetCat.UI
             EnsureWritingReviewPanel();
             if (writingReviewRoot == null) return;
 
-            SetChrome(true, false, true);
+            SetChrome(false, false, true);
+            if (dialoguePanel != null)
+                dialoguePanel.gameObject.SetActive(false);
+            LayoutWritingReviewChrome();
             if (writingReviewTitle != null)
                 writingReviewTitle.text = UiLoc.T("ui.writing.review_panel_title", "沈禾审核");
             bool pass = assembler.CanPublish;
-            if (writingReviewStatus != null)
-            {
-                writingReviewStatus.text = pass
-                    ? UiLoc.T("ui.writing.review_status_pass", "审核通过")
-                    : UiLoc.T("ui.writing.review_status_fail", "审核退回");
-            }
             if (writingReviewScore != null)
             {
                 writingReviewScore.text = pass
-                    ? string.Format(UiLoc.T("ui.writing.review_score_pill", "评分 {0}"), assembler.Score)
-                    : string.Format(UiLoc.T("ui.writing.review_branch_pill", "退回分支 {0}"), assembler.ReviewBranch);
+                    ? UiLoc.T("ui.writing.review_pill_pass", "已通过")
+                    : UiLoc.T("ui.writing.review_pill_fail", "未通过");
                 writingReviewScore.color = pass
                     ? new Color(0.28f, 0.32f, 0.28f, 1f)
                     : new Color(0.48f, 0.22f, 0.20f, 1f);
@@ -820,15 +912,18 @@ namespace StreetCat.UI
 
             if (writingReviewActions != null)
             {
+                var stale = new List<GameObject>();
                 foreach (Transform child in writingReviewActions)
-                    Destroy(child.gameObject);
+                    stale.Add(child.gameObject);
+                for (int i = 0; i < stale.Count; i++)
+                    DestroyImmediate(stale[i]);
 
                 if (pass)
                 {
-                    SpawnReviewPanelButton("Publish",
-                        UiLoc.T("ui.writing.confirm_publish", "确认发布"),
-                        UiLoc.T("ui.writing.confirm_publish_sub", "可以见报"),
-                        "editor_review/back_to_writing", WmTeal,
+                    SpawnReviewPanelButton("Continue",
+                        UiLoc.T("ui.writing.review_continue", "继续"),
+                        "",
+                        "editor_review/continue", new Color(0.45f, 0.28f, 0.16f, 1f),
                         () =>
                         {
                             HideWritingReviewPanel();
@@ -837,15 +932,6 @@ namespace StreetCat.UI
                 }
                 else
                 {
-                    SpawnReviewPanelButton("BackWrite",
-                        UiLoc.T("ui.writing.back_to_write", "返回写稿"),
-                        UiLoc.T("ui.writing.back_to_write_sub", "继续修改"),
-                        "editor_review/back_to_writing", WmTeal,
-                        () =>
-                        {
-                            HideWritingReviewPanel();
-                            ShowMaterialPick();
-                        });
                     SpawnReviewPanelButton("Notebook",
                         UiLoc.T("ui.writing.view_notebook", "查看记者笔记"),
                         UiLoc.T("ui.writing.view_notebook_sub", "查看素材"),
@@ -866,13 +952,23 @@ namespace StreetCat.UI
             }
 
             writingReviewRoot.SetActive(true);
+            Canvas.ForceUpdateCanvases();
+            FitReviewActionButtons();
             writingReviewRoot.transform.SetAsLastSibling();
+            if (portraitImage != null && portraitImage.sprite != null && portraitImage.enabled)
+                LayoutPortraitRect(portraitImage.sprite);
             if (portraitImage != null)
                 portraitImage.transform.SetAsLastSibling();
-            if (dialoguePanel != null)
-                dialoguePanel.transform.SetAsLastSibling();
             EnsureTopHudClickable();
             ApplyWritingFonts();
+            StartCoroutine(FitReviewButtonsEndOfFrame());
+        }
+
+        System.Collections.IEnumerator FitReviewButtonsEndOfFrame()
+        {
+            yield return new WaitForEndOfFrame();
+            if (writingReviewRoot != null && writingReviewRoot.activeSelf)
+                FitReviewActionButtons();
         }
 
         void AddReInterviewActionsToReviewPanel()

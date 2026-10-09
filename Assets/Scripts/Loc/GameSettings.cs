@@ -44,7 +44,7 @@ namespace StreetCat.Loc
         const string PrefDefFontWeightEn = "sci.default.fontWeight.en";
 
         const string DefaultFontZh = "vn_gothic";
-        const string DefaultFontEn = "vn_gothic";
+        const string DefaultFontEn = "lora";
 
         public const float FontSizeMin = 0.75f;
         public const float FontSizeMax = 1.6f;
@@ -98,7 +98,7 @@ namespace StreetCat.Loc
             {
                 EnsureLoaded();
                 var id = string.IsNullOrEmpty(value) ? DefaultFontId(language) : value;
-                if (!IsKnownFont(id)) id = DefaultFontId(language);
+                if (!IsKnownFont(id) || IsDialogueOnlyFont(id)) id = DefaultFontId(language);
                 if (uiFontId == id) return;
                 uiFontId = id;
                 PersistString(PrefFont(language), uiFontId);
@@ -200,12 +200,21 @@ namespace StreetCat.Loc
         public static void CycleUiFont(int delta)
         {
             EnsureLoaded();
-            int i = FontCatalog.IndexOf(uiFontId);
             int n = FontCatalog.All.Length;
             if (n <= 0) return;
-            i = (i + delta) % n;
-            if (i < 0) i += n;
-            UiFontId = FontCatalog.All[i].Id;
+            int i = FontCatalog.IndexOf(uiFontId);
+            int step = delta >= 0 ? 1 : -1;
+            for (int nTried = 0; nTried < n; nTried++)
+            {
+                i = (i + step) % n;
+                if (i < 0) i += n;
+                var id = FontCatalog.All[i].Id;
+                if (!IsDialogueOnlyFont(id))
+                {
+                    UiFontId = id;
+                    return;
+                }
+            }
         }
 
         static void ApplyFontRecommendedMetrics(bool notify)
@@ -464,6 +473,10 @@ namespace StreetCat.Loc
             return false;
         }
 
+        /// <summary>Verdana is locked to the VN dialogue box — not a UI face.</summary>
+        static bool IsDialogueOnlyFont(string id) =>
+            id == "verdana" || id == "verdana_bold";
+
         static void PersistString(string key, string value)
         {
             if (!rememberLast) return;
@@ -602,7 +615,7 @@ namespace StreetCat.Loc
             string weightKey = lang == GameLanguage.En ? PrefDefFontWeightEn : PrefDefFontWeightZh;
 
             string id = PlayerPrefs.GetString(idKey, defId);
-            if (!IsKnownFont(id)) id = defId;
+            if (!IsKnownFont(id) || IsDialogueOnlyFont(id)) id = defId;
             uiFontId = id;
             var opt = FontCatalog.Get(uiFontId);
             fontSizeScale = PlayerPrefs.HasKey(sizeKey)
@@ -653,7 +666,7 @@ namespace StreetCat.Loc
         {
             string defId = DefaultFontId(lang);
             string id = PlayerPrefs.GetString(PrefFont(lang), defId);
-            if (!IsKnownFont(id)) id = defId;
+            if (!IsKnownFont(id) || IsDialogueOnlyFont(id)) id = defId;
             uiFontId = id;
 
             var opt = FontCatalog.Get(uiFontId);

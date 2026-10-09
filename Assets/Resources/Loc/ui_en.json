@@ -542,11 +542,19 @@
     },
     {
       "key": "ui.writing.review_status_pass",
-      "value": "Review — approved"
+      "value": "Approved"
     },
     {
       "key": "ui.writing.review_status_fail",
-      "value": "Review — returned"
+      "value": "Not approved"
+    },
+    {
+      "key": "ui.writing.review_pill_pass",
+      "value": "Approved"
+    },
+    {
+      "key": "ui.writing.review_pill_fail",
+      "value": "Not approved"
     },
     {
       "key": "ui.writing.review_branch_pill",

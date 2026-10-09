@@ -222,13 +222,15 @@ namespace StreetCat.UI
             RefreshDialogueFontColors();
         }
 
-        static void SharpenDialogueTmp(TextMeshProUGUI t, FontStyles style = FontStyles.Normal)
+        void SharpenDialogueTmp(TextMeshProUGUI t, FontStyles style = FontStyles.Normal)
         {
             if (t == null) return;
             t.enableAutoSizing = false;
-            // Goes through ApplyFontWeight rather than ApplyCrisp alone: this runs after
-            // ApplyActiveFonts has set weights, and clearing dilate here used to leave the
-            // dialogue as the only text on screen stuck at the thinnest cut.
+            if (IsDialogueCopy(t))
+            {
+                ApplyDialogueFace(t, style);
+                return;
+            }
             VnText.ApplyFontWeight(t, GameSettings.FontWeight);
             t.fontStyle |= style;
         }

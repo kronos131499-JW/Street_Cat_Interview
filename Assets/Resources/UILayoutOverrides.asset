@@ -665,8 +665,8 @@ MonoBehaviour:
     anchorMin: {x: 0, y: 1}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 1}
-    anchoredPosition: {x: -12.362152, y: 0.000030517578}
-    sizeDelta: {x: -25.200012, y: 340.2}
+    anchoredPosition: {x: -4, y: 0.000030517578}
+    sizeDelta: {x: -8, y: 340.2}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -760,8 +760,8 @@ MonoBehaviour:
     anchorMin: {x: 0, y: 0}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 0.5}
-    anchoredPosition: {x: 22.95819, y: -56.071014}
-    sizeDelta: {x: 43.170776, y: 107.96741}
+    anchoredPosition: {x: -8, y: -56.071014}
+    sizeDelta: {x: -16, y: 107.96741}
     fontSize: 0
     fontId: 
     overrideLetterSpacing: 0
@@ -2319,16 +2319,149 @@ MonoBehaviour:
     anchorMin: {x: 0, y: 1}
     anchorMax: {x: 1, y: 1}
     pivot: {x: 0.5, y: 1}
-    anchoredPosition: {x: -0, y: 0.000015258789}
-    sizeDelta: {x: 0, y: 134.04001}
-    fontSize: 0
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 121.86}
+    fontSize: 31.2
     fontId: verdana
     overrideLetterSpacing: 1
-    letterSpacing: 1.14
+    letterSpacing: 0.12
+    overrideFontStyle: 1
+    bold: 0
+    fontWeight: 500
+    overrideColor: 0
+    textColor: {r: 0.16470589, g: 0.07058824, b: 0.007843138, a: 1}
+    textMarginTop: 27.543152
+    textOnly: 0
+  - path: VnCanvas/EditorReviewOverlay#0/Sheet#0/Actions#0/BackWrite#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 0.2377907, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
     overrideFontStyle: 0
     bold: 0
     fontWeight: 0
-    overrideColor: 1
-    textColor: {r: 0.16470589, g: 0.07058824, b: 0.007843137, a: 1}
-    textMarginTop: 34.543182
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/EditorReviewOverlay#0/Sheet#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: -1055.6919, y: 0}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/Portrait#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.635, y: 0}
+    anchorMax: {x: 0.995, y: 0.54}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 182.4, y: 30.4}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/NotebookOverlay#0/Desk#0/NotebookPage#0/DetailHost#0/DetailScrollbar#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 1, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0, y: 0.5}
+    anchoredPosition: {x: 14, y: 0}
+    sizeDelta: {x: 12, y: 0}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/EditorReviewOverlay#0/Sheet#0/BodyHost#0/Viewport#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 0}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+    fontId: 
+    overrideLetterSpacing: 0
+    letterSpacing: 0
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/EditorReviewOverlay#0/Sheet#0/BodyHost#0/Viewport#0/Content#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0, y: 1}
+    anchorMax: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 1}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 830.45}
+    fontSize: 0
+    fontId: lora_medium
+    overrideLetterSpacing: 0
+    letterSpacing: 0.4
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 0.16, g: 0.13, b: 0.1, a: 1}
+    textMarginTop: 0
+    textOnly: 0
+  - path: VnCanvas/EditorReviewOverlay#0/Sheet#0/Title#0
+    deleted: 0
+    ignoreParentLayout: 0
+    anchorMin: {x: 0.14, y: 0.858}
+    anchorMax: {x: 0.86, y: 0.945}
+    pivot: {x: 0.5, y: 0.5}
+    anchoredPosition: {x: 0, y: 0}
+    sizeDelta: {x: 0, y: 0}
+    fontSize: 0
+    fontId: lora_semibold
+    overrideLetterSpacing: 0
+    letterSpacing: 0.4
+    overrideFontStyle: 0
+    bold: 0
+    fontWeight: 0
+    overrideColor: 0
+    textColor: {r: 0.16, g: 0.13, b: 0.1, a: 1}
+    textMarginTop: 0
     textOnly: 0
